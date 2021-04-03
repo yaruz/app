@@ -1,0 +1,38 @@
+server:
+  httplisten:  "0.0.0.0:80"
+
+log:
+  encoding:       "json"
+  outputpaths:
+    - "log/app.log"
+    - "stdout"
+  level:          "debug"
+  initialfields:
+    app:          "app"
+
+db:
+  identity:
+    dialect:        "postgres"
+    dsn:            "host=db port=5432 dbname=identity user=postgres password=1gjcnuhtc1! sslmode=disable"
+    islogmode:      True
+    isautomigrate:  True
+  data:
+    dialect:        "postgres"
+    dsn:            "host=db port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
+    islogmode:      True
+    isautomigrate:  True
+  search:
+    dialect:        "postgres"
+    dsn:            "host=db port=5432 dbname=search user=postgres password=1gjcnuhtc1! sslmode=disable"
+    islogmode:      True
+    isautomigrate:  True
+  redis:
+    addrs:
+      - "redis:6379"
+    login:    ""
+    password: ""
+    dbname:   0
+
+jwtsigningkey: "LxsKJywDL5O5PvgODZhBH12KE6k2yL8E"
+jwtexpiration: 72
+sessionlifetime: 96

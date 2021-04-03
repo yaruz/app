@@ -1,0 +1,66 @@
+version: '3.7'
+
+services:
+  restapi:
+    container_name: restapi
+    image: restapi
+    build:
+      context: ./..
+      dockerfile: ./deployment/Dockerfile
+    volumes:
+        - ./log:/bin/log
+    ports:
+      - "80:80"
+    networks:
+        - backend
+    depends_on:
+      redis:
+        condition: service_started
+      db:
+        condition: service_healthy
+    tty: true
+
+  db:
+    container_name: db
+    #db with dev data
+    #image: app-postgres12.2:0.0.1
+    # for pure postgres
+    image: postgres:13-alpine
+    volumes:
+        - postgresql-data:/var/lib/postgresql/data
+        - ./data/db:/docker-entrypoint-initdb.d
+    restart: always
+    environment:
+      #PGDATA: /var/lib/postgresql/data
+      POSTGRES_DB:        data
+      POSTGRES_USER:      postgres
+      POSTGRES_PASSWORD:  1gjcnuhtc1!
+      POSTGRES_MULTIPLE_DATABASES: identity, search
+    ports:
+      - 5401:5432
+    networks:
+      - backend
+    tty: true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    container_name: redis
+    image: redis:6.0
+    restart: always
+    volumes:
+      - ./data/redis:/data
+    ports:
+      - 6379:6379
+    networks:
+        - backend
+    tty: true
+
+volumes:
+  postgresql-data:
+    driver: local
+networks:
+  backend:
