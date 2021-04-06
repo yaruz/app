@@ -1,4 +1,4 @@
-package entity_type
+package entity
 
 import (
 	"context"

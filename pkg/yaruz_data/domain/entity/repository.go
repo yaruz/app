@@ -1,4 +1,4 @@
-package entity_type
+package entity
 
 import (
 	"context"
@@ -10,13 +10,13 @@ import (
 type Repository interface {
 	SetDefaultConditions(conditions *selection_condition.SelectionCondition)
 	// Get returns the album with the specified album ID.
-	Get(ctx context.Context, id uint) (*EntityType, error)
-	First(ctx context.Context, entity *EntityType) (*EntityType, error)
+	Get(ctx context.Context, id uint) (*Entity, error)
+	First(ctx context.Context, entity *Entity) (*Entity, error)
 	// Query returns the list of albums with the given offset and limit.
-	Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]EntityType, error)
+	Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]Entity, error)
 	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (uint, error)
-	Create(ctx context.Context, entity *EntityType) error
-	Update(ctx context.Context, entity *EntityType) error
-	Save(ctx context.Context, entity *EntityType) error
+	Create(ctx context.Context, entity *Entity) error
+	Update(ctx context.Context, entity *Entity) error
+	Save(ctx context.Context, entity *Entity) error
 	Delete(ctx context.Context, id uint) error
 }
