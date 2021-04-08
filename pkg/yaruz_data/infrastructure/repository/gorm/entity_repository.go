@@ -146,7 +146,7 @@ func (r *EntityRepository) Save(ctx context.Context, entity *domain_entity.Entit
 // Delete (soft) deletes a Maintenance record in the database.
 func (r *EntityRepository) Delete(ctx context.Context, id uint) error {
 
-	err := r.db.DB().Unscoped().Delete(&domain_entity.Entity{}, id).Error
+	err := r.db.DB().Delete(&domain_entity.Entity{}, id).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return apperror.ErrNotFound

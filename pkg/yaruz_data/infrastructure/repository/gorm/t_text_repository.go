@@ -119,7 +119,7 @@ func (r *TTextRepository) Save(ctx context.Context, entity *t_string.TString) er
 // Delete (soft) deletes a Maintenance record in the database.
 func (r *TTextRepository) Delete(ctx context.Context, id uint) error {
 
-	err := r.db.DB().Unscoped().Delete(&t_string.TString{}, id).Error
+	err := r.db.DB().Delete(&t_string.TString{}, id).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return apperror.ErrNotFound
