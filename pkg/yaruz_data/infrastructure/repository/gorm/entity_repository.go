@@ -13,7 +13,6 @@ import (
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/selection_condition"
 
-	"github.com/yaruz/app/internal/domain/model"
 	"github.com/yaruz/app/pkg/yaruz_data/pkgerror"
 )
 
@@ -31,7 +30,7 @@ func NewEntityRepository(repository *repository) (*EntityRepository, error) {
 
 func (r *EntityRepository) autoMigrate() {
 	if r.db.IsAutoMigrate() {
-		r.db.DB().AutoMigrate(&model.Model{})
+		r.db.DB().AutoMigrate(&domain_entity.Entity{})
 	}
 }
 
