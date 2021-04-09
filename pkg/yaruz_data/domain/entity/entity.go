@@ -27,7 +27,7 @@ func (e *Entity) TableName() string {
 	return TableName
 }
 
-// New func is a constructor for the EntityType
+// New func is a constructor for the Entity
 func New() *Entity {
 	return &Entity{}
 }
