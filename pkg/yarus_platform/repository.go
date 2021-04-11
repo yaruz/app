@@ -11,8 +11,8 @@ import (
 type Repository struct {
 	cfg    config.Configuration
 	Logger log.ILogger
-	Data   DataDomain
-	Search SearchDomain
+	Data   *DataDomain
+	Search *SearchDomain
 	infra  *infrastructure
 }
 
@@ -22,7 +22,17 @@ func NewRepository(cfg config.Configuration) *Repository {
 		golog.Fatal(err)
 	}
 
-	infra, err := newInfra(cfg.Infra, logger)
+	infra, err := newInfra(logger, cfg.Infra)
+	if err != nil {
+		golog.Fatal(err)
+	}
+
+	data, err := newDataDomain(logger, infra)
+	if err != nil {
+		golog.Fatal(err)
+	}
+
+	search, err := newSearchDomain(logger, infra)
 	if err != nil {
 		golog.Fatal(err)
 	}
@@ -30,8 +40,8 @@ func NewRepository(cfg config.Configuration) *Repository {
 	return &Repository{
 		cfg:    cfg,
 		Logger: logger,
-		Data:   DataDomain{},
-		Search: SearchDomain{},
+		Data:   data,
+		Search: search,
 		infra:  infra,
 	}
 }

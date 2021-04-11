@@ -1,11 +1,15 @@
 package yarus_platform
 
 import (
+	golog "log"
+
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/db/redis"
 	"github.com/minipkg/db/redis/cache"
 	"github.com/minipkg/log"
+	"github.com/pkg/errors"
 	"github.com/yaruz/app/pkg/yarus_platform/config"
+	gormrep "github.com/yaruz/app/pkg/yarus_platform/data/infrastructure/repository/gorm"
 
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity_type"
@@ -27,7 +31,7 @@ type infrastructure struct {
 	Cache    cache.Service
 }
 
-func newInfra(cfg config.Infrastructure, logger log.ILogger) (*infrastructure, error) {
+func newInfra(logger log.ILogger, cfg config.Infrastructure) (*infrastructure, error) {
 
 	DataDB, err := minipkg_gorm.New(cfg.DataDB, logger)
 	if err != nil {
@@ -67,11 +71,53 @@ type DataDomain struct {
 	TText                         DataDomainTText
 }
 
-func newDataDomain() (*DataDomain, error) {
+func newDataDomain(logger log.ILogger, infra *infrastructure) (*DataDomain, error) {
+	d := &DataDomain{}
+	if err := d.setupRepositories(logger, infra); err != nil {
+		return nil, err
+	}
+	d.setupServices(logger)
+	return d, nil
+}
+
+func (d *DataDomain) setupRepositories(logger log.ILogger, infra *infrastructure) (err error) {
+	var ok bool
+
+	repo, err := gormrep.GetRepository(logger, infra.DataDB, entity.EntityName)
+	if err != nil {
+		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", entity.EntityName, err)
+	}
+
+	d.Entity.Repository, ok = repo.(entity.Repository)
+	if !ok {
+		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", entity.EntityName, entity.EntityName, repo)
+	}
+
+	return nil
+}
+
+func (d *DataDomain) setupServices(logger log.ILogger) {
 
 }
 
 type SearchDomain struct {
+}
+
+func newSearchDomain(logger log.ILogger, infra *infrastructure) (*SearchDomain, error) {
+	d := &SearchDomain{}
+	if err := d.setupRepositories(logger, infra); err != nil {
+		return nil, err
+	}
+	d.setupServices(logger)
+	return d, nil
+}
+
+func (d *SearchDomain) setupRepositories(logger log.ILogger, infra *infrastructure) (err error) {
+	return nil
+}
+
+func (d *SearchDomain) setupServices(logger log.ILogger) {
+
 }
 
 type DataDomainEntity struct {
