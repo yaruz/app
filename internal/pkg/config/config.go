@@ -28,10 +28,8 @@ type Configuration struct {
 }
 
 type DB struct {
-	Identity    minipkg_gorm.Config
-	Data		minipkg_gorm.Config
-	Search		minipkg_gorm.Config
-	Redis       redis.Config
+	Identity minipkg_gorm.Config
+	Redis    redis.Config
 }
 
 // defaultPathToConfig is the default path to the app config

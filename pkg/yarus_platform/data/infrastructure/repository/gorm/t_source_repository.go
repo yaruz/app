@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/yaruz/app/pkg/yaruz_data/domain/t_source"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/t_source"
 
 	"github.com/yaruz/app/internal/pkg/apperror"
 
@@ -13,7 +13,7 @@ import (
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/selection_condition"
 
-	"github.com/yaruz/app/pkg/yaruz_data/pkgerror"
+	"github.com/yaruz/app/pkg/yarus_platform/yaruzerror"
 )
 
 // TSourceRepository is a repository for the model entity
@@ -41,7 +41,7 @@ func (r *TSourceRepository) Get(ctx context.Context, id uint) (*t_source.TSource
 	err := r.DB().First(entity, id).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
-			return entity, pkgerror.ErrNotFound
+			return entity, yaruzerror.ErrNotFound
 		}
 	}
 
@@ -52,7 +52,7 @@ func (r *TSourceRepository) First(ctx context.Context, entity *t_source.TSource)
 	err := r.DB().Where(entity).First(entity).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
-			return entity, pkgerror.ErrNotFound
+			return entity, yaruzerror.ErrNotFound
 		}
 	}
 
@@ -70,7 +70,7 @@ func (r *TSourceRepository) Query(ctx context.Context, cond *selection_condition
 	err := db.Find(&items).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return items, pkgerror.ErrNotFound
+			return items, yaruzerror.ErrNotFound
 		}
 	}
 

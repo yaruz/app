@@ -1,4 +1,4 @@
-package pkgerror
+package yaruzerror
 
 import (
 	"github.com/pkg/errors"

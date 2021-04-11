@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/yaruz/app/pkg/yaruz_data/domain/entity_type2property"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity_type2property"
 
 	"github.com/jinzhu/gorm"
 	"github.com/yaruz/app/internal/pkg/apperror"
@@ -12,7 +12,7 @@ import (
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/selection_condition"
 
-	"github.com/yaruz/app/pkg/yaruz_data/pkgerror"
+	"github.com/yaruz/app/pkg/yarus_platform/yaruzerror"
 )
 
 // EntityType2PropertyRepository is a repository for the EntityType2Property entity
@@ -40,7 +40,7 @@ func (r *EntityType2PropertyRepository) Get(ctx context.Context, id uint) (*enti
 	err := r.DB().First(entity, id).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
-			return entity, pkgerror.ErrNotFound
+			return entity, yaruzerror.ErrNotFound
 		}
 	}
 	return entity, err
@@ -50,7 +50,7 @@ func (r *EntityType2PropertyRepository) First(ctx context.Context, entity *entit
 	err := r.DB().Where(entity).First(entity).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
-			return entity, pkgerror.ErrNotFound
+			return entity, yaruzerror.ErrNotFound
 		}
 	}
 	return entity, err
@@ -67,7 +67,7 @@ func (r *EntityType2PropertyRepository) Query(ctx context.Context, cond *selecti
 	err := db.Find(&items).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return items, pkgerror.ErrNotFound
+			return items, yaruzerror.ErrNotFound
 		}
 	}
 	return items, err

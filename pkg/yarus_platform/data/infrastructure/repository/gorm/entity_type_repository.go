@@ -5,14 +5,14 @@ import (
 	"errors"
 
 	"github.com/yaruz/app/internal/pkg/apperror"
-	"github.com/yaruz/app/pkg/yaruz_data/domain/entity_type"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity_type"
 
 	"github.com/jinzhu/gorm"
 
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/selection_condition"
 
-	"github.com/yaruz/app/pkg/yaruz_data/pkgerror"
+	"github.com/yaruz/app/pkg/yarus_platform/yaruzerror"
 )
 
 // EntityTypeRepository is a repository for the model entity
@@ -40,7 +40,7 @@ func (r *EntityTypeRepository) Get(ctx context.Context, id uint) (*entity_type.E
 	err := r.DB().First(entity, id).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
-			return entity, pkgerror.ErrNotFound
+			return entity, yaruzerror.ErrNotFound
 		}
 	}
 	return entity, err
@@ -50,7 +50,7 @@ func (r *EntityTypeRepository) First(ctx context.Context, entity *entity_type.En
 	err := r.DB().Where(entity).First(entity).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
-			return entity, pkgerror.ErrNotFound
+			return entity, yaruzerror.ErrNotFound
 		}
 	}
 	return entity, err
@@ -67,7 +67,7 @@ func (r *EntityTypeRepository) Query(ctx context.Context, cond *selection_condit
 	err := db.Find(&items).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return items, pkgerror.ErrNotFound
+			return items, yaruzerror.ErrNotFound
 		}
 	}
 	return items, err

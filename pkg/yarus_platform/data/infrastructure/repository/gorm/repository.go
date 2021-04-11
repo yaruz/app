@@ -3,7 +3,7 @@ package gorm
 import (
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/selection_condition"
-	"github.com/yaruz/app/pkg/yaruz_data/domain/entity_type"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity_type"
 
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
