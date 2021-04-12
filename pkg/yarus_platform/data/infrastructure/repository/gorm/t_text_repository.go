@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/t_string"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/t_text"
 
 	"github.com/yaruz/app/internal/pkg/apperror"
 
@@ -21,7 +21,7 @@ type TTextRepository struct {
 	repository
 }
 
-var _ t_string.Repository = (*TTextRepository)(nil)
+var _ t_text.Repository = (*TTextRepository)(nil)
 
 // New creates a new TTextRepository
 func NewTTextRepository(repository *repository) (*TTextRepository, error) {
@@ -30,13 +30,13 @@ func NewTTextRepository(repository *repository) (*TTextRepository, error) {
 
 func (r *TTextRepository) autoMigrate() {
 	if r.db.IsAutoMigrate() {
-		r.db.DB().AutoMigrate(&t_string.TString{})
+		r.db.DB().AutoMigrate(&t_text.TText{})
 	}
 }
 
 // Get reads the album with the specified ID from the database.
-func (r *TTextRepository) Get(ctx context.Context, id uint) (*t_string.TString, error) {
-	entity := &t_string.TString{}
+func (r *TTextRepository) Get(ctx context.Context, id uint) (*t_text.TText, error) {
+	entity := &t_text.TText{}
 
 	err := r.DB().First(entity, id).Error
 	if err != nil {
@@ -48,7 +48,7 @@ func (r *TTextRepository) Get(ctx context.Context, id uint) (*t_string.TString, 
 	return entity, err
 }
 
-func (r *TTextRepository) First(ctx context.Context, entity *t_string.TString) (*t_string.TString, error) {
+func (r *TTextRepository) First(ctx context.Context, entity *t_text.TText) (*t_text.TText, error) {
 	err := r.DB().Where(entity).First(entity).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
@@ -60,9 +60,9 @@ func (r *TTextRepository) First(ctx context.Context, entity *t_string.TString) (
 }
 
 // Query retrieves the album records with the specified offset and limit from the database.
-func (r *TTextRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]t_string.TString, error) {
-	items := []t_string.TString{}
-	db := minipkg_gorm.Conditions(r.DB().Model(&t_string.TString{}), cond)
+func (r *TTextRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]t_text.TText, error) {
+	items := []t_text.TText{}
+	db := minipkg_gorm.Conditions(r.DB().Model(&t_text.TText{}), cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -82,7 +82,7 @@ func (r *TTextRepository) Count(ctx context.Context, cond *selection_condition.S
 	c := cond
 	c.Limit = 0
 	c.Offset = 0
-	db := minipkg_gorm.Conditions(r.DB().Model(&t_string.TString{}), cond)
+	db := minipkg_gorm.Conditions(r.DB().Model(&t_text.TText{}), cond)
 	if db.Error != nil {
 		return 0, db.Error
 	}
@@ -92,7 +92,7 @@ func (r *TTextRepository) Count(ctx context.Context, cond *selection_condition.S
 }
 
 // Create saves a new record in the database.
-func (r *TTextRepository) Create(ctx context.Context, entity *t_string.TString) error {
+func (r *TTextRepository) Create(ctx context.Context, entity *t_text.TText) error {
 
 	if !r.db.DB().NewRecord(entity) {
 		return errors.New("entity is not new")
@@ -102,7 +102,7 @@ func (r *TTextRepository) Create(ctx context.Context, entity *t_string.TString) 
 }
 
 // Update saves a changed Maintenance record in the database.
-func (r *TTextRepository) Update(ctx context.Context, entity *t_string.TString) error {
+func (r *TTextRepository) Update(ctx context.Context, entity *t_text.TText) error {
 
 	if r.db.DB().NewRecord(entity) {
 		return errors.New("entity is new")
@@ -112,14 +112,14 @@ func (r *TTextRepository) Update(ctx context.Context, entity *t_string.TString) 
 }
 
 // Save update value in database, if the value doesn't have primary key, will insert it
-func (r *TTextRepository) Save(ctx context.Context, entity *t_string.TString) error {
+func (r *TTextRepository) Save(ctx context.Context, entity *t_text.TText) error {
 	return r.db.DB().Save(entity).Error
 }
 
 // Delete (soft) deletes a Maintenance record in the database.
 func (r *TTextRepository) Delete(ctx context.Context, id uint) error {
 
-	err := r.db.DB().Delete(&t_string.TString{}, id).Error
+	err := r.db.DB().Delete(&t_text.TText{}, id).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return apperror.ErrNotFound
