@@ -1,7 +1,8 @@
-package pg
+package gorm
 
 import (
 	"context"
+
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/selection_condition"
 

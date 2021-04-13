@@ -8,6 +8,9 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform/config"
 )
 
+type IRepository interface {
+}
+
 type Repository struct {
 	cfg    config.Configuration
 	Logger log.ILogger

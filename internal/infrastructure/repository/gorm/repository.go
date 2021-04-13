@@ -1,11 +1,11 @@
-package pg
+package gorm
 
 import (
-	"github.com/yaruz/app/internal/domain/mark"
-	"github.com/yaruz/app/internal/domain/model"
-	"github.com/yaruz/app/internal/domain/user"
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/selection_condition"
+	"github.com/yaruz/app/internal/domain/mark"
+	"github.com/yaruz/app/internal/domain/task"
+	"github.com/yaruz/app/internal/domain/user"
 
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
@@ -37,7 +37,7 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entity string) (r
 		repo, err = NewUserRepository(r)
 	case mark.EntityName:
 		repo, err = NewMarkRepository(r)
-	case model.EntityName:
+	case task.EntityName:
 		repo, err = NewModelRepository(r)
 	default:
 		err = errors.Errorf("Repository for entity %q not found", entity)

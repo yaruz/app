@@ -1,10 +1,11 @@
 package restapi
 
 import (
-	"github.com/yaruz/app/internal/pkg/auth"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/yaruz/app/internal/pkg/auth"
 
 	"github.com/minipkg/log/accesslog"
 
@@ -119,6 +120,6 @@ func (app *App) RegisterHandlers(rg *routing.RouteGroup, authMiddleware routing.
 	//	CarCatalog
 	rgCarCatalog := rg.Group("/car-catalog")
 	controller.RegisterMarkHandlers(rgCarCatalog, app.Domain.Mark.Service, app.Logger, authMiddleware)
-	controller.RegisterModelHandlers(rgCarCatalog, app.Domain.Model.Service, app.Logger, authMiddleware)
+	controller.RegisterModelHandlers(rgCarCatalog, app.Domain.Task.Service, app.Logger, authMiddleware)
 
 }

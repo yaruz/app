@@ -1,4 +1,4 @@
-package pg
+package gorm
 
 import (
 	"context"
@@ -16,7 +16,6 @@ import (
 
 	"github.com/yaruz/app/internal/pkg/config"
 
-	"github.com/minipkg/db/gorm"
 	"github.com/minipkg/log"
 
 	"github.com/yaruz/app/internal/domain/user"

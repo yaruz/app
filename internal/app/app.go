@@ -1,7 +1,6 @@
 package app
 
 import (
-	"github.com/yaruz/app/internal/domain/mark"
 	golog "log"
 
 	"github.com/pkg/errors"
@@ -16,9 +15,9 @@ import (
 	"github.com/minipkg/db/redis/cache"
 	"github.com/minipkg/log"
 
-	"github.com/yaruz/app/internal/domain/model"
+	"github.com/yaruz/app/internal/domain/task"
 	"github.com/yaruz/app/internal/domain/user"
-	pgrep "github.com/yaruz/app/internal/infrastructure/repository/pg"
+	pgrep "github.com/yaruz/app/internal/infrastructure/repository/gorm"
 	redisrep "github.com/yaruz/app/internal/infrastructure/repository/redis"
 )
 
@@ -45,8 +44,7 @@ type Auth struct {
 type Domain struct {
 	User DomainUser
 	//	Example
-	Mark         DomainMark
-	Model        DomainModel
+	Task DomainTask
 }
 
 type DomainUser struct {
@@ -54,15 +52,11 @@ type DomainUser struct {
 	Service    user.IService
 }
 
-type DomainMark struct {
-	Repository mark.Repository
-	Service    mark.IService
+type DomainTask struct {
+	Repository task.Repository
+	Service    task.IService
 }
 
-type DomainModel struct {
-	Repository model.Repository
-	Service    model.IService
-}
 // New func is a constructor for the App
 func New(cfg config.Configuration) *App {
 	logger, err := log.New(cfg.Log)
@@ -91,12 +85,12 @@ func New(cfg config.Configuration) *App {
 	}
 
 	app := &App{
-		Cfg:           cfg,
-		Logger:        logger,
-		IdentityDB:    IdentityDB,
-		DataDB:			DataDB,
-		SearchDB:		SearchDB,
-		Redis:         rDB,
+		Cfg:        cfg,
+		Logger:     logger,
+		IdentityDB: IdentityDB,
+		DataDB:     DataDB,
+		SearchDB:   SearchDB,
+		Redis:      rDB,
 	}
 
 	err = app.Init()
@@ -128,9 +122,9 @@ func (app *App) SetupRepositories() (err error) {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", mark.EntityName, mark.EntityName, app.getPgRepo(app.DataDB, mark.EntityName))
 	}
 
-	app.Domain.Model.Repository, ok = app.getPgRepo(app.DataDB, model.EntityName).(model.Repository)
+	app.Domain.Task.Repository, ok = app.getPgRepo(app.DataDB, task.EntityName).(task.Repository)
 	if !ok {
-		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", model.EntityName, model.EntityName, app.getPgRepo(app.DataDB, model.EntityName))
+		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", task.EntityName, task.EntityName, app.getPgRepo(app.DataDB, task.EntityName))
 	}
 
 	if app.Auth.SessionRepository, err = redisrep.NewSessionRepository(app.Redis, app.Cfg.SessionLifeTime, app.Domain.User.Repository); err != nil {
@@ -148,7 +142,7 @@ func (app *App) SetupServices() {
 	app.Auth.Service = auth.NewService(app.Cfg.JWTSigningKey, app.Cfg.JWTExpiration, app.Domain.User.Service, app.Logger, app.Auth.SessionRepository, app.Auth.TokenRepository)
 	//	CarCatalog
 	app.Domain.Mark.Service = mark.NewService(app.Logger, app.Domain.Mark.Repository)
-	app.Domain.Model.Service = model.NewService(app.Logger, app.Domain.Model.Repository)
+	app.Domain.Task.Service = task.NewService(app.Logger, app.Domain.Task.Repository)
 }
 
 // Run is func to run the App

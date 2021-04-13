@@ -10,20 +10,20 @@ import (
 	"github.com/minipkg/ozzo_routing/errorshandler"
 	"github.com/minipkg/pagination"
 
-	"github.com/yaruz/app/internal/domain/model"
+	"github.com/yaruz/app/internal/domain/task"
 
 	routing "github.com/go-ozzo/ozzo-routing/v2"
 )
 
 type modelController struct {
 	Logger  log.ILogger
-	Service model.IService
+	Service task.IService
 }
 
 // RegisterHandlers sets up the routing of the HTTP handlers.
 //	GET /api/models/ - список всех моделей
 //	GET /api/model/{ID} - детали модели
-func RegisterModelHandlers(r *routing.RouteGroup, service model.IService, logger log.ILogger, authHandler routing.Handler) {
+func RegisterModelHandlers(r *routing.RouteGroup, service task.IService, logger log.ILogger, authHandler routing.Handler) {
 	c := modelController{
 		Logger:  logger,
 		Service: service,
