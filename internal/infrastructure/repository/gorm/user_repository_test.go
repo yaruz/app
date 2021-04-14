@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/minipkg/db/gorm/mock"
+	"github.com/minipkg/go-app-common/db/pg"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"

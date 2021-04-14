@@ -29,6 +29,8 @@ type Configuration struct {
 
 type DB struct {
 	Identity minipkg_gorm.Config
+	DataDB   minipkg_gorm.Config
+	SearchDB minipkg_gorm.Config
 	Redis    redis.Config
 }
 
