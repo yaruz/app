@@ -55,9 +55,9 @@ func (app *App) buildHandler() *routing.Router {
 	router := routing.New()
 
 	router.Use(
-		accesslog.Handler(app.Logger),
+		accesslog.Handler(app.Infra.Logger),
 		slash.Remover(http.StatusMovedPermanently),
-		errorshandler.Handler(app.Logger),
+		errorshandler.Handler(app.Infra.Logger),
 		cors.Handler(cors.AllowAll),
 	)
 	//router.NotFound(file.Content("website/index.html"))
@@ -80,11 +80,11 @@ func (app *App) buildHandler() *routing.Router {
 		ozzo_routing.SetHeader("Content-Type", "application/json; charset=UTF-8"),
 	)
 
-	authMiddleware := auth.Middleware(app.Logger, app.Auth.Service)
+	authMiddleware := auth.Middleware(app.Infra.Logger, app.Auth.Service)
 
 	auth.RegisterHandlers(api.Group(""),
 		app.Auth.Service,
-		app.Logger,
+		app.Infra.Logger,
 	)
 
 	app.RegisterHandlers(api, authMiddleware)
@@ -97,18 +97,18 @@ func (app *App) Run() error {
 	go func() {
 		defer func() {
 			if err := app.Stop(); err != nil {
-				app.Logger.Error(err)
+				app.Infra.Logger.Error(err)
 			}
 
-			err := app.Logger.Sync()
+			err := app.Infra.Logger.Sync()
 			if err != nil {
 				log.Println(err.Error())
 			}
 		}()
 		// start the HTTP server with graceful shutdown
-		routing.GracefulShutdown(app.Server, 10*time.Second, app.Logger.Infof)
+		routing.GracefulShutdown(app.Server, 10*time.Second, app.Infra.Logger.Infof)
 	}()
-	app.Logger.Infof("server %v is running at %v", Version, app.Server.Addr)
+	app.Infra.Logger.Infof("server %v is running at %v", Version, app.Server.Addr)
 	if err := app.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		return err
 	}
@@ -117,9 +117,7 @@ func (app *App) Run() error {
 
 // RegisterHandlers sets up the routing of the HTTP handlers.
 func (app *App) RegisterHandlers(rg *routing.RouteGroup, authMiddleware routing.Handler) {
-	//	CarCatalog
-	rgCarCatalog := rg.Group("/car-catalog")
-	controller.RegisterMarkHandlers(rgCarCatalog, app.Domain.Mark.Service, app.Logger, authMiddleware)
-	controller.RegisterModelHandlers(rgCarCatalog, app.Domain.Task.Service, app.Logger, authMiddleware)
-
+	//	Example
+	rgTask := rg.Group("/task")
+	controller.RegisterModelHandlers(rgTask, app.Domain.Task.Service, app.Infra.Logger, authMiddleware)
 }

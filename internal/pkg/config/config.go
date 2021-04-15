@@ -31,8 +31,8 @@ type Configuration struct {
 
 type DB struct {
 	Identity minipkg_gorm.Config
-	DataDB   minipkg_gorm.Config
-	SearchDB minipkg_gorm.Config
+	Data     minipkg_gorm.Config
+	Search   minipkg_gorm.Config
 	Redis    redis.Config
 }
 
@@ -40,8 +40,8 @@ func (c *Configuration) YaruzPlatformConfig() yaruz_platform_config.Configuratio
 	return yaruz_platform_config.Configuration{
 		Infra: yaruz_platform_config.Infrastructure{
 			Log:           c.Log,
-			DataDB:        c.DB.DataDB,
-			SearchDB:      c.DB.SearchDB,
+			DataDB:        c.DB.Data,
+			SearchDB:      c.DB.Search,
 			Redis:         c.DB.Redis,
 			CacheLifeTime: c.CacheLifeTime,
 		},

@@ -25,7 +25,9 @@ var _ t_string.Repository = (*TStringRepository)(nil)
 
 // New creates a new TStringRepository
 func NewTStringRepository(repository *repository) (*TStringRepository, error) {
-	return &TStringRepository{repository: *repository}, nil
+	r := &TStringRepository{repository: *repository}
+	r.autoMigrate()
+	return r, nil
 }
 
 func (r *TStringRepository) autoMigrate() {

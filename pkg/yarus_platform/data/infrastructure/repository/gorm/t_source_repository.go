@@ -25,7 +25,9 @@ var _ t_source.Repository = (*TSourceRepository)(nil)
 
 // New creates a new TSourceRepository
 func NewTSourceRepository(repository *repository) (*TSourceRepository, error) {
-	return &TSourceRepository{repository: *repository}, nil
+	r := &TSourceRepository{repository: *repository}
+	r.autoMigrate()
+	return r, nil
 }
 
 func (r *TSourceRepository) autoMigrate() {

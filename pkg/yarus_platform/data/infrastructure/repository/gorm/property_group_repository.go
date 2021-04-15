@@ -24,7 +24,9 @@ var _ property_group.Repository = (*PropertyGroupRepository)(nil)
 
 // New creates a new PropertyGroupRepository
 func NewPropertyGroupRepository(repository *repository) (*PropertyGroupRepository, error) {
-	return &PropertyGroupRepository{repository: *repository}, nil
+	r := &PropertyGroupRepository{repository: *repository}
+	r.autoMigrate()
+	return r, nil
 }
 
 func (r *PropertyGroupRepository) autoMigrate() {

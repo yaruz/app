@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
+	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/db/gorm/mock"
-	"github.com/minipkg/go-app-common/db/pg"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
@@ -21,8 +21,6 @@ import (
 
 	"github.com/yaruz/app/internal/domain/user"
 )
-
-const pkgName = "pg"
 
 type UserRepositoryTestSuite struct {
 	//	for all tests
@@ -56,7 +54,7 @@ func (s *UserRepositoryTestSuite) SetupSuite() {
 
 func (s *UserRepositoryTestSuite) SetupTest() {
 	var ok bool
-	var pgDB pg.IDB
+	var pgDB minipkg_gorm.IDB
 	var PgMock *sqlmock.Sqlmock
 	var err error
 	require := require.New(s.T())

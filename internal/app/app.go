@@ -21,7 +21,7 @@ import (
 
 	"github.com/yaruz/app/internal/domain/task"
 	"github.com/yaruz/app/internal/domain/user"
-	pgrep "github.com/yaruz/app/internal/infrastructure/repository/gorm"
+	gormrep "github.com/yaruz/app/internal/infrastructure/repository/gorm"
 	redisrep "github.com/yaruz/app/internal/infrastructure/repository/redis"
 )
 
@@ -123,7 +123,7 @@ func (app *App) Init() (err error) {
 func (app *App) SetupRepositories() (err error) {
 	var ok bool
 
-	gormRepo, err := pgrep.GetRepository(app.Infra.Logger, app.Infra.IdentityDB, user.EntityName)
+	gormRepo, err := gormrep.GetRepository(app.Infra.Logger, app.Infra.IdentityDB, user.EntityName)
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", user.EntityName, err)
 	}

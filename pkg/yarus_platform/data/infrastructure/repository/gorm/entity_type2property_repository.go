@@ -24,7 +24,9 @@ var _ entity_type2property.Repository = (*EntityType2PropertyRepository)(nil)
 
 // New creates a new EntityType2PropertyRepository
 func NewEntityType2PropertyRepository(repository *repository) (*EntityType2PropertyRepository, error) {
-	return &EntityType2PropertyRepository{repository: *repository}, nil
+	r := &EntityType2PropertyRepository{repository: *repository}
+	r.autoMigrate()
+	return r, nil
 }
 
 func (r *EntityType2PropertyRepository) autoMigrate() {

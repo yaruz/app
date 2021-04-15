@@ -25,7 +25,9 @@ var _ t_text.Repository = (*TTextRepository)(nil)
 
 // New creates a new TTextRepository
 func NewTTextRepository(repository *repository) (*TTextRepository, error) {
-	return &TTextRepository{repository: *repository}, nil
+	r := &TTextRepository{repository: *repository}
+	r.autoMigrate()
+	return r, nil
 }
 
 func (r *TTextRepository) autoMigrate() {

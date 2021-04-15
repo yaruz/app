@@ -24,7 +24,9 @@ var _ property.Repository = (*PropertyRepository)(nil)
 
 // New creates a new PropertyRepository
 func NewPropertyRepository(repository *repository) (*PropertyRepository, error) {
-	return &PropertyRepository{repository: *repository}, nil
+	r := &PropertyRepository{repository: *repository}
+	r.autoMigrate()
+	return r, nil
 }
 
 func (r *PropertyRepository) autoMigrate() {

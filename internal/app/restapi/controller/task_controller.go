@@ -21,18 +21,17 @@ type modelController struct {
 }
 
 // RegisterHandlers sets up the routing of the HTTP handlers.
-//	GET /api/models/ - список всех моделей
-//	GET /api/model/{ID} - детали модели
+//	GET /api/tasks/ - список всех моделей
+//	GET /api/task/{ID} - детали модели
 func RegisterModelHandlers(r *routing.RouteGroup, service task.IService, logger log.ILogger, authHandler routing.Handler) {
 	c := modelController{
 		Logger:  logger,
 		Service: service,
 	}
 
-	r.Get("/models", c.list)
-	r.Get("/modelsp", c.listp) //	try with pagination
-	r.Get(`/model/<id>`, c.get)
-	r.Get(`/mark/<markId>/models`, c.list)
+	r.Get("/tasks", c.list)
+	r.Get("/tasksp", c.listp) //	try with pagination
+	r.Get(`/task/<id>`, c.get)
 }
 
 // get method is for getting a one entity by ID
