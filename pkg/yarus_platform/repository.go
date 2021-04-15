@@ -1,50 +1,51 @@
 package yarus_platform
 
 import (
-	golog "log"
-
 	"github.com/minipkg/log"
 
 	"github.com/yaruz/app/pkg/yarus_platform/config"
 )
 
 type IRepository interface {
+	Stop() error
 }
 
 type Repository struct {
 	cfg    config.Configuration
-	Logger log.ILogger
 	Data   *DataDomain
 	Search *SearchDomain
 	infra  *infrastructure
 }
 
-func NewRepository(cfg config.Configuration) *Repository {
-	logger, err := log.New(cfg.Log)
+func NewRepository(cfg config.Configuration) (*Repository, error) {
+	logger, err := log.New(cfg.Infra.Log)
 	if err != nil {
-		golog.Fatal(err)
+		return nil, err
 	}
 
 	infra, err := newInfra(logger, cfg.Infra)
 	if err != nil {
-		golog.Fatal(err)
+		return nil, err
 	}
 
-	data, err := newDataDomain(logger, infra)
+	data, err := newDataDomain(infra)
 	if err != nil {
-		golog.Fatal(err)
+		return nil, err
 	}
 
-	search, err := newSearchDomain(logger, infra)
+	search, err := newSearchDomain(infra)
 	if err != nil {
-		golog.Fatal(err)
+		return nil, err
 	}
 
 	return &Repository{
 		cfg:    cfg,
-		Logger: logger,
 		Data:   data,
 		Search: search,
 		infra:  infra,
-	}
+	}, nil
+}
+
+func (r *Repository) Stop() error {
+	return r.infra.Stop()
 }

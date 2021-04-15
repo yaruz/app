@@ -3,6 +3,8 @@ package config
 import (
 	"flag"
 
+	yaruz_platform_config "github.com/yaruz/app/pkg/yarus_platform/config"
+
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/db/redis"
 	"github.com/minipkg/log"
@@ -32,6 +34,18 @@ type DB struct {
 	DataDB   minipkg_gorm.Config
 	SearchDB minipkg_gorm.Config
 	Redis    redis.Config
+}
+
+func (c *Configuration) YaruzPlatformConfig() yaruz_platform_config.Configuration {
+	return yaruz_platform_config.Configuration{
+		Infra: yaruz_platform_config.Infrastructure{
+			Log:           c.Log,
+			DataDB:        c.DB.DataDB,
+			SearchDB:      c.DB.SearchDB,
+			Redis:         c.DB.Redis,
+			CacheLifeTime: c.CacheLifeTime,
+		},
+	}
 }
 
 // defaultPathToConfig is the default path to the app config

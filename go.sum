@@ -283,6 +283,8 @@ github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5
 github.com/miekg/dns v1.0.14/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
 github.com/minipkg/db v0.0.2 h1:420Rh9Q8bUE1/e30IpvTTLtcFnK3MBtSqeZnZnx2GPs=
 github.com/minipkg/db v0.0.2/go.mod h1:hUKnNaQeBGU9ODX5yw+5kqPzSCBukAVIF4RizUI5mGM=
+github.com/minipkg/db v0.0.3 h1:YHo4GT1dBfCTHErnI01svii3VVySLFzYoUOstr1WYfY=
+github.com/minipkg/db v0.0.3/go.mod h1:hUKnNaQeBGU9ODX5yw+5kqPzSCBukAVIF4RizUI5mGM=
 github.com/minipkg/go-app-common v0.0.0-20210319172844-0ac9ed031c8d h1:87TVyfZZgOvpKLSA/sso4Z1ymnAZcno//nIgHVmcGSc=
 github.com/minipkg/go-app-common v0.0.0-20210319172844-0ac9ed031c8d/go.mod h1:/9R/TBMFBrapmGjPPh17gHJvKISr8OLOYwLblLaF26k=
 github.com/minipkg/log v0.0.0-20210401163336-53d77a21a670 h1:HYLUwCQktXd8+qFxrkz8ebyL3Tt+Prq3yIiTQPmLRAM=

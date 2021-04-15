@@ -7,11 +7,11 @@ import (
 )
 
 type Configuration struct {
-	Log   log.Config
 	Infra Infrastructure
 }
 
 type Infrastructure struct {
+	Log           log.Config
 	DataDB        minipkg_gorm.Config
 	SearchDB      minipkg_gorm.Config
 	Redis         redis.Config

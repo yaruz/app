@@ -5,10 +5,13 @@ import (
 	"github.com/minipkg/db/redis"
 	"github.com/minipkg/db/redis/cache"
 	"github.com/minipkg/log"
+	"github.com/pkg/errors"
+	"github.com/yaruz/app/internal/pkg/apperror"
 	"github.com/yaruz/app/pkg/yarus_platform/config"
 )
 
 type infrastructure struct {
+	Logger   log.ILogger
 	DataDB   minipkg_gorm.IDB
 	SearchDB minipkg_gorm.IDB
 	Redis    redis.IDB
@@ -17,12 +20,12 @@ type infrastructure struct {
 
 func newInfra(logger log.ILogger, cfg config.Infrastructure) (*infrastructure, error) {
 
-	DataDB, err := minipkg_gorm.New(cfg.DataDB, logger)
+	DataDB, err := minipkg_gorm.New(logger, cfg.DataDB)
 	if err != nil {
 		return nil, err
 	}
 
-	SearchDB, err := minipkg_gorm.New(cfg.SearchDB, logger)
+	SearchDB, err := minipkg_gorm.New(logger, cfg.SearchDB)
 	if err != nil {
 		return nil, err
 	}
@@ -33,9 +36,27 @@ func newInfra(logger log.ILogger, cfg config.Infrastructure) (*infrastructure, e
 	}
 
 	return &infrastructure{
+		Logger:   logger,
 		DataDB:   DataDB,
 		SearchDB: SearchDB,
 		Redis:    rDB,
 		Cache:    cache.NewService(rDB, cfg.CacheLifeTime),
 	}, nil
+}
+
+func (i *infrastructure) Stop() error {
+	errRedis := i.Redis.Close()
+	errDBData := i.DataDB.DB().Close()
+	errDBSearch := i.SearchDB.DB().Close()
+
+	switch {
+	case errDBData != nil:
+		return errors.Wrapf(apperror.ErrInternal, "db close error: %v", errDBData)
+	case errDBSearch != nil:
+		return errors.Wrapf(apperror.ErrInternal, "db close error: %v", errDBSearch)
+	case errRedis != nil:
+		return errors.Wrapf(apperror.ErrInternal, "redis close error: %v", errRedis)
+	}
+
+	return nil
 }

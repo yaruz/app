@@ -97,19 +97,19 @@ type DataDomainTText struct {
 	Repository t_text.Repository
 }
 
-func newDataDomain(logger log.ILogger, infra *infrastructure) (*DataDomain, error) {
+func newDataDomain(infra *infrastructure) (*DataDomain, error) {
 	d := &DataDomain{}
-	if err := d.setupRepositories(logger, infra); err != nil {
+	if err := d.setupRepositories(infra); err != nil {
 		return nil, err
 	}
-	d.setupServices(logger)
+	d.setupServices(infra.Logger)
 	return d, nil
 }
 
-func (d *DataDomain) setupRepositories(logger log.ILogger, infra *infrastructure) (err error) {
+func (d *DataDomain) setupRepositories(infra *infrastructure) (err error) {
 	var ok bool
 
-	repo, err := gormrep.GetRepository(logger, infra.DataDB, entity.EntityName)
+	repo, err := gormrep.GetRepository(infra.Logger, infra.DataDB, entity.EntityName)
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", entity.EntityName, err)
 	}
@@ -118,7 +118,7 @@ func (d *DataDomain) setupRepositories(logger log.ILogger, infra *infrastructure
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", entity.EntityName, entity.EntityName, repo)
 	}
 
-	repo, err = gormrep.GetRepository(logger, infra.DataDB, entity_type2property.EntityName)
+	repo, err = gormrep.GetRepository(infra.Logger, infra.DataDB, entity_type2property.EntityName)
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", entity_type2property.EntityName, err)
 	}
@@ -127,7 +127,7 @@ func (d *DataDomain) setupRepositories(logger log.ILogger, infra *infrastructure
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", entity_type2property.EntityName, entity_type2property.EntityName, repo)
 	}
 
-	repo, err = gormrep.GetRepository(logger, infra.DataDB, entity_type.EntityName)
+	repo, err = gormrep.GetRepository(infra.Logger, infra.DataDB, entity_type.EntityName)
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", entity_type.EntityName, err)
 	}
@@ -136,7 +136,7 @@ func (d *DataDomain) setupRepositories(logger log.ILogger, infra *infrastructure
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", entity_type.EntityName, entity_type.EntityName, repo)
 	}
 
-	repo, err = gormrep.GetRepository(logger, infra.DataDB, property_group.EntityName)
+	repo, err = gormrep.GetRepository(infra.Logger, infra.DataDB, property_group.EntityName)
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", property_group.EntityName, err)
 	}
@@ -145,7 +145,7 @@ func (d *DataDomain) setupRepositories(logger log.ILogger, infra *infrastructure
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", property_group.EntityName, property_group.EntityName, repo)
 	}
 
-	repo, err = gormrep.GetRepository(logger, infra.DataDB, property.EntityName)
+	repo, err = gormrep.GetRepository(infra.Logger, infra.DataDB, property.EntityName)
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", property.EntityName, err)
 	}
@@ -154,7 +154,7 @@ func (d *DataDomain) setupRepositories(logger log.ILogger, infra *infrastructure
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", property.EntityName, property.EntityName, repo)
 	}
 
-	repo, err = gormrep.GetRepository(logger, infra.DataDB, property_type2property_view_type.EntityName)
+	repo, err = gormrep.GetRepository(infra.Logger, infra.DataDB, property_type2property_view_type.EntityName)
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", property_type2property_view_type.EntityName, err)
 	}
@@ -163,7 +163,7 @@ func (d *DataDomain) setupRepositories(logger log.ILogger, infra *infrastructure
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", property_type2property_view_type.EntityName, property_type2property_view_type.EntityName, repo)
 	}
 
-	repo, err = gormrep.GetRepository(logger, infra.DataDB, property_type.EntityName)
+	repo, err = gormrep.GetRepository(infra.Logger, infra.DataDB, property_type.EntityName)
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", property_type.EntityName, err)
 	}
@@ -172,7 +172,7 @@ func (d *DataDomain) setupRepositories(logger log.ILogger, infra *infrastructure
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", property_type.EntityName, property_type.EntityName, repo)
 	}
 
-	repo, err = gormrep.GetRepository(logger, infra.DataDB, property_unit.EntityName)
+	repo, err = gormrep.GetRepository(infra.Logger, infra.DataDB, property_unit.EntityName)
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", property_unit.EntityName, err)
 	}
@@ -181,7 +181,7 @@ func (d *DataDomain) setupRepositories(logger log.ILogger, infra *infrastructure
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", property_unit.EntityName, property_unit.EntityName, repo)
 	}
 
-	repo, err = gormrep.GetRepository(logger, infra.DataDB, property_view_type.EntityName)
+	repo, err = gormrep.GetRepository(infra.Logger, infra.DataDB, property_view_type.EntityName)
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", property_view_type.EntityName, err)
 	}
@@ -190,7 +190,7 @@ func (d *DataDomain) setupRepositories(logger log.ILogger, infra *infrastructure
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", property_view_type.EntityName, property_view_type.EntityName, repo)
 	}
 
-	repo, err = gormrep.GetRepository(logger, infra.DataDB, t_source.EntityName)
+	repo, err = gormrep.GetRepository(infra.Logger, infra.DataDB, t_source.EntityName)
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", t_source.EntityName, err)
 	}
@@ -199,7 +199,7 @@ func (d *DataDomain) setupRepositories(logger log.ILogger, infra *infrastructure
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", t_source.EntityName, t_source.EntityName, repo)
 	}
 
-	repo, err = gormrep.GetRepository(logger, infra.DataDB, t_string.EntityName)
+	repo, err = gormrep.GetRepository(infra.Logger, infra.DataDB, t_string.EntityName)
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", t_string.EntityName, err)
 	}
@@ -208,7 +208,7 @@ func (d *DataDomain) setupRepositories(logger log.ILogger, infra *infrastructure
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", t_string.EntityName, t_string.EntityName, repo)
 	}
 
-	repo, err = gormrep.GetRepository(logger, infra.DataDB, t_text.EntityName)
+	repo, err = gormrep.GetRepository(infra.Logger, infra.DataDB, t_text.EntityName)
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", t_text.EntityName, err)
 	}

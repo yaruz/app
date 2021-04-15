@@ -7,16 +7,16 @@ import (
 type SearchDomain struct {
 }
 
-func newSearchDomain(logger log.ILogger, infra *infrastructure) (*SearchDomain, error) {
+func newSearchDomain(infra *infrastructure) (*SearchDomain, error) {
 	d := &SearchDomain{}
-	if err := d.setupRepositories(logger, infra); err != nil {
+	if err := d.setupRepositories(infra); err != nil {
 		return nil, err
 	}
-	d.setupServices(logger)
+	d.setupServices(infra.Logger)
 	return d, nil
 }
 
-func (d *SearchDomain) setupRepositories(logger log.ILogger, infra *infrastructure) (err error) {
+func (d *SearchDomain) setupRepositories(infra *infrastructure) (err error) {
 	return nil
 }
 
