@@ -12,9 +12,9 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/property_type2property_view_type"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/property_unit"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/property_view_type"
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/t_source"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/t_string"
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/t_text"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_source"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_value"
 
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
@@ -60,11 +60,11 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 		repo, err = NewPropertyUnitRepository(r)
 	case property_view_type.EntityName:
 		repo, err = NewPropertyViewTypeRepository(r)
-	case t_source.EntityName:
+	case text_source.EntityName:
 		repo, err = NewTSourceRepository(r)
 	case t_string.EntityName:
 		repo, err = NewTStringRepository(r)
-	case t_text.EntityName:
+	case text_value.EntityName:
 		repo, err = NewTTextRepository(r)
 	default:
 		err = errors.Errorf("Repository for entity %q not found", entityName)

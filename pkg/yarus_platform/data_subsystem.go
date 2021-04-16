@@ -17,9 +17,9 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/property_type2property_view_type"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/property_unit"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/property_view_type"
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/t_source"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/t_string"
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/t_text"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_source"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_value"
 )
 
 type DataDomain struct {
@@ -83,8 +83,8 @@ type DataDomainPropertyViewType struct {
 }
 
 type DataDomainTSource struct {
-	Service    t_source.IService
-	Repository t_source.Repository
+	Service    text_source.IService
+	Repository text_source.Repository
 }
 
 type DataDomainTString struct {
@@ -93,8 +93,8 @@ type DataDomainTString struct {
 }
 
 type DataDomainTText struct {
-	Service    t_text.IService
-	Repository t_text.Repository
+	Service    text_value.IService
+	Repository text_value.Repository
 }
 
 func newDataDomain(infra *infrastructure) (*DataDomain, error) {
@@ -109,13 +109,13 @@ func newDataDomain(infra *infrastructure) (*DataDomain, error) {
 func (d *DataDomain) setupRepositories(infra *infrastructure) (err error) {
 	var ok bool
 
-	repo, err := gormrep.GetRepository(infra.Logger, infra.DataDB, t_source.EntityName)
+	repo, err := gormrep.GetRepository(infra.Logger, infra.DataDB, text_source.EntityName)
 	if err != nil {
-		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", t_source.EntityName, err)
+		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", text_source.EntityName, err)
 	}
-	d.TSource.Repository, ok = repo.(t_source.Repository)
+	d.TSource.Repository, ok = repo.(text_source.Repository)
 	if !ok {
-		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", t_source.EntityName, t_source.EntityName, repo)
+		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", text_source.EntityName, text_source.EntityName, repo)
 	}
 
 	repo, err = gormrep.GetRepository(infra.Logger, infra.DataDB, property_unit.EntityName)
@@ -181,13 +181,13 @@ func (d *DataDomain) setupRepositories(infra *infrastructure) (err error) {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", t_string.EntityName, t_string.EntityName, repo)
 	}
 
-	repo, err = gormrep.GetRepository(infra.Logger, infra.DataDB, t_text.EntityName)
+	repo, err = gormrep.GetRepository(infra.Logger, infra.DataDB, text_value.EntityName)
 	if err != nil {
-		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", t_text.EntityName, err)
+		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", text_value.EntityName, err)
 	}
-	d.TText.Repository, ok = repo.(t_text.Repository)
+	d.TText.Repository, ok = repo.(text_value.Repository)
 	if !ok {
-		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", t_text.EntityName, t_text.EntityName, repo)
+		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", text_value.EntityName, text_value.EntityName, repo)
 	}
 
 	repo, err = gormrep.GetRepository(infra.Logger, infra.DataDB, entity_type.EntityName)
@@ -230,7 +230,7 @@ func (d *DataDomain) setupServices(logger log.ILogger) {
 	d.PropertyType.Service = property_type.NewService(logger, d.PropertyType.Repository)
 	d.PropertyUnit.Service = property_unit.NewService(logger, d.PropertyUnit.Repository)
 	d.PropertyViewType.Service = property_view_type.NewService(logger, d.PropertyViewType.Repository)
-	d.TSource.Service = t_source.NewService(logger, d.TSource.Repository)
+	d.TSource.Service = text_source.NewService(logger, d.TSource.Repository)
 	d.TString.Service = t_string.NewService(logger, d.TString.Repository)
-	d.TText.Service = t_text.NewService(logger, d.TText.Repository)
+	d.TText.Service = text_value.NewService(logger, d.TText.Repository)
 }

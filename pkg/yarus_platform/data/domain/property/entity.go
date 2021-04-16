@@ -14,21 +14,22 @@ const (
 
 // Property ...
 type Property struct {
-	ID                 uint                     `gorm:"type:bigint;primaryKey" json:"id"`
-	Sysname            string                   `gorm:"type:varchar(100) not null;unique;index" json:"sysname"`
-	TSouirceID         uint                     `sql:"type:bigint not null REFERENCES \"t_source\"(id)" gorm:"index" json:"tSourceId"`
-	Name               string                   `gorm:"-" json:"name"`
-	Description        string                   `gorm:"-" json:"description"`
-	PropertyTypeID     uint                     `sql:"type:bigint not null REFERENCES \"property_type\"(id)" gorm:"index" json:"propertyTypeId"`
-	PropertyUnitID     uint                     `sql:"type:bigint not null REFERENCES \"property_unit\"(id)" gorm:"index" json:"propertyUnitId"`
-	PropertyViewTypeID uint                     `sql:"type:bigint REFERENCES \"property_view_type\"(id)" gorm:"index" json:"propertyViewTypeId"`
-	PropertyGroupID    uint                     `sql:"type:bigint REFERENCES \"property_group\"(id)" gorm:"index" json:"propertyGroupId"`
-	IsSpecific         bool                     `gorm:"type:boolean not null default false;" json:"isSpecific"`
-	IsRange            bool                     `gorm:"type:boolean not null default false;" json:"isRange"`
-	IsMultiple         bool                     `gorm:"type:boolean not null default false;" json:"isMultiple"`
-	SortOrder          uint                     `gorm:"type:smallint not null default 9999" json:"sortOrder"`
-	OptionsB           datatypes.JSON           `json:"-"`
-	Options            []map[string]interface{} `gorm:"-" json:"options"`
+	ID                  uint                     `gorm:"type:bigint;primaryKey" json:"id"`
+	Sysname             string                   `gorm:"type:varchar(100) not null;unique;index" json:"sysname"`
+	NameSourceID        uint                     `sql:"type:bigint not null REFERENCES \"text_source\"(id)" gorm:"index" json:"-"`
+	DescriptionSourceID uint                     `sql:"type:bigint not null REFERENCES \"text_source\"(id)" gorm:"index" json:"-"`
+	Name                string                   `gorm:"-" json:"name"`
+	Description         string                   `gorm:"-" json:"description"`
+	PropertyTypeID      uint                     `sql:"type:bigint not null REFERENCES \"property_type\"(id)" gorm:"index" json:"propertyTypeId"`
+	PropertyUnitID      uint                     `sql:"type:bigint not null REFERENCES \"property_unit\"(id)" gorm:"index" json:"propertyUnitId"`
+	PropertyViewTypeID  uint                     `sql:"type:bigint REFERENCES \"property_view_type\"(id)" gorm:"index" json:"propertyViewTypeId"`
+	PropertyGroupID     uint                     `sql:"type:bigint REFERENCES \"property_group\"(id)" gorm:"index" json:"propertyGroupId"`
+	IsSpecific          bool                     `gorm:"type:boolean not null default false;" json:"isSpecific"`
+	IsRange             bool                     `gorm:"type:boolean not null default false;" json:"isRange"`
+	IsMultiple          bool                     `gorm:"type:boolean not null default false;" json:"isMultiple"`
+	SortOrder           uint                     `gorm:"type:smallint not null default 9999" json:"sortOrder"`
+	OptionsB            datatypes.JSON           `json:"-"`
+	Options             []map[string]interface{} `gorm:"-" json:"options"`
 
 	CreatedAt time.Time  `json:"createdAt"`
 	UpdatedAt time.Time  `json:"updatedAt"`

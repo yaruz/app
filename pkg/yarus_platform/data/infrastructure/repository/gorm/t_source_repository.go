@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/t_source"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_source"
 
 	"github.com/yaruz/app/internal/pkg/apperror"
 
@@ -21,7 +21,7 @@ type TSourceRepository struct {
 	repository
 }
 
-var _ t_source.Repository = (*TSourceRepository)(nil)
+var _ text_source.Repository = (*TSourceRepository)(nil)
 
 // New creates a new TSourceRepository
 func NewTSourceRepository(repository *repository) (*TSourceRepository, error) {
@@ -32,13 +32,13 @@ func NewTSourceRepository(repository *repository) (*TSourceRepository, error) {
 
 func (r *TSourceRepository) autoMigrate() {
 	if r.db.IsAutoMigrate() {
-		r.db.DB().AutoMigrate(&t_source.TSource{})
+		r.db.DB().AutoMigrate(&text_source.TextSource{})
 	}
 }
 
 // Get reads the album with the specified ID from the database.
-func (r *TSourceRepository) Get(ctx context.Context, id uint) (*t_source.TSource, error) {
-	entity := &t_source.TSource{}
+func (r *TSourceRepository) Get(ctx context.Context, id uint) (*text_source.TextSource, error) {
+	entity := &text_source.TextSource{}
 
 	err := r.DB().First(entity, id).Error
 	if err != nil {
@@ -50,7 +50,7 @@ func (r *TSourceRepository) Get(ctx context.Context, id uint) (*t_source.TSource
 	return entity, err
 }
 
-func (r *TSourceRepository) First(ctx context.Context, entity *t_source.TSource) (*t_source.TSource, error) {
+func (r *TSourceRepository) First(ctx context.Context, entity *text_source.TextSource) (*text_source.TextSource, error) {
 	err := r.DB().Where(entity).First(entity).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
@@ -62,9 +62,9 @@ func (r *TSourceRepository) First(ctx context.Context, entity *t_source.TSource)
 }
 
 // Query retrieves the album records with the specified offset and limit from the database.
-func (r *TSourceRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]t_source.TSource, error) {
-	items := []t_source.TSource{}
-	db := minipkg_gorm.Conditions(r.DB().Model(&t_source.TSource{}), cond)
+func (r *TSourceRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]text_source.TextSource, error) {
+	items := []text_source.TextSource{}
+	db := minipkg_gorm.Conditions(r.DB().Model(&text_source.TextSource{}), cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -84,7 +84,7 @@ func (r *TSourceRepository) Count(ctx context.Context, cond *selection_condition
 	c := cond
 	c.Limit = 0
 	c.Offset = 0
-	db := minipkg_gorm.Conditions(r.DB().Model(&t_source.TSource{}), cond)
+	db := minipkg_gorm.Conditions(r.DB().Model(&text_source.TextSource{}), cond)
 	if db.Error != nil {
 		return 0, db.Error
 	}
@@ -94,7 +94,7 @@ func (r *TSourceRepository) Count(ctx context.Context, cond *selection_condition
 }
 
 // Create saves a new record in the database.
-func (r *TSourceRepository) Create(ctx context.Context, entity *t_source.TSource) error {
+func (r *TSourceRepository) Create(ctx context.Context, entity *text_source.TextSource) error {
 
 	if !r.db.DB().NewRecord(entity) {
 		return errors.New("entity is not new")
@@ -104,7 +104,7 @@ func (r *TSourceRepository) Create(ctx context.Context, entity *t_source.TSource
 }
 
 // Update saves a changed Maintenance record in the database.
-func (r *TSourceRepository) Update(ctx context.Context, entity *t_source.TSource) error {
+func (r *TSourceRepository) Update(ctx context.Context, entity *text_source.TextSource) error {
 
 	if r.db.DB().NewRecord(entity) {
 		return errors.New("entity is new")
@@ -114,14 +114,14 @@ func (r *TSourceRepository) Update(ctx context.Context, entity *t_source.TSource
 }
 
 // Save update value in database, if the value doesn't have primary key, will insert it
-func (r *TSourceRepository) Save(ctx context.Context, entity *t_source.TSource) error {
+func (r *TSourceRepository) Save(ctx context.Context, entity *text_source.TextSource) error {
 	return r.db.DB().Save(entity).Error
 }
 
 // Delete (soft) deletes a Maintenance record in the database.
 func (r *TSourceRepository) Delete(ctx context.Context, id uint) error {
 
-	err := r.db.DB().Delete(&t_source.TSource{}, id).Error
+	err := r.db.DB().Delete(&text_source.TextSource{}, id).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return apperror.ErrNotFound
