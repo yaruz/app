@@ -17,7 +17,7 @@ type Entity struct {
 	ID           uint                 `gorm:"type:bigint;primaryKey" json:"id"`
 	EntityTypeID uint                 `sql:"type:bigint not null REFERENCES \"entity_type\"(id)" gorm:"index" json:"entityTypeID"`
 	PropertiesB  datatypes.JSON       `json:"-"`
-	Properties   map[uint]interface{} `json:"properties"`
+	Properties   map[uint]interface{} `gorm:"-" json:"properties"`
 	CreatedAt    time.Time            `json:"createdAt"`
 	UpdatedAt    time.Time            `json:"updatedAt"`
 	DeletedAt    *time.Time           `gorm:"index" json:"deletedAt,omitempty"`

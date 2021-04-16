@@ -28,7 +28,7 @@ type Property struct {
 	IsMultiple         bool                     `gorm:"type:boolean not null default false;" json:"isMultiple"`
 	SortOrder          uint                     `gorm:"type:smallint not null default 9999" json:"sortOrder"`
 	OptionsB           datatypes.JSON           `json:"-"`
-	Options            []map[string]interface{} `json:"options"`
+	Options            []map[string]interface{} `gorm:"-" json:"options"`
 
 	CreatedAt time.Time  `json:"createdAt"`
 	UpdatedAt time.Time  `json:"updatedAt"`
