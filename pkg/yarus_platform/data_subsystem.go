@@ -17,7 +17,6 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/property_type2property_view_type"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/property_unit"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/property_view_type"
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/t_string"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_source"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_value"
 )
@@ -32,9 +31,8 @@ type DataDomain struct {
 	PropertyType2PropertyViewType DataDomainPropertyType2PropertyViewType
 	PropertyUnit                  DataDomainPropertyUnit
 	PropertyViewType              DataDomainPropertyViewType
-	TSource                       DataDomainTSource
-	TString                       DataDomainTString
-	TText                         DataDomainTText
+	TextSource                    DataDomainTextSource
+	TextValue                     DataDomainTextValue
 }
 
 type DataDomainEntity struct {
@@ -82,17 +80,12 @@ type DataDomainPropertyViewType struct {
 	Repository property_view_type.Repository
 }
 
-type DataDomainTSource struct {
+type DataDomainTextSource struct {
 	Service    text_source.IService
 	Repository text_source.Repository
 }
 
-type DataDomainTString struct {
-	Service    t_string.IService
-	Repository t_string.Repository
-}
-
-type DataDomainTText struct {
+type DataDomainTextValue struct {
 	Service    text_value.IService
 	Repository text_value.Repository
 }
@@ -113,7 +106,7 @@ func (d *DataDomain) setupRepositories(infra *infrastructure) (err error) {
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", text_source.EntityName, err)
 	}
-	d.TSource.Repository, ok = repo.(text_source.Repository)
+	d.TextSource.Repository, ok = repo.(text_source.Repository)
 	if !ok {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", text_source.EntityName, text_source.EntityName, repo)
 	}
@@ -172,20 +165,11 @@ func (d *DataDomain) setupRepositories(infra *infrastructure) (err error) {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", property.EntityName, property.EntityName, repo)
 	}
 
-	repo, err = gormrep.GetRepository(infra.Logger, infra.DataDB, t_string.EntityName)
-	if err != nil {
-		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", t_string.EntityName, err)
-	}
-	d.TString.Repository, ok = repo.(t_string.Repository)
-	if !ok {
-		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", t_string.EntityName, t_string.EntityName, repo)
-	}
-
 	repo, err = gormrep.GetRepository(infra.Logger, infra.DataDB, text_value.EntityName)
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", text_value.EntityName, err)
 	}
-	d.TText.Repository, ok = repo.(text_value.Repository)
+	d.TextValue.Repository, ok = repo.(text_value.Repository)
 	if !ok {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", text_value.EntityName, text_value.EntityName, repo)
 	}
@@ -230,7 +214,6 @@ func (d *DataDomain) setupServices(logger log.ILogger) {
 	d.PropertyType.Service = property_type.NewService(logger, d.PropertyType.Repository)
 	d.PropertyUnit.Service = property_unit.NewService(logger, d.PropertyUnit.Repository)
 	d.PropertyViewType.Service = property_view_type.NewService(logger, d.PropertyViewType.Repository)
-	d.TSource.Service = text_source.NewService(logger, d.TSource.Repository)
-	d.TString.Service = t_string.NewService(logger, d.TString.Repository)
-	d.TText.Service = text_value.NewService(logger, d.TText.Repository)
+	d.TextSource.Service = text_source.NewService(logger, d.TextSource.Repository)
+	d.TextValue.Service = text_value.NewService(logger, d.TextValue.Repository)
 }
