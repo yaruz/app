@@ -12,14 +12,14 @@ const (
 // TextValue ...
 type TextValue struct {
 	ID           uint       `gorm:"type:bigint;primaryKey" json:"id"`
-	TextSourceID uint       `sql:"type:bigint not null REFERENCES \"text_source\"(id)" gorm:"uniqueIndex:un_text_source;index" json:"textSourceID"`
-	LangID       uint       `gorm:"type:smallint not null;uniqueIndex:un_text_source;index" json:"langID"`
+	TextSourceID uint       `sql:"type:bigint not null REFERENCES \"text_source\"(id);unique_index:un_text_value" gorm:"index" json:"textSourceID"`
+	LangID       uint       `sql:"type:smallint not null;unique_index:un_text_value" json:"langID"`
 	PropertyID   uint       `sql:"type:bigint REFERENCES \"property\"(id)" gorm:"index" json:"propertyID"`
 	Value        string     `gorm:"type:text not null" json:"value"`
 	CreatedAt    time.Time  `json:"createdAt"`
 	UpdatedAt    time.Time  `json:"updatedAt"`
 	DeletedAt    *time.Time `gorm:"index" json:"deletedAt,omitempty"`
-} // todo: не создаётся уникальный индекс
+}
 
 func (e *TextValue) TableName() string {
 	return TableName

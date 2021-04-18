@@ -9,12 +9,12 @@ const (
 
 // PropertyType2PropertyViewType ...
 type PropertyType2PropertyViewType struct {
-	PropertyTypeID     uint       `sql:"type:bigint not null REFERENCES \"property_type\"(id)" gorm:"primaryKey:pk_property_type2property_view_type;autoIncrement:false" json:"propertyTypeID"`
-	PropertyViewTypeID uint       `sql:"type:bigint not null REFERENCES \"property_view_type\"(id)" gorm:"primaryKey:pk_property_type2property_view_type;autoIncrement:false" json:"propertyViewTypeID"`
+	PropertyTypeID     uint       `sql:"type:bigint not null REFERENCES \"property_type\"(id);primary_key" json:"propertyTypeID"`
+	PropertyViewTypeID uint       `sql:"type:bigint not null REFERENCES \"property_view_type\"(id);primary_key" json:"propertyViewTypeID"`
 	CreatedAt          time.Time  `json:"createdAt"`
 	UpdatedAt          time.Time  `json:"updatedAt"`
 	DeletedAt          *time.Time `gorm:"index" json:"deletedAt,omitempty"`
-} // todo: не создаётся первичный ключ
+}
 
 func (e *PropertyType2PropertyViewType) TableName() string {
 	return TableName
