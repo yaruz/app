@@ -1,6 +1,11 @@
 package property_view_type
 
-import "time"
+import (
+	"regexp"
+	"time"
+
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+)
 
 const (
 	EntityName = "propertyViewType"
@@ -27,4 +32,10 @@ func (e *PropertyViewType) TableName() string {
 // New func is a constructor for the EntityType
 func New() *PropertyViewType {
 	return &PropertyViewType{}
+}
+
+func (e PropertyViewType) Validate() error {
+	return validation.ValidateStruct(&e,
+		validation.Field(&e.Sysname, validation.Required, validation.Length(2, 100), validation.Match(regexp.MustCompile("^[a-z0-9_]+$"))),
+	)
 }

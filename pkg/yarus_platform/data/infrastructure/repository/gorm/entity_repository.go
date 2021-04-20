@@ -47,7 +47,7 @@ func (r *EntityRepository) Get(ctx context.Context, id uint) (*domain_entity.Ent
 		}
 	}
 
-	if err = entity.Init(); err != nil {
+	if err = entity.AfterFind(); err != nil {
 		return nil, err
 	}
 
@@ -62,7 +62,7 @@ func (r *EntityRepository) First(ctx context.Context, entity *domain_entity.Enti
 		}
 	}
 
-	if err = entity.Init(); err != nil {
+	if err = entity.AfterFind(); err != nil {
 		return nil, err
 	}
 
@@ -85,7 +85,7 @@ func (r *EntityRepository) Query(ctx context.Context, cond *selection_condition.
 	}
 
 	for _, entity := range items {
-		if err = entity.Init(); err != nil {
+		if err = entity.AfterFind(); err != nil {
 			return nil, err
 		}
 	}
@@ -114,7 +114,7 @@ func (r *EntityRepository) Create(ctx context.Context, entity *domain_entity.Ent
 		return errors.New("entity is not new")
 	}
 
-	if err := entity.Prepare4Save(); err != nil {
+	if err := entity.BeforeSave(); err != nil {
 		return err
 	}
 
@@ -128,7 +128,7 @@ func (r *EntityRepository) Update(ctx context.Context, entity *domain_entity.Ent
 		return errors.New("entity is new")
 	}
 
-	if err := entity.Prepare4Save(); err != nil {
+	if err := entity.BeforeSave(); err != nil {
 		return err
 	}
 
@@ -138,7 +138,7 @@ func (r *EntityRepository) Update(ctx context.Context, entity *domain_entity.Ent
 // Save update value in database, if the value doesn't have primary key, will insert it
 func (r *EntityRepository) Save(ctx context.Context, entity *domain_entity.Entity) error {
 
-	if err := entity.Prepare4Save(); err != nil {
+	if err := entity.BeforeSave(); err != nil {
 		return err
 	}
 

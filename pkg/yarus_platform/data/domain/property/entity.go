@@ -45,11 +45,11 @@ func New() *Property {
 	return &Property{}
 }
 
-func (e *Property) Init() error {
+func (e *Property) AfterFind() error {
 	return e.optionsB2Options()
 }
 
-func (e *Property) Prepare4Save() error {
+func (e *Property) BeforeSave() error {
 	return e.options2OptionsB()
 }
 

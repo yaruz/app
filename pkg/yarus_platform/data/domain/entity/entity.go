@@ -32,11 +32,11 @@ func New() *Entity {
 	return &Entity{}
 }
 
-func (e *Entity) Init() error {
+func (e *Entity) AfterFind() error {
 	return e.propertiesB2Properties()
 }
 
-func (e *Entity) Prepare4Save() error {
+func (e *Entity) BeforeSave() error {
 	return e.properties2PropertiesB()
 }
 

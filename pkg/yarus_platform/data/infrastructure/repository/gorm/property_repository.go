@@ -45,6 +45,11 @@ func (r *PropertyRepository) Get(ctx context.Context, id uint) (*property.Proper
 			return entity, yaruzerror.ErrNotFound
 		}
 	}
+
+	if err = entity.AfterFind(); err != nil {
+		return nil, err
+	}
+
 	return entity, err
 }
 
@@ -55,6 +60,11 @@ func (r *PropertyRepository) First(ctx context.Context, entity *property.Propert
 			return entity, yaruzerror.ErrNotFound
 		}
 	}
+
+	if err = entity.AfterFind(); err != nil {
+		return nil, err
+	}
+
 	return entity, err
 }
 
@@ -72,6 +82,13 @@ func (r *PropertyRepository) Query(ctx context.Context, cond *selection_conditio
 			return items, yaruzerror.ErrNotFound
 		}
 	}
+
+	for _, entity := range items {
+		if err = entity.AfterFind(); err != nil {
+			return nil, err
+		}
+	}
+
 	return items, err
 }
 
@@ -95,6 +112,11 @@ func (r *PropertyRepository) Create(ctx context.Context, entity *property.Proper
 	if !r.db.DB().NewRecord(entity) {
 		return errors.New("entity is not new")
 	}
+
+	if err := entity.BeforeSave(); err != nil {
+		return err
+	}
+
 	return r.db.DB().Create(entity).Error
 }
 
@@ -104,11 +126,21 @@ func (r *PropertyRepository) Update(ctx context.Context, entity *property.Proper
 	if r.db.DB().NewRecord(entity) {
 		return errors.New("entity is new")
 	}
+
+	if err := entity.BeforeSave(); err != nil {
+		return err
+	}
+
 	return r.Save(ctx, entity)
 }
 
 // Save update value in database, if the value doesn't have primary key, will insert it
 func (r *PropertyRepository) Save(ctx context.Context, entity *property.Property) error {
+
+	if err := entity.BeforeSave(); err != nil {
+		return err
+	}
+
 	return r.db.DB().Save(entity).Error
 }
 

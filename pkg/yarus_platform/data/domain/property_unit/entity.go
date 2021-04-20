@@ -1,6 +1,11 @@
 package property_unit
 
-import "time"
+import (
+	"regexp"
+	"time"
+
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+)
 
 const (
 	EntityName = "propertyUnit"
@@ -27,4 +32,10 @@ func (e *PropertyUnit) TableName() string {
 // New func is a constructor for the EntityType
 func New() *PropertyUnit {
 	return &PropertyUnit{}
+}
+
+func (e PropertyUnit) Validate() error {
+	return validation.ValidateStruct(&e,
+		validation.Field(&e.Sysname, validation.Required, validation.Length(2, 100), validation.Match(regexp.MustCompile("^[a-z0-9_]+$"))),
+	)
 }
