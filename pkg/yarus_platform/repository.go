@@ -8,13 +8,15 @@ import (
 
 type IRepository interface {
 	Stop() error
+	Data() *DataDomain
+	Search() *SearchDomain
 }
 
 type Repository struct {
-	cfg    config.Configuration
-	Data   *DataDomain
-	Search *SearchDomain
-	infra  *infrastructure
+	cfg          config.Configuration
+	DataDomain   *DataDomain
+	SearchDomain *SearchDomain
+	infra        *infrastructure
 }
 
 func NewRepository(cfg config.Configuration) (*Repository, error) {
@@ -39,11 +41,19 @@ func NewRepository(cfg config.Configuration) (*Repository, error) {
 	}
 
 	return &Repository{
-		cfg:    cfg,
-		Data:   data,
-		Search: search,
-		infra:  infra,
+		cfg:          cfg,
+		DataDomain:   data,
+		SearchDomain: search,
+		infra:        infra,
 	}, nil
+}
+
+func (r *Repository) Data() *DataDomain {
+	return r.DataDomain
+}
+
+func (r *Repository) Search() *SearchDomain {
+	return r.SearchDomain
 }
 
 func (r *Repository) Stop() error {

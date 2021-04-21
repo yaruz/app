@@ -18,5 +18,5 @@ type Repository interface {
 	Create(ctx context.Context, entity *PropertyType2PropertyViewType) error
 	Update(ctx context.Context, entity *PropertyType2PropertyViewType) error
 	Save(ctx context.Context, entity *PropertyType2PropertyViewType) error
-	Delete(ctx context.Context, id uint) error
+	Delete(ctx context.Context, propertyTypeID uint, propertyViewTypeID uint) error
 }

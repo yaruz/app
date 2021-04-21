@@ -11,7 +11,7 @@ const (
 
 // TextSource ...
 type TextSource struct {
-	ID        uint       `gorm:"type:bigint;primaryKey" json:"id"`
+	ID        uint       `gorm:"type:bigserial;primaryKey" json:"id"`
 	EntityID  uint       `gorm:"index" json:"entityID"`
 	CreatedAt time.Time  `json:"createdAt"`
 	UpdatedAt time.Time  `json:"updatedAt"`

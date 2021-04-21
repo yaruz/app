@@ -19,7 +19,7 @@ type IService interface {
 	Create(ctx context.Context, entity *PropertyType2PropertyViewType) error
 	Update(ctx context.Context, entity *PropertyType2PropertyViewType) error
 	Save(ctx context.Context, entity *PropertyType2PropertyViewType) error
-	Delete(ctx context.Context, id uint) error
+	Delete(ctx context.Context, propertyTypeID uint, propertyViewTypeID uint) error
 }
 
 type service struct {
@@ -98,10 +98,10 @@ func (s *service) Save(ctx context.Context, entity *PropertyType2PropertyViewTyp
 	return nil
 }
 
-func (s *service) Delete(ctx context.Context, id uint) error {
-	err := s.repository.Delete(ctx, id)
+func (s *service) Delete(ctx context.Context, propertyTypeID uint, propertyViewTypeID uint) error {
+	err := s.repository.Delete(ctx, propertyTypeID, propertyViewTypeID)
 	if err != nil {
-		return errors.Wrapf(err, "Can not delete an entity by ID: %v", id)
+		return errors.Wrapf(err, "Can not delete an entity propertyTypeID = %v, propertyViewTypeID = %v", propertyTypeID, propertyViewTypeID)
 	}
 	return nil
 }

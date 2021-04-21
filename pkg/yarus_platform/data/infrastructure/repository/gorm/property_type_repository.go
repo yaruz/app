@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/property_type2property_view_type"
+
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/property_type"
 
 	"github.com/jinzhu/gorm"
@@ -18,13 +20,17 @@ import (
 // PropertyTypeRepository is a repository for the model entity
 type PropertyTypeRepository struct {
 	repository
+	propertyType2PropertyViewTypeRepository property_type2property_view_type.Repository
 }
 
 var _ property_type.Repository = (*PropertyTypeRepository)(nil)
 
 // New creates a new PropertyTypeRepository
-func NewPropertyTypeRepository(repository *repository) (*PropertyTypeRepository, error) {
-	r := &PropertyTypeRepository{repository: *repository}
+func NewPropertyTypeRepository(repository *repository, propertyType2PropertyViewTypeRepository property_type2property_view_type.Repository) (*PropertyTypeRepository, error) {
+	r := &PropertyTypeRepository{
+		repository:                              *repository,
+		propertyType2PropertyViewTypeRepository: propertyType2PropertyViewTypeRepository,
+	}
 	r.autoMigrate()
 	return r, nil
 }
@@ -98,7 +104,7 @@ func (r *PropertyTypeRepository) Create(ctx context.Context, entity *property_ty
 	return r.db.DB().Create(entity).Error
 }
 
-// Update saves a changed Maintenance record in the database.
+// Update saves a changed record in the database.
 func (r *PropertyTypeRepository) Update(ctx context.Context, entity *property_type.PropertyType) error {
 
 	if r.db.DB().NewRecord(entity) {
@@ -112,7 +118,7 @@ func (r *PropertyTypeRepository) Save(ctx context.Context, entity *property_type
 	return r.db.DB().Save(entity).Error
 }
 
-// Delete (soft) deletes a Maintenance record in the database.
+// Delete (soft) deletes a record in the database.
 func (r *PropertyTypeRepository) Delete(ctx context.Context, id uint) error {
 
 	err := r.db.DB().Delete(&property_type.PropertyType{}, id).Error
@@ -122,4 +128,16 @@ func (r *PropertyTypeRepository) Delete(ctx context.Context, id uint) error {
 		}
 	}
 	return err
+}
+
+func (r *PropertyTypeRepository) BindPropertyViewType(ctx context.Context, id uint, viewTypeID uint) error {
+
+	return r.propertyType2PropertyViewTypeRepository.Create(ctx, &property_type2property_view_type.PropertyType2PropertyViewType{
+		PropertyTypeID:     id,
+		PropertyViewTypeID: viewTypeID,
+	})
+}
+
+func (r *PropertyTypeRepository) UnbindPropertyViewType(ctx context.Context, id uint, viewTypeID uint) error {
+	return r.propertyType2PropertyViewTypeRepository.Delete(ctx, id, viewTypeID)
 }

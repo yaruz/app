@@ -38,7 +38,7 @@ type Infrastructure struct {
 	IdentityDB      minipkg_gorm.IDB
 	Redis           redis.IDB
 	Cache           cache.Service
-	yaruzRepository yarus_platform.IRepository
+	YaruzRepository yarus_platform.IRepository
 }
 
 type Auth struct {
@@ -108,7 +108,7 @@ func NewInfra(logger log.ILogger, cfg config.Configuration) (*Infrastructure, er
 		Logger:          logger,
 		IdentityDB:      IdentityDB,
 		Redis:           rDB,
-		yaruzRepository: yaruzRepository,
+		YaruzRepository: yaruzRepository,
 	}, nil
 }
 
@@ -133,7 +133,7 @@ func (app *App) SetupRepositories() (err error) {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", user.EntityName, user.EntityName, gormRepo)
 	}
 	//	Example
-	yarRepo, err := yaruzplatform.GetRepository(app.Infra.Logger, app.Infra.yaruzRepository, task.EntityName)
+	yarRepo, err := yaruzplatform.GetRepository(app.Infra.Logger, app.Infra.YaruzRepository, task.EntityName)
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", task.EntityName, err)
 	}
@@ -168,7 +168,7 @@ func (app *App) Run() error {
 func (app *App) Stop() error {
 	errRedis := app.Infra.Redis.Close()
 	errDB01 := app.Infra.IdentityDB.DB().Close()
-	errDB02 := app.Infra.yaruzRepository.Stop()
+	errDB02 := app.Infra.YaruzRepository.Stop()
 
 	switch {
 	case errDB01 != nil:

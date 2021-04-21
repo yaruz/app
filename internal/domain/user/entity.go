@@ -14,7 +14,7 @@ const (
 
 // User is the user entity
 type User struct {
-	ID        uint       `gorm:"primaryKey"`
+	ID        uint       `gorm:"type:bigserial;primaryKey" json:"id"`
 	Name      string     `gorm:"type:varchar(100) not null;unique;index" json:"username"`
 	Passhash  string     `gorm:"type:bytea not null" json:"-"`
 	CreatedAt time.Time  `json:"createdAt"`
