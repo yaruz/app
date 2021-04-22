@@ -44,6 +44,7 @@ func (r *PropertyViewTypeRepository) Get(ctx context.Context, id uint) (*propert
 		if gorm.IsRecordNotFoundError(err) {
 			return entity, yaruzerror.ErrNotFound
 		}
+		return nil, err
 	}
 	return entity, err
 }
@@ -54,6 +55,7 @@ func (r *PropertyViewTypeRepository) First(ctx context.Context, entity *property
 		if gorm.IsRecordNotFoundError(err) {
 			return entity, yaruzerror.ErrNotFound
 		}
+		return nil, err
 	}
 	return entity, err
 }
@@ -71,6 +73,7 @@ func (r *PropertyViewTypeRepository) Query(ctx context.Context, cond *selection_
 		if err == gorm.ErrRecordNotFound {
 			return items, yaruzerror.ErrNotFound
 		}
+		return nil, err
 	}
 	return items, err
 }

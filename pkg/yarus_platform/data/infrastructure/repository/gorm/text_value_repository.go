@@ -45,8 +45,8 @@ func (r *TextValueRepository) Get(ctx context.Context, id uint) (*text_value.Tex
 		if gorm.IsRecordNotFoundError(err) {
 			return entity, yaruzerror.ErrNotFound
 		}
+		return nil, err
 	}
-
 	return entity, err
 }
 
@@ -56,8 +56,8 @@ func (r *TextValueRepository) First(ctx context.Context, entity *text_value.Text
 		if gorm.IsRecordNotFoundError(err) {
 			return entity, yaruzerror.ErrNotFound
 		}
+		return nil, err
 	}
-
 	return entity, err
 }
 
@@ -74,8 +74,8 @@ func (r *TextValueRepository) Query(ctx context.Context, cond *selection_conditi
 		if err == gorm.ErrRecordNotFound {
 			return items, yaruzerror.ErrNotFound
 		}
+		return nil, err
 	}
-
 	return items, err
 }
 

@@ -44,6 +44,7 @@ func (r *PropertyRepository) Get(ctx context.Context, id uint) (*property.Proper
 		if gorm.IsRecordNotFoundError(err) {
 			return entity, yaruzerror.ErrNotFound
 		}
+		return nil, err
 	}
 
 	if err = entity.AfterFind(); err != nil {
@@ -59,6 +60,7 @@ func (r *PropertyRepository) First(ctx context.Context, entity *property.Propert
 		if gorm.IsRecordNotFoundError(err) {
 			return entity, yaruzerror.ErrNotFound
 		}
+		return nil, err
 	}
 
 	if err = entity.AfterFind(); err != nil {
@@ -81,6 +83,7 @@ func (r *PropertyRepository) Query(ctx context.Context, cond *selection_conditio
 		if err == gorm.ErrRecordNotFound {
 			return items, yaruzerror.ErrNotFound
 		}
+		return nil, err
 	}
 
 	for _, entity := range items {

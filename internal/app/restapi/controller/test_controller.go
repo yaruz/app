@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"fmt"
+
 	"github.com/yaruz/app/pkg/yarus_platform"
 
 	"github.com/minipkg/log"
@@ -44,38 +46,38 @@ func (c testController) PropertyUnit(ctx *routing.Context) error {
 
 	err = c.yaruzRepository.Data().PropertyUnit.Service.Create(cntx, entity)
 	if err != nil {
-		res["2. errCreate1"] = err
+		res["2. errCreate1"] = err.Error()
 	}
 
 	entity.Sysname = "property_unit_1"
 	err = c.yaruzRepository.Data().PropertyUnit.Service.Create(cntx, entity)
 	if err != nil {
-		res["3. errCreate"] = err
+		res["3. errCreate"] = err.Error()
 	}
 
 	e, err := c.yaruzRepository.Data().PropertyUnit.Service.Get(cntx, entity.ID)
 	if err != nil {
-		res["4. errCreate1"] = err
+		res["4. errCreate1"] = err.Error()
 	} else {
-		res["4. entity1"] = e
+		res["4. entity1"], _ = fmt.Printf("%#v", e)
 	}
 
 	entity.Sysname = "property_unit_1"
 	err = c.yaruzRepository.Data().PropertyUnit.Service.Update(cntx, entity)
 	if err != nil {
-		res["5. errCreate"] = err
+		res["5. errCreate"] = err.Error()
 	}
 
 	e, err = c.yaruzRepository.Data().PropertyUnit.Service.Get(cntx, entity.ID)
 	if err != nil {
-		res["6. errGet"] = err
+		res["6. errGet"] = err.Error()
 	} else {
-		res["6. entity2"] = e
+		res["6. entity2"], _ = fmt.Printf("%#v", e)
 	}
 
 	err = c.yaruzRepository.Data().PropertyUnit.Service.Delete(cntx, entity.ID)
 	if err != nil {
-		res["7. errDelete"] = err
+		res["7. errDelete"] = err.Error()
 	}
 
 	return ctx.Write(res)

@@ -16,11 +16,11 @@ const (
 type PropertyGroup struct {
 	ID                  uint       `gorm:"type:bigserial;primaryKey" json:"id"`
 	Sysname             string     `gorm:"type:varchar(100) not null;unique;index" json:"sysname"`
-	NameSourceID        uint       `sql:"type:bigint not null REFERENCES \"text_source\"(id)" gorm:"index" json:"-"`
-	DescriptionSourceID uint       `sql:"type:bigint not null REFERENCES \"text_source\"(id)" gorm:"index" json:"-"`
+	NameSourceID        *uint      `sql:"type:bigint null REFERENCES \"text_source\"(id)" gorm:"index" json:"-"`
+	DescriptionSourceID *uint      `sql:"type:bigint null REFERENCES \"text_source\"(id)" gorm:"index" json:"-"`
 	SortOrder           uint       `gorm:"type:smallint not null default 9999" json:"sortOrder"`
-	Name                string     `gorm:"-" json:"name"`
-	Description         string     `gorm:"-" json:"description"`
+	Name                *string    `gorm:"-" json:"name"`
+	Description         *string    `gorm:"-" json:"description"`
 	CreatedAt           time.Time  `json:"createdAt"`
 	UpdatedAt           time.Time  `json:"updatedAt"`
 	DeletedAt           *time.Time `gorm:"index" json:"deletedAt,omitempty"`
