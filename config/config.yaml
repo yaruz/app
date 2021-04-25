@@ -16,6 +16,11 @@ db:
     dsn:            "host=db port=5432 dbname=identity user=postgres password=1gjcnuhtc1! sslmode=disable"
     islogmode:      True
     isautomigrate:  True
+  reference:
+    dialect:        "postgres"
+    dsn:            "host=db port=5432 dbname=reference user=postgres password=1gjcnuhtc1! sslmode=disable"
+    islogmode:      True
+    isautomigrate:  True
   data:
     dialect:        "postgres"
     dsn:            "host=db port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"

@@ -4,16 +4,7 @@ import (
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/selection_condition"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity_type"
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity_type2property"
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/property"
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/property_group"
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/property_type"
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/property_type2property_view_type"
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/property_unit"
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/property_view_type"
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_source"
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_value"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_value"
 
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
@@ -43,28 +34,6 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 	switch entityName {
 	case entity.EntityName:
 		repo, err = NewEntityRepository(r)
-	case entity_type2property.EntityName:
-		repo, err = NewEntityType2PropertyRepository(r)
-	case entity_type.EntityName:
-		repo, err = NewEntityTypeRepository(r)
-	case property_group.EntityName:
-		repo, err = NewPropertyGroupRepository(r)
-	case property.EntityName:
-		repo, err = NewPropertyRepository(r)
-	case property_type2property_view_type.EntityName:
-		repo, err = NewPropertyType2PropertyViewTypeRepository(r)
-	case property_type.EntityName:
-		repoRel, err := NewPropertyType2PropertyViewTypeRepository(r)
-		if err != nil {
-			return nil, err
-		}
-		repo, err = NewPropertyTypeRepository(r, repoRel)
-	case property_unit.EntityName:
-		repo, err = NewPropertyUnitRepository(r)
-	case property_view_type.EntityName:
-		repo, err = NewPropertyViewTypeRepository(r)
-	case text_source.EntityName:
-		repo, err = NewTextSourceRepository(r)
 	case text_value.EntityName:
 		repo, err = NewTextValueRepository(r)
 	default:

@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/property_group"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_source"
+
+	"github.com/yaruz/app/internal/pkg/apperror"
 
 	"github.com/jinzhu/gorm"
-	"github.com/yaruz/app/internal/pkg/apperror"
 
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/selection_condition"
@@ -15,29 +16,29 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform/yaruzerror"
 )
 
-// PropertyGroupRepository is a repository for the model entity
-type PropertyGroupRepository struct {
+// TextSourceRepository is a repository for the model entity
+type TextSourceRepository struct {
 	repository
 }
 
-var _ property_group.Repository = (*PropertyGroupRepository)(nil)
+var _ text_source.Repository = (*TextSourceRepository)(nil)
 
-// New creates a new PropertyGroupRepository
-func NewPropertyGroupRepository(repository *repository) (*PropertyGroupRepository, error) {
-	r := &PropertyGroupRepository{repository: *repository}
+// New creates a new TextSourceRepository
+func NewTextSourceRepository(repository *repository) (*TextSourceRepository, error) {
+	r := &TextSourceRepository{repository: *repository}
 	r.autoMigrate()
 	return r, nil
 }
 
-func (r *PropertyGroupRepository) autoMigrate() {
+func (r *TextSourceRepository) autoMigrate() {
 	if r.db.IsAutoMigrate() {
-		r.db.DB().AutoMigrate(&property_group.PropertyGroup{})
+		r.db.DB().AutoMigrate(&text_source.TextSource{})
 	}
 }
 
 // Get reads the album with the specified ID from the database.
-func (r *PropertyGroupRepository) Get(ctx context.Context, id uint) (*property_group.PropertyGroup, error) {
-	entity := &property_group.PropertyGroup{}
+func (r *TextSourceRepository) Get(ctx context.Context, id uint) (*text_source.TextSource, error) {
+	entity := &text_source.TextSource{}
 
 	err := r.DB().First(entity, id).Error
 	if err != nil {
@@ -49,7 +50,7 @@ func (r *PropertyGroupRepository) Get(ctx context.Context, id uint) (*property_g
 	return entity, err
 }
 
-func (r *PropertyGroupRepository) First(ctx context.Context, entity *property_group.PropertyGroup) (*property_group.PropertyGroup, error) {
+func (r *TextSourceRepository) First(ctx context.Context, entity *text_source.TextSource) (*text_source.TextSource, error) {
 	err := r.DB().Where(entity).First(entity).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
@@ -61,9 +62,9 @@ func (r *PropertyGroupRepository) First(ctx context.Context, entity *property_gr
 }
 
 // Query retrieves the album records with the specified offset and limit from the database.
-func (r *PropertyGroupRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]property_group.PropertyGroup, error) {
-	items := []property_group.PropertyGroup{}
-	db := minipkg_gorm.Conditions(r.DB().Model(&property_group.PropertyGroup{}), cond)
+func (r *TextSourceRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]text_source.TextSource, error) {
+	items := []text_source.TextSource{}
+	db := minipkg_gorm.Conditions(r.DB().Model(&text_source.TextSource{}), cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -78,12 +79,12 @@ func (r *PropertyGroupRepository) Query(ctx context.Context, cond *selection_con
 	return items, err
 }
 
-func (r *PropertyGroupRepository) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (uint, error) {
+func (r *TextSourceRepository) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (uint, error) {
 	var count uint
 	c := cond
 	c.Limit = 0
 	c.Offset = 0
-	db := minipkg_gorm.Conditions(r.DB().Model(&property_group.PropertyGroup{}), cond)
+	db := minipkg_gorm.Conditions(r.DB().Model(&text_source.TextSource{}), cond)
 	if db.Error != nil {
 		return 0, db.Error
 	}
@@ -93,32 +94,34 @@ func (r *PropertyGroupRepository) Count(ctx context.Context, cond *selection_con
 }
 
 // Create saves a new record in the database.
-func (r *PropertyGroupRepository) Create(ctx context.Context, entity *property_group.PropertyGroup) error {
+func (r *TextSourceRepository) Create(ctx context.Context, entity *text_source.TextSource) error {
 
 	if !r.db.DB().NewRecord(entity) {
 		return errors.New("entity is not new")
 	}
+
 	return r.db.DB().Create(entity).Error
 }
 
 // Update saves a changed Maintenance record in the database.
-func (r *PropertyGroupRepository) Update(ctx context.Context, entity *property_group.PropertyGroup) error {
+func (r *TextSourceRepository) Update(ctx context.Context, entity *text_source.TextSource) error {
 
 	if r.db.DB().NewRecord(entity) {
 		return errors.New("entity is new")
 	}
+
 	return r.Save(ctx, entity)
 }
 
 // Save update value in database, if the value doesn't have primary key, will insert it
-func (r *PropertyGroupRepository) Save(ctx context.Context, entity *property_group.PropertyGroup) error {
+func (r *TextSourceRepository) Save(ctx context.Context, entity *text_source.TextSource) error {
 	return r.db.DB().Save(entity).Error
 }
 
 // Delete (soft) deletes a Maintenance record in the database.
-func (r *PropertyGroupRepository) Delete(ctx context.Context, id uint) error {
+func (r *TextSourceRepository) Delete(ctx context.Context, id uint) error {
 
-	err := r.db.DB().Delete(&property_group.PropertyGroup{}, id).Error
+	err := r.db.DB().Delete(&text_source.TextSource{}, id).Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return apperror.ErrNotFound

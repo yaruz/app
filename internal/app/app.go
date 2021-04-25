@@ -38,7 +38,7 @@ type Infrastructure struct {
 	IdentityDB      minipkg_gorm.IDB
 	Redis           redis.IDB
 	Cache           cache.Service
-	YaruzRepository yarus_platform.IRepository
+	YaruzRepository yarus_platform.IPlatform
 }
 
 type Auth struct {
@@ -99,7 +99,7 @@ func NewInfra(logger log.ILogger, cfg config.Configuration) (*Infrastructure, er
 		return nil, err
 	}
 
-	yaruzRepository, err := yarus_platform.NewRepository(cfg.YaruzPlatformConfig())
+	yaruzRepository, err := yarus_platform.NewPlatform(cfg.YaruzPlatformConfig())
 	if err != nil {
 		return nil, err
 	}

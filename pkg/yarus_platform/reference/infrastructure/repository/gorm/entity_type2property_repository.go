@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity_type2property"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type2property"
 
 	"github.com/jinzhu/gorm"
 	"github.com/yaruz/app/internal/pkg/apperror"

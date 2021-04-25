@@ -12,6 +12,7 @@ type Configuration struct {
 
 type Infrastructure struct {
 	Log           log.Config
+	ReferenceDB   minipkg_gorm.Config
 	DataDB        minipkg_gorm.Config
 	SearchDB      minipkg_gorm.Config
 	Redis         redis.Config

@@ -16,7 +16,7 @@ type IRepository interface{}
 
 // repository persists albums in database
 type repository struct {
-	yaruzRepository yarus_platform.IRepository
+	yaruzRepository yarus_platform.IPlatform
 	logger          log.ILogger
 	Conditions      *selection_condition.SelectionCondition
 }
@@ -24,7 +24,7 @@ type repository struct {
 const DefaultLimit = 1000
 
 // GetRepository return a repository
-func GetRepository(logger log.ILogger, yaruzRepository yarus_platform.IRepository, entity string) (repo IRepository, err error) {
+func GetRepository(logger log.ILogger, yaruzRepository yarus_platform.IPlatform, entity string) (repo IRepository, err error) {
 	r := &repository{
 		yaruzRepository: yaruzRepository,
 		logger:          logger,

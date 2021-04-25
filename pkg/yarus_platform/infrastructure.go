@@ -11,16 +11,22 @@ import (
 )
 
 type infrastructure struct {
-	Logger   log.ILogger
-	DataDB   minipkg_gorm.IDB
-	SearchDB minipkg_gorm.IDB
-	Redis    redis.IDB
-	Cache    cache.Service
+	Logger      log.ILogger
+	DataDB      minipkg_gorm.IDB
+	ReferenceDB minipkg_gorm.IDB
+	SearchDB    minipkg_gorm.IDB
+	Redis       redis.IDB
+	Cache       cache.Service
 }
 
 func newInfra(logger log.ILogger, cfg config.Infrastructure) (*infrastructure, error) {
 
 	DataDB, err := minipkg_gorm.New(logger, cfg.DataDB)
+	if err != nil {
+		return nil, err
+	}
+
+	ReferenceDB, err := minipkg_gorm.New(logger, cfg.ReferenceDB)
 	if err != nil {
 		return nil, err
 	}
@@ -36,24 +42,28 @@ func newInfra(logger log.ILogger, cfg config.Infrastructure) (*infrastructure, e
 	}
 
 	return &infrastructure{
-		Logger:   logger,
-		DataDB:   DataDB,
-		SearchDB: SearchDB,
-		Redis:    rDB,
-		Cache:    cache.NewService(rDB, cfg.CacheLifeTime),
+		Logger:      logger,
+		DataDB:      DataDB,
+		ReferenceDB: ReferenceDB,
+		SearchDB:    SearchDB,
+		Redis:       rDB,
+		Cache:       cache.NewService(rDB, cfg.CacheLifeTime),
 	}, nil
 }
 
 func (i *infrastructure) Stop() error {
 	errRedis := i.Redis.Close()
-	errDBData := i.DataDB.DB().Close()
-	errDBSearch := i.SearchDB.DB().Close()
+	errDataDB := i.DataDB.DB().Close()
+	errReferenceDB := i.ReferenceDB.DB().Close()
+	errSearchDB := i.SearchDB.DB().Close()
 
 	switch {
-	case errDBData != nil:
-		return errors.Wrapf(apperror.ErrInternal, "db close error: %v", errDBData)
-	case errDBSearch != nil:
-		return errors.Wrapf(apperror.ErrInternal, "db close error: %v", errDBSearch)
+	case errDataDB != nil:
+		return errors.Wrapf(apperror.ErrInternal, "db close error: %v", errDataDB)
+	case errReferenceDB != nil:
+		return errors.Wrapf(apperror.ErrInternal, "db close error: %v", errReferenceDB)
+	case errSearchDB != nil:
+		return errors.Wrapf(apperror.ErrInternal, "db close error: %v", errSearchDB)
 	case errRedis != nil:
 		return errors.Wrapf(apperror.ErrInternal, "redis close error: %v", errRedis)
 	}

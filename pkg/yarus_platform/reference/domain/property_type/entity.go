@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/property_view_type"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_view_type"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
