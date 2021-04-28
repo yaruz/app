@@ -24,15 +24,7 @@ var _ entity_type2property.Repository = (*EntityType2PropertyRepository)(nil)
 
 // New creates a new EntityType2PropertyRepository
 func NewEntityType2PropertyRepository(repository *repository) (*EntityType2PropertyRepository, error) {
-	r := &EntityType2PropertyRepository{repository: *repository}
-	r.autoMigrate()
-	return r, nil
-}
-
-func (r *EntityType2PropertyRepository) autoMigrate() {
-	if r.db.IsAutoMigrate() {
-		r.db.DB().AutoMigrate(&entity_type2property.EntityType2Property{})
-	}
+	return &EntityType2PropertyRepository{repository: *repository}, nil
 }
 
 // Get reads the album with the specified ID from the database.

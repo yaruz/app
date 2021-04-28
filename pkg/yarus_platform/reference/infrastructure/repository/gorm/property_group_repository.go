@@ -24,15 +24,7 @@ var _ property_group.Repository = (*PropertyGroupRepository)(nil)
 
 // New creates a new PropertyGroupRepository
 func NewPropertyGroupRepository(repository *repository) (*PropertyGroupRepository, error) {
-	r := &PropertyGroupRepository{repository: *repository}
-	r.autoMigrate()
-	return r, nil
-}
-
-func (r *PropertyGroupRepository) autoMigrate() {
-	if r.db.IsAutoMigrate() {
-		r.db.DB().AutoMigrate(&property_group.PropertyGroup{})
-	}
+	return &PropertyGroupRepository{repository: *repository}, nil
 }
 
 // Get reads the album with the specified ID from the database.

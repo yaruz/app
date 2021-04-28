@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type2property_view_type"
-
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
 
 	"github.com/jinzhu/gorm"
@@ -20,25 +18,13 @@ import (
 // PropertyTypeRepository is a repository for the model entity
 type PropertyTypeRepository struct {
 	repository
-	propertyType2PropertyViewTypeRepository property_type2property_view_type.Repository
 }
 
 var _ property_type.Repository = (*PropertyTypeRepository)(nil)
 
 // New creates a new PropertyTypeRepository
-func NewPropertyTypeRepository(repository *repository, propertyType2PropertyViewTypeRepository property_type2property_view_type.Repository) (*PropertyTypeRepository, error) {
-	r := &PropertyTypeRepository{
-		repository:                              *repository,
-		propertyType2PropertyViewTypeRepository: propertyType2PropertyViewTypeRepository,
-	}
-	r.autoMigrate()
-	return r, nil
-}
-
-func (r *PropertyTypeRepository) autoMigrate() {
-	if r.db.IsAutoMigrate() {
-		r.db.DB().AutoMigrate(&property_type.PropertyType{})
-	}
+func NewPropertyTypeRepository(repository *repository) (*PropertyTypeRepository, error) {
+	return &PropertyTypeRepository{repository: *repository}, nil
 }
 
 // Get reads the album with the specified ID from the database.
@@ -131,16 +117,4 @@ func (r *PropertyTypeRepository) Delete(ctx context.Context, id uint) error {
 		}
 	}
 	return err
-}
-
-func (r *PropertyTypeRepository) BindPropertyViewType(ctx context.Context, id uint, viewTypeID uint) error {
-
-	return r.propertyType2PropertyViewTypeRepository.Create(ctx, &property_type2property_view_type.PropertyType2PropertyViewType{
-		PropertyTypeID:     id,
-		PropertyViewTypeID: viewTypeID,
-	})
-}
-
-func (r *PropertyTypeRepository) UnbindPropertyViewType(ctx context.Context, id uint, viewTypeID uint) error {
-	return r.propertyType2PropertyViewTypeRepository.Delete(ctx, id, viewTypeID)
 }

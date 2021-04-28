@@ -25,15 +25,7 @@ var _ text_value.Repository = (*TextValueRepository)(nil)
 
 // New creates a new TextValueRepository
 func NewTextValueRepository(repository *repository) (*TextValueRepository, error) {
-	r := &TextValueRepository{repository: *repository}
-	r.autoMigrate()
-	return r, nil
-}
-
-func (r *TextValueRepository) autoMigrate() {
-	if r.db.IsAutoMigrate() {
-		r.db.DB().AutoMigrate(&text_value.TextValue{})
-	}
+	return &TextValueRepository{repository: *repository}, nil
 }
 
 // Get reads the album with the specified ID from the database.

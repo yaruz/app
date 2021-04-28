@@ -3,6 +3,8 @@ package property_type
 import (
 	"context"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type2property_view_type"
+
 	"github.com/minipkg/selection_condition"
 
 	"github.com/pkg/errors"
@@ -20,20 +22,24 @@ type IService interface {
 	Update(ctx context.Context, entity *PropertyType) error
 	Save(ctx context.Context, entity *PropertyType) error
 	Delete(ctx context.Context, id uint) error
+	BindPropertyViewType(ctx context.Context, id uint, viewTypeID uint) error
+	UnbindPropertyViewType(ctx context.Context, id uint, viewTypeID uint) error
 }
 
 type service struct {
-	logger     log.ILogger
-	repository Repository
+	logger                                  log.ILogger
+	repository                              Repository
+	propertyType2propertyViewTypeRepository property_type2property_view_type.Repository
 }
 
 var _ IService = (*service)(nil)
 
 // NewService creates a new service.
-func NewService(logger log.ILogger, repo Repository) IService {
+func NewService(logger log.ILogger, repo Repository, propertyType2propertyViewTypeRepository property_type2property_view_type.Repository) IService {
 	s := &service{
-		logger:     logger,
-		repository: repo,
+		logger:                                  logger,
+		repository:                              repo,
+		propertyType2propertyViewTypeRepository: propertyType2propertyViewTypeRepository,
 	}
 	repo.SetDefaultConditions(s.defaultConditions())
 	return s
@@ -104,4 +110,16 @@ func (s *service) Delete(ctx context.Context, id uint) error {
 		return errors.Wrapf(err, "Can not delete an entity by ID: %v", id)
 	}
 	return nil
+}
+
+func (s *service) BindPropertyViewType(ctx context.Context, id uint, viewTypeID uint) error {
+
+	return s.propertyType2propertyViewTypeRepository.Create(ctx, &property_type2property_view_type.PropertyType2PropertyViewType{
+		PropertyTypeID:     id,
+		PropertyViewTypeID: viewTypeID,
+	})
+}
+
+func (s *service) UnbindPropertyViewType(ctx context.Context, id uint, viewTypeID uint) error {
+	return s.propertyType2propertyViewTypeRepository.Delete(ctx, id, viewTypeID)
 }

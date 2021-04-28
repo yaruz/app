@@ -51,11 +51,7 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 	case property_type2property_view_type.EntityName:
 		repo, err = NewPropertyType2PropertyViewTypeRepository(r)
 	case property_type.EntityName:
-		repoRel, err := NewPropertyType2PropertyViewTypeRepository(r)
-		if err != nil {
-			return nil, err
-		}
-		repo, err = NewPropertyTypeRepository(r, repoRel)
+		repo, err = NewPropertyTypeRepository(r)
 	case property_unit.EntityName:
 		repo, err = NewPropertyUnitRepository(r)
 	case property_view_type.EntityName:

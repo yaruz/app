@@ -3,21 +3,21 @@ package yarus_platform
 import (
 	golog "log"
 
-	"github.com/yaruz/app/pkg/yarus_platform/reference/infrastructure/repository/gorm"
-
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
-
+	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/log"
 	"github.com/pkg/errors"
+
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type2property"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_group"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type2property_view_type"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_unit"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_view_type"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_source"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_value"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/infrastructure/repository/gorm"
 )
 
 type ReferenceDomain struct {
@@ -59,7 +59,6 @@ type ReferenceDomainPropertyType struct {
 }
 
 type ReferenceDomainPropertyType2PropertyViewType struct {
-	Service    property_type2property_view_type.IService
 	Repository property_type2property_view_type.Repository
 }
 
@@ -85,11 +84,32 @@ type ReferenceDomainTextValue struct {
 
 func newReferenceDomain(infra *infrastructure) (*ReferenceDomain, error) {
 	d := &ReferenceDomain{}
+	d.autoMigrate(infra.ReferenceDB)
+
 	if err := d.setupRepositories(infra); err != nil {
 		return nil, err
 	}
 	d.setupServices(infra.Logger)
+
 	return d, nil
+}
+
+func (d *ReferenceDomain) autoMigrate(db minipkg_gorm.IDB) {
+	if db.IsAutoMigrate() {
+		db.DB().AutoMigrate(
+			&text_source.TextSource{},
+			&text_value.TextValue{},
+			&property_unit.PropertyUnit{},
+			&property_group.PropertyGroup{},
+			&property_type.PropertyType{},
+			&property_view_type.PropertyViewType{},
+			&property_type2property_view_type.PropertyType2PropertyViewType{},
+			&property.Property{},
+			&entity_type.EntityType{},
+			&entity_type2property.EntityType2Property{},
+		)
+		err := db.DB(). .SetupJoinTable(&Person{}, "Addresses", &PersonAddress{})
+	}
 }
 
 func (d *ReferenceDomain) setupRepositories(infra *infrastructure) (err error) {
@@ -102,6 +122,33 @@ func (d *ReferenceDomain) setupRepositories(infra *infrastructure) (err error) {
 	d.TextSource.Repository, ok = repo.(text_source.Repository)
 	if !ok {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", text_source.EntityName, text_source.EntityName, repo)
+	}
+
+	repo, err = gorm.GetRepository(infra.Logger, infra.ReferenceDB, property_type.EntityName)
+	if err != nil {
+		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", property_type.EntityName, err)
+	}
+	d.PropertyType.Repository, ok = repo.(property_type.Repository)
+	if !ok {
+		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", property_type.EntityName, property_type.EntityName, repo)
+	}
+
+	repo, err = gorm.GetRepository(infra.Logger, infra.ReferenceDB, property_view_type.EntityName)
+	if err != nil {
+		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", property_view_type.EntityName, err)
+	}
+	d.PropertyViewType.Repository, ok = repo.(property_view_type.Repository)
+	if !ok {
+		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", property_view_type.EntityName, property_view_type.EntityName, repo)
+	}
+
+	repo, err = gorm.GetRepository(infra.Logger, infra.ReferenceDB, entity_type.EntityName)
+	if err != nil {
+		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", entity_type.EntityName, err)
+	}
+	d.EntityType.Repository, ok = repo.(entity_type.Repository)
+	if !ok {
+		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", entity_type.EntityName, entity_type.EntityName, repo)
 	}
 
 	repo, err = gorm.GetRepository(infra.Logger, infra.ReferenceDB, property_unit.EntityName)
@@ -120,24 +167,6 @@ func (d *ReferenceDomain) setupRepositories(infra *infrastructure) (err error) {
 	d.PropertyGroup.Repository, ok = repo.(property_group.Repository)
 	if !ok {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", property_group.EntityName, property_group.EntityName, repo)
-	}
-
-	repo, err = gorm.GetRepository(infra.Logger, infra.ReferenceDB, property_view_type.EntityName)
-	if err != nil {
-		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", property_view_type.EntityName, err)
-	}
-	d.PropertyViewType.Repository, ok = repo.(property_view_type.Repository)
-	if !ok {
-		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", property_view_type.EntityName, property_view_type.EntityName, repo)
-	}
-
-	repo, err = gorm.GetRepository(infra.Logger, infra.ReferenceDB, property_type.EntityName)
-	if err != nil {
-		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", property_type.EntityName, err)
-	}
-	d.PropertyType.Repository, ok = repo.(property_type.Repository)
-	if !ok {
-		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", property_type.EntityName, property_type.EntityName, repo)
 	}
 
 	repo, err = gorm.GetRepository(infra.Logger, infra.ReferenceDB, property_type2property_view_type.EntityName)
@@ -167,15 +196,6 @@ func (d *ReferenceDomain) setupRepositories(infra *infrastructure) (err error) {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", text_value.EntityName, text_value.EntityName, repo)
 	}
 
-	repo, err = gorm.GetRepository(infra.Logger, infra.ReferenceDB, entity_type.EntityName)
-	if err != nil {
-		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", entity_type.EntityName, err)
-	}
-	d.EntityType.Repository, ok = repo.(entity_type.Repository)
-	if !ok {
-		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", entity_type.EntityName, entity_type.EntityName, repo)
-	}
-
 	repo, err = gorm.GetRepository(infra.Logger, infra.ReferenceDB, entity_type2property.EntityName)
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", entity_type2property.EntityName, err)
@@ -193,8 +213,7 @@ func (d *ReferenceDomain) setupServices(logger log.ILogger) {
 	d.EntityType.Service = entity_type.NewService(logger, d.EntityType.Repository)
 	d.PropertyGroup.Service = property_group.NewService(logger, d.PropertyGroup.Repository)
 	d.Property.Service = property.NewService(logger, d.Property.Repository)
-	d.PropertyType2PropertyViewType.Service = property_type2property_view_type.NewService(logger, d.PropertyType2PropertyViewType.Repository)
-	d.PropertyType.Service = property_type.NewService(logger, d.PropertyType.Repository)
+	d.PropertyType.Service = property_type.NewService(logger, d.PropertyType.Repository, d.PropertyType2PropertyViewType.Repository)
 	d.PropertyUnit.Service = property_unit.NewService(logger, d.PropertyUnit.Repository)
 	d.PropertyViewType.Service = property_view_type.NewService(logger, d.PropertyViewType.Repository)
 	d.TextSource.Service = text_source.NewService(logger, d.TextSource.Repository)

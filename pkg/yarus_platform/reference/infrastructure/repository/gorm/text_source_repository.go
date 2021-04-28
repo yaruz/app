@@ -25,15 +25,7 @@ var _ text_source.Repository = (*TextSourceRepository)(nil)
 
 // New creates a new TextSourceRepository
 func NewTextSourceRepository(repository *repository) (*TextSourceRepository, error) {
-	r := &TextSourceRepository{repository: *repository}
-	r.autoMigrate()
-	return r, nil
-}
-
-func (r *TextSourceRepository) autoMigrate() {
-	if r.db.IsAutoMigrate() {
-		r.db.DB().AutoMigrate(&text_source.TextSource{})
-	}
+	return &TextSourceRepository{repository: *repository}, nil
 }
 
 // Get reads the album with the specified ID from the database.

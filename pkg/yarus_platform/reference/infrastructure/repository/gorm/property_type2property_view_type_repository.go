@@ -24,15 +24,7 @@ var _ property_type2property_view_type.Repository = (*PropertyType2PropertyViewT
 
 // New creates a new PropertyType2PropertyViewTypeRepository
 func NewPropertyType2PropertyViewTypeRepository(repository *repository) (*PropertyType2PropertyViewTypeRepository, error) {
-	r := &PropertyType2PropertyViewTypeRepository{repository: *repository}
-	r.autoMigrate()
-	return r, nil
-}
-
-func (r *PropertyType2PropertyViewTypeRepository) autoMigrate() {
-	if r.db.IsAutoMigrate() {
-		r.db.DB().AutoMigrate(&property_type2property_view_type.PropertyType2PropertyViewType{})
-	}
+	return &PropertyType2PropertyViewTypeRepository{repository: *repository}, nil
 }
 
 // Get reads the album with the specified ID from the database.

@@ -24,15 +24,7 @@ var _ property_unit.Repository = (*PropertyUnitRepository)(nil)
 
 // New creates a new PropertyUnitRepository
 func NewPropertyUnitRepository(repository *repository) (*PropertyUnitRepository, error) {
-	r := &PropertyUnitRepository{repository: *repository}
-	r.autoMigrate()
-	return r, nil
-}
-
-func (r *PropertyUnitRepository) autoMigrate() {
-	if r.db.IsAutoMigrate() {
-		r.db.DB().AutoMigrate(&property_unit.PropertyUnit{})
-	}
+	return &PropertyUnitRepository{repository: *repository}, nil
 }
 
 // Get reads the album with the specified ID from the database.

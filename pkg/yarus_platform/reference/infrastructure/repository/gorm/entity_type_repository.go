@@ -24,15 +24,7 @@ var _ entity_type.Repository = (*EntityTypeRepository)(nil)
 
 // New creates a new EntityTypeRepository
 func NewEntityTypeRepository(repository *repository) (*EntityTypeRepository, error) {
-	r := &EntityTypeRepository{repository: *repository}
-	r.autoMigrate()
-	return r, nil
-}
-
-func (r *EntityTypeRepository) autoMigrate() {
-	if r.db.IsAutoMigrate() {
-		r.db.DB().AutoMigrate(&entity_type.EntityType{})
-	}
+	return &EntityTypeRepository{repository: *repository}, nil
 }
 
 // Get reads the album with the specified ID from the database.
