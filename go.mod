@@ -8,17 +8,15 @@ require (
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/go-redis/redis/v8 v8.8.0
 	github.com/golang/protobuf v1.4.3
-	github.com/jinzhu/gorm v1.9.16
-	github.com/minipkg/db v0.0.3
-	github.com/minipkg/go-app-common v0.0.0-20210319172844-0ac9ed031c8d // indirect
-	github.com/minipkg/log v0.0.0-20210401163336-53d77a21a670
+	github.com/minipkg/db v0.0.9
+	github.com/minipkg/log v0.0.1
 	github.com/minipkg/ozzo_routing v0.0.1
 	github.com/minipkg/pagination v0.0.0-20210401162640-c2a831d2cca4
-	github.com/minipkg/selection_condition v0.0.2
+	github.com/minipkg/selection_condition v0.0.3
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/viper v1.7.1
-	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b
 	google.golang.org/protobuf v1.25.0
 	gorm.io/datatypes v1.0.0
-	gorm.io/gorm v1.21.9 // indirect
+	gorm.io/gorm v1.21.9
 )

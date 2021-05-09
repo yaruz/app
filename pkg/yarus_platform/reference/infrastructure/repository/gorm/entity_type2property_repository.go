@@ -6,8 +6,8 @@ import (
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type2property"
 
-	"github.com/jinzhu/gorm"
 	"github.com/yaruz/app/internal/pkg/apperror"
+	"gorm.io/gorm"
 
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/selection_condition"
@@ -33,7 +33,7 @@ func (r *EntityType2PropertyRepository) Get(ctx context.Context, id uint) (*enti
 
 	err := r.DB().First(entity, id).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
 		}
 		return nil, err
@@ -44,7 +44,7 @@ func (r *EntityType2PropertyRepository) Get(ctx context.Context, id uint) (*enti
 func (r *EntityType2PropertyRepository) First(ctx context.Context, entity *entity_type2property.EntityType2Property) (*entity_type2property.EntityType2Property, error) {
 	err := r.DB().Where(entity).First(entity).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
 		}
 		return nil, err
@@ -70,8 +70,8 @@ func (r *EntityType2PropertyRepository) Query(ctx context.Context, cond *selecti
 	return items, err
 }
 
-func (r *EntityType2PropertyRepository) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (uint, error) {
-	var count uint
+func (r *EntityType2PropertyRepository) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error) {
+	var count int64
 	c := cond
 	c.Limit = 0
 	c.Offset = 0
@@ -86,19 +86,11 @@ func (r *EntityType2PropertyRepository) Count(ctx context.Context, cond *selecti
 
 // Create saves a new record in the database.
 func (r *EntityType2PropertyRepository) Create(ctx context.Context, entity *entity_type2property.EntityType2Property) error {
-
-	if !r.db.DB().NewRecord(entity) {
-		return errors.New("entity is not new")
-	}
 	return r.db.DB().Create(entity).Error
 }
 
 // Update saves a changed Maintenance record in the database.
 func (r *EntityType2PropertyRepository) Update(ctx context.Context, entity *entity_type2property.EntityType2Property) error {
-
-	if r.db.DB().NewRecord(entity) {
-		return errors.New("entity is new")
-	}
 	return r.Save(ctx, entity)
 }
 
@@ -112,7 +104,7 @@ func (r *EntityType2PropertyRepository) Delete(ctx context.Context, id uint) err
 
 	err := r.db.DB().Delete(&entity_type2property.EntityType2Property{}, id).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apperror.ErrNotFound
 		}
 	}

@@ -8,7 +8,7 @@ import (
 
 	"github.com/yaruz/app/internal/pkg/apperror"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/selection_condition"
@@ -34,7 +34,7 @@ func (r *TextSourceRepository) Get(ctx context.Context, id uint) (*text_source.T
 
 	err := r.DB().First(entity, id).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
 		}
 		return nil, err
@@ -45,7 +45,7 @@ func (r *TextSourceRepository) Get(ctx context.Context, id uint) (*text_source.T
 func (r *TextSourceRepository) First(ctx context.Context, entity *text_source.TextSource) (*text_source.TextSource, error) {
 	err := r.DB().Where(entity).First(entity).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
 		}
 		return nil, err
@@ -71,8 +71,8 @@ func (r *TextSourceRepository) Query(ctx context.Context, cond *selection_condit
 	return items, err
 }
 
-func (r *TextSourceRepository) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (uint, error) {
-	var count uint
+func (r *TextSourceRepository) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error) {
+	var count int64
 	c := cond
 	c.Limit = 0
 	c.Offset = 0
@@ -88,7 +88,7 @@ func (r *TextSourceRepository) Count(ctx context.Context, cond *selection_condit
 // Create saves a new record in the database.
 func (r *TextSourceRepository) Create(ctx context.Context, entity *text_source.TextSource) error {
 
-	if !r.db.DB().NewRecord(entity) {
+	if entity.ID > 0 {
 		return errors.New("entity is not new")
 	}
 
@@ -98,7 +98,7 @@ func (r *TextSourceRepository) Create(ctx context.Context, entity *text_source.T
 // Update saves a changed Maintenance record in the database.
 func (r *TextSourceRepository) Update(ctx context.Context, entity *text_source.TextSource) error {
 
-	if r.db.DB().NewRecord(entity) {
+	if entity.ID == 0 {
 		return errors.New("entity is new")
 	}
 
@@ -115,7 +115,7 @@ func (r *TextSourceRepository) Delete(ctx context.Context, id uint) error {
 
 	err := r.db.DB().Delete(&text_source.TextSource{}, id).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apperror.ErrNotFound
 		}
 	}

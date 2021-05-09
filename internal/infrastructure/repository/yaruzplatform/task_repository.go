@@ -26,7 +26,7 @@ func (r *TaskRepository) Get(ctx context.Context, id uint) (*task.Task, error) {
 
 	//err := r.DB().First(entity, id).Error
 	//if err != nil {
-	//	if gorm.IsRecordNotFoundError(err) {
+	//	if errors.Is(err, gorm.ErrRecordNotFound) {
 	//		return entity, yaruzerror.ErrNotFound
 	//	}
 	//}
@@ -37,7 +37,7 @@ func (r *TaskRepository) Get(ctx context.Context, id uint) (*task.Task, error) {
 func (r *TaskRepository) First(ctx context.Context, entity *task.Task) (*task.Task, error) {
 	//err := r.DB().Where(entity).First(entity).Error
 	//if err != nil {
-	//	if gorm.IsRecordNotFoundError(err) {
+	//	if errors.Is(err, gorm.ErrRecordNotFound) {
 	//		return entity, yaruzerror.ErrNotFound
 	//	}
 	//}
@@ -63,8 +63,8 @@ func (r *TaskRepository) Query(ctx context.Context, cond *selection_condition.Se
 	return items, nil
 }
 
-func (r *TaskRepository) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (uint, error) {
-	var count uint
+func (r *TaskRepository) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error) {
+	var count int64
 	//c := cond
 	//c.Limit = 0
 	//c.Offset = 0
@@ -80,7 +80,7 @@ func (r *TaskRepository) Count(ctx context.Context, cond *selection_condition.Se
 // Create saves a new record in the database.
 func (r *TaskRepository) Create(ctx context.Context, entity *task.Task) error {
 
-	//if !r.db.DB().NewRecord(entity) {
+	//if entity.ID > 0 {
 	//	return errors.New("entity is not new")
 	//}
 	//return r.db.DB().Create(entity).Error
@@ -90,7 +90,7 @@ func (r *TaskRepository) Create(ctx context.Context, entity *task.Task) error {
 // Update saves a changed Maintenance record in the database.
 func (r *TaskRepository) Update(ctx context.Context, entity *task.Task) error {
 
-	//if r.db.DB().NewRecord(entity) {
+	//if entity.ID == 0 {
 	//	return errors.New("entity is new")
 	//}
 	//
@@ -109,7 +109,7 @@ func (r *TaskRepository) Delete(ctx context.Context, id uint) error {
 
 	//err := r.db.DB().Delete(&task.Task{}, id).Error
 	//if err != nil {
-	//	if gorm.IsRecordNotFoundError(err) {
+	//	if errors.Is(err, gorm.ErrRecordNotFound) {
 	//		return apperror.ErrNotFound
 	//	}
 	//}

@@ -14,7 +14,7 @@ type Repository interface {
 	First(ctx context.Context, entity *PropertyType) (*PropertyType, error)
 	// Query returns the list of items with the given conditions.
 	Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]PropertyType, error)
-	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (uint, error)
+	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error)
 	Create(ctx context.Context, entity *PropertyType) error
 	Update(ctx context.Context, entity *PropertyType) error
 	Save(ctx context.Context, entity *PropertyType) error

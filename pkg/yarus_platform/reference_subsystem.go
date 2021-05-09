@@ -84,7 +84,9 @@ type ReferenceDomainTextValue struct {
 
 func newReferenceDomain(infra *infrastructure) (*ReferenceDomain, error) {
 	d := &ReferenceDomain{}
-	d.autoMigrate(infra.ReferenceDB)
+	if err := d.autoMigrate(infra.ReferenceDB); err != nil {
+		return nil, err
+	}
 
 	if err := d.setupRepositories(infra); err != nil {
 		return nil, err
@@ -94,7 +96,7 @@ func newReferenceDomain(infra *infrastructure) (*ReferenceDomain, error) {
 	return d, nil
 }
 
-func (d *ReferenceDomain) autoMigrate(db minipkg_gorm.IDB) {
+func (d *ReferenceDomain) autoMigrate(db minipkg_gorm.IDB) error {
 	if db.IsAutoMigrate() {
 		db.DB().AutoMigrate(
 			&text_source.TextSource{},
@@ -108,8 +110,12 @@ func (d *ReferenceDomain) autoMigrate(db minipkg_gorm.IDB) {
 			&entity_type.EntityType{},
 			&entity_type2property.EntityType2Property{},
 		)
-		err := db.DB(). .SetupJoinTable(&Person{}, "Addresses", &PersonAddress{})
+		err := db.DB().SetupJoinTable(&property_type.PropertyType{}, "PropertyViewTypes", &property_type2property_view_type.PropertyType2PropertyViewType{})
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func (d *ReferenceDomain) setupRepositories(infra *infrastructure) (err error) {

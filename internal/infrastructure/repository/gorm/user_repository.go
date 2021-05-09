@@ -6,8 +6,8 @@ import (
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/selection_condition"
 
-	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 
 	"github.com/yaruz/app/internal/pkg/apperror"
 
@@ -40,7 +40,7 @@ func (r UserRepository) Get(ctx context.Context, id uint) (*user.User, error) {
 
 	err := r.DB().First(entity, id).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, apperror.ErrNotFound
 		}
 	}
@@ -50,7 +50,7 @@ func (r UserRepository) Get(ctx context.Context, id uint) (*user.User, error) {
 func (r UserRepository) First(ctx context.Context, entity *user.User) (*user.User, error) {
 	err := r.DB().Where(entity).First(entity).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, apperror.ErrNotFound
 		}
 	}
@@ -79,7 +79,7 @@ func (r UserRepository) Query(ctx context.Context, cond *selection_condition.Sel
 // It returns the ID of the newly inserted album record.
 func (r UserRepository) Create(ctx context.Context, entity *user.User) error {
 
-	if !r.db.DB().NewRecord(entity) {
+	if entity.ID > 0 {
 		return errors.New("entity is not new")
 	}
 	return r.db.DB().Create(entity).Error

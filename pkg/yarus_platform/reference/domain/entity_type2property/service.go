@@ -15,7 +15,7 @@ type IService interface {
 	NewEntity() *EntityType2Property
 	Get(ctx context.Context, id uint) (*EntityType2Property, error)
 	Query(ctx context.Context, query *selection_condition.SelectionCondition) ([]EntityType2Property, error)
-	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (uint, error)
+	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error)
 	Create(ctx context.Context, entity *EntityType2Property) error
 	Update(ctx context.Context, entity *EntityType2Property) error
 	Save(ctx context.Context, entity *EntityType2Property) error
@@ -66,7 +66,7 @@ func (s *service) Query(ctx context.Context, cond *selection_condition.Selection
 	return items, nil
 }
 
-func (s *service) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (uint, error) {
+func (s *service) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error) {
 	count, err := s.repository.Count(ctx, cond)
 	if err != nil {
 		return 0, errors.Wrapf(err, "Can not count a list of items by query: %v", cond)

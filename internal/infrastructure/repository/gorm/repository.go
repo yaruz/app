@@ -5,8 +5,8 @@ import (
 	"github.com/minipkg/selection_condition"
 	"github.com/yaruz/app/internal/domain/user"
 
-	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 
 	"github.com/minipkg/log"
 )

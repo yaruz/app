@@ -6,8 +6,8 @@ import (
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type2property_view_type"
 
-	"github.com/jinzhu/gorm"
 	"github.com/yaruz/app/internal/pkg/apperror"
+	"gorm.io/gorm"
 
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/selection_condition"
@@ -33,7 +33,7 @@ func (r *PropertyType2PropertyViewTypeRepository) Get(ctx context.Context, id ui
 
 	err := r.DB().First(entity, id).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
 		}
 		return nil, err
@@ -44,7 +44,7 @@ func (r *PropertyType2PropertyViewTypeRepository) Get(ctx context.Context, id ui
 func (r *PropertyType2PropertyViewTypeRepository) First(ctx context.Context, entity *property_type2property_view_type.PropertyType2PropertyViewType) (*property_type2property_view_type.PropertyType2PropertyViewType, error) {
 	err := r.DB().Where(entity).First(entity).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
 		}
 		return nil, err
@@ -70,8 +70,8 @@ func (r *PropertyType2PropertyViewTypeRepository) Query(ctx context.Context, con
 	return items, err
 }
 
-func (r *PropertyType2PropertyViewTypeRepository) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (uint, error) {
-	var count uint
+func (r *PropertyType2PropertyViewTypeRepository) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error) {
+	var count int64
 	c := cond
 	c.Limit = 0
 	c.Offset = 0
@@ -86,19 +86,11 @@ func (r *PropertyType2PropertyViewTypeRepository) Count(ctx context.Context, con
 
 // Create saves a new record in the database.
 func (r *PropertyType2PropertyViewTypeRepository) Create(ctx context.Context, entity *property_type2property_view_type.PropertyType2PropertyViewType) error {
-
-	if !r.db.DB().NewRecord(entity) {
-		return errors.New("entity is not new")
-	}
 	return r.db.DB().Create(entity).Error
 }
 
 // Update saves a changed Maintenance record in the database.
 func (r *PropertyType2PropertyViewTypeRepository) Update(ctx context.Context, entity *property_type2property_view_type.PropertyType2PropertyViewType) error {
-
-	if r.db.DB().NewRecord(entity) {
-		return errors.New("entity is new")
-	}
 	return r.Save(ctx, entity)
 }
 
@@ -115,7 +107,7 @@ func (r *PropertyType2PropertyViewTypeRepository) Delete(ctx context.Context, pr
 		PropertyViewTypeID: propertyViewTypeID,
 	}).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apperror.ErrNotFound
 		}
 	}

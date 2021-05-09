@@ -6,8 +6,8 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_value"
 
-	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 
 	"github.com/minipkg/log"
 )

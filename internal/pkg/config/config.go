@@ -112,8 +112,10 @@ func Get4UnitTest(logAppPostfix string) *Configuration {
 			Identity: minipkg_gorm.Config{
 				Dialect:       "postgres",
 				DSN:           "host=localhost port=5401 dbname=postgres user=postgres password=postgres sslmode=disable",
-				IsLogMode:     true,
 				IsAutoMigrate: true,
+				Log: minipkg_gorm.LogConfig{
+					LogLevel: 4,
+				},
 			},
 			Redis: redis.Config{},
 		},

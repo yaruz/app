@@ -167,7 +167,7 @@ func (app *App) Run() error {
 
 func (app *App) Stop() error {
 	errRedis := app.Infra.Redis.Close()
-	errDB01 := app.Infra.IdentityDB.DB().Close()
+	errDB01 := app.Infra.IdentityDB.Close()
 	errDB02 := app.Infra.YaruzRepository.Stop()
 
 	switch {

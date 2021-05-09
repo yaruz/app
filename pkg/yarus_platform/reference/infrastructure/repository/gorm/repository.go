@@ -1,8 +1,14 @@
 package gorm
 
 import (
+	"context"
+
 	minipkg_gorm "github.com/minipkg/db/gorm"
+	"github.com/minipkg/log"
 	"github.com/minipkg/selection_condition"
+	"github.com/pkg/errors"
+	"gorm.io/gorm"
+
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type2property"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
@@ -13,21 +19,19 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_view_type"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_source"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_value"
-
-	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
-
-	"github.com/minipkg/log"
 )
 
 // IRepository is an interface of repository
-type IRepository interface{}
+type IRepository interface {
+	DB() *gorm.DB
+}
 
 // repository persists albums in database
 type repository struct {
 	db         minipkg_gorm.IDB
 	logger     log.ILogger
 	Conditions *selection_condition.SelectionCondition
+	model      interface{}
 }
 
 const DefaultLimit = 1000
@@ -35,30 +39,79 @@ const DefaultLimit = 1000
 // GetRepository return a repository
 func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string) (repo IRepository, err error) {
 	r := &repository{
-		db:     dbase,
 		logger: logger,
 	}
 
 	switch entityName {
 	case entity_type2property.EntityName:
+		r.model = entity_type2property.New()
+
+		if r.db, err = dbase.WithContext(context.Background()).Model(r.model); err != nil {
+			return nil, err
+		}
 		repo, err = NewEntityType2PropertyRepository(r)
 	case entity_type.EntityName:
+		r.model = entity_type.New()
+
+		if r.db, err = dbase.WithContext(context.Background()).Model(r.model); err != nil {
+			return nil, err
+		}
 		repo, err = NewEntityTypeRepository(r)
 	case property_group.EntityName:
+		r.model = property_group.New()
+
+		if r.db, err = dbase.WithContext(context.Background()).Model(r.model); err != nil {
+			return nil, err
+		}
 		repo, err = NewPropertyGroupRepository(r)
 	case property.EntityName:
+		r.model = property.New()
+
+		if r.db, err = dbase.WithContext(context.Background()).Model(r.model); err != nil {
+			return nil, err
+		}
 		repo, err = NewPropertyRepository(r)
 	case property_type2property_view_type.EntityName:
+		r.model = property_type2property_view_type.New()
+
+		if r.db, err = dbase.WithContext(context.Background()).Model(r.model); err != nil {
+			return nil, err
+		}
 		repo, err = NewPropertyType2PropertyViewTypeRepository(r)
 	case property_type.EntityName:
+		r.model = property_type.New()
+
+		if r.db, err = dbase.WithContext(context.Background()).Model(r.model); err != nil {
+			return nil, err
+		}
 		repo, err = NewPropertyTypeRepository(r)
 	case property_unit.EntityName:
+		r.model = property_unit.New()
+
+		if r.db, err = dbase.WithContext(context.Background()).Model(r.model); err != nil {
+			return nil, err
+		}
 		repo, err = NewPropertyUnitRepository(r)
 	case property_view_type.EntityName:
+		r.model = property_view_type.New()
+
+		if r.db, err = dbase.WithContext(context.Background()).Model(r.model); err != nil {
+			return nil, err
+		}
 		repo, err = NewPropertyViewTypeRepository(r)
 	case text_source.EntityName:
+		r.model = text_source.New()
+
+		if r.db, err = dbase.WithContext(context.Background()).Model(r.model); err != nil {
+			return nil, err
+		}
 		repo, err = NewTextSourceRepository(r)
 	case text_value.EntityName:
+		r.model = text_value.New()
+
+		if r.db, err = dbase.WithContext(context.Background()).Model(r.model); err != nil {
+			return nil, err
+		}
 		repo, err = NewTextValueRepository(r)
 	default:
 		err = errors.Errorf("Repository for entity %q not found", entityName)

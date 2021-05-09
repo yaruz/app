@@ -14,7 +14,7 @@ type Repository interface {
 	First(ctx context.Context, entity *Property) (*Property, error)
 	// Query returns the list of albums with the given offset and limit.
 	Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]Property, error)
-	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (uint, error)
+	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error)
 	Create(ctx context.Context, entity *Property) error
 	Update(ctx context.Context, entity *Property) error
 	Save(ctx context.Context, entity *Property) error

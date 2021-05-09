@@ -53,9 +53,9 @@ func newInfra(logger log.ILogger, cfg config.Infrastructure) (*infrastructure, e
 
 func (i *infrastructure) Stop() error {
 	errRedis := i.Redis.Close()
-	errDataDB := i.DataDB.DB().Close()
-	errReferenceDB := i.ReferenceDB.DB().Close()
-	errSearchDB := i.SearchDB.DB().Close()
+	errDataDB := i.DataDB.Close()
+	errReferenceDB := i.ReferenceDB.Close()
+	errSearchDB := i.SearchDB.Close()
 
 	switch {
 	case errDataDB != nil:
