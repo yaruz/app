@@ -14,13 +14,13 @@ const (
 
 // Entity ...
 type Entity struct {
-	ID           uint                 `gorm:"type:bigserial;primaryKey" json:"id"`
-	EntityTypeID uint                 `sql:"type:bigint not null" gorm:"index" json:"entityTypeID"`
-	PropertiesB  datatypes.JSON       `json:"-"`
-	Properties   map[uint]interface{} `gorm:"-" json:"properties"`
-	CreatedAt    time.Time            `json:"createdAt"`
-	UpdatedAt    time.Time            `json:"updatedAt"`
-	DeletedAt    *time.Time           `gorm:"index" json:"deletedAt,omitempty"`
+	ID               uint                 `gorm:"type:bigserial;primaryKey" json:"id"`
+	EntityTypeID     uint                 `gorm:"type:bigint not null;index" json:"entityTypeID"`
+	PropertiesB      datatypes.JSON       `json:"-"`
+	PropertiesValues map[uint]interface{} `gorm:"-" json:"properties"`
+	CreatedAt        time.Time            `json:"createdAt"`
+	UpdatedAt        time.Time            `json:"updatedAt"`
+	DeletedAt        *time.Time           `gorm:"index" json:"deletedAt,omitempty"`
 }
 
 func (e *Entity) TableName() string {
@@ -33,23 +33,23 @@ func New() *Entity {
 }
 
 func (e *Entity) AfterFind() error {
-	return e.propertiesB2Properties()
+	return e.propertiesB2PropertiesValues()
 }
 
 func (e *Entity) BeforeSave() error {
-	return e.properties2PropertiesB()
+	return e.propertiesValues2PropertiesB()
 }
 
-func (e *Entity) propertiesB2Properties() error {
+func (e *Entity) propertiesB2PropertiesValues() error {
 	jsonb, err := e.PropertiesB.MarshalJSON()
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal(jsonb, &e.Properties)
+	return json.Unmarshal(jsonb, &e.PropertiesValues)
 }
 
-func (e *Entity) properties2PropertiesB() error {
-	jsonb, err := json.Marshal(&e.Properties)
+func (e *Entity) propertiesValues2PropertiesB() error {
+	jsonb, err := json.Marshal(&e.PropertiesValues)
 	if err != nil {
 		return err
 	}

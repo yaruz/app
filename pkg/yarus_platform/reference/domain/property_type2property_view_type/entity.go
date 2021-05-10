@@ -9,8 +9,8 @@ const (
 
 // PropertyType2PropertyViewType ...
 type PropertyType2PropertyViewType struct {
-	PropertyTypeID     uint       `sql:"type:bigint not null REFERENCES \"property_type\"(id);primary_key" json:"propertyTypeID"`
-	PropertyViewTypeID uint       `sql:"type:bigint not null REFERENCES \"property_view_type\"(id);primary_key" json:"propertyViewTypeID"`
+	PropertyTypeID     uint       `gorm:"type:bigint not null REFERENCES \"property_type\"(id);primaryKey" json:"propertyTypeID"`
+	PropertyViewTypeID uint       `gorm:"type:bigint not null REFERENCES \"property_view_type\"(id);primaryKey" json:"propertyViewTypeID"`
 	CreatedAt          time.Time  `json:"createdAt"`
 	UpdatedAt          time.Time  `json:"updatedAt"`
 	DeletedAt          *time.Time `gorm:"index" json:"deletedAt,omitempty"`

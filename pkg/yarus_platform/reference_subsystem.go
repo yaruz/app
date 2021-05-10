@@ -105,15 +105,15 @@ func (d *ReferenceDomain) autoMigrate(db minipkg_gorm.IDB) error {
 			&property_group.PropertyGroup{},
 			&property_type.PropertyType{},
 			&property_view_type.PropertyViewType{},
-			&property_type2property_view_type.PropertyType2PropertyViewType{},
+			//&property_type2property_view_type.PropertyType2PropertyViewType{},
 			&property.Property{},
 			&entity_type.EntityType{},
-			&entity_type2property.EntityType2Property{},
+			//&entity_type2property.EntityType2Property{},
 		)
-		err := db.DB().SetupJoinTable(&property_type.PropertyType{}, "PropertyViewTypes", &property_type2property_view_type.PropertyType2PropertyViewType{})
-		if err != nil {
-			return err
-		}
+		//err := db.DB().SetupJoinTable(&property_type.PropertyType{}, "PropertyViewTypes", &property_type2property_view_type.PropertyType2PropertyViewType{})
+		//if err != nil {
+		//	return err
+		//}
 	}
 	return nil
 }

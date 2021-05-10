@@ -16,8 +16,8 @@ const (
 type PropertyUnit struct {
 	ID                  uint       `gorm:"type:bigserial;primaryKey" json:"id"`
 	Sysname             string     `gorm:"type:varchar(100) not null;unique;index" json:"sysname"`
-	NameSourceID        *uint      `sql:"type:bigint null REFERENCES \"text_source\"(id)" gorm:"index" json:"-"`
-	DescriptionSourceID *uint      `sql:"type:bigint null REFERENCES \"text_source\"(id)" gorm:"index" json:"-"`
+	NameSourceID        *uint      `gorm:"type:bigint null REFERENCES \"text_source\"(id);index" json:"-"`
+	DescriptionSourceID *uint      `gorm:"type:bigint null REFERENCES \"text_source\"(id);index" json:"-"`
 	Name                *string    `gorm:"-" json:"name"`
 	Description         *string    `gorm:"-" json:"description"`
 	CreatedAt           time.Time  `json:"createdAt"`

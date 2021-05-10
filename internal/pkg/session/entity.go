@@ -24,11 +24,11 @@ type Data struct {
 // Session is the session entity
 type Session struct {
 	ID     uint            `gorm:"primaryKey" json:"id"`
-	UserID uint            `sql:"type:int NOT NULL REFERENCES \"user\"(id)" json:"userId"`
+	UserID uint            `gorm:"type:int NOT NULL REFERENCES \"user\"(id)" json:"userId"`
 	User   user.User       `gorm:"FOREIGNKEY:UserID;association_autoupdate:false" json:"author"`
 	Data   Data            `gorm:"-"`
 	Ctx    context.Context `gorm:"-"`
-	Token  string          `gorm:"type:text;unique_index;not null" json:"token"`
+	Token  string          `gorm:"type:text;uniqueIndex;not null" json:"token"`
 
 	CreatedAt time.Time  `json:"created"`
 	UpdatedAt time.Time  `json:"updated"`

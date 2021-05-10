@@ -16,14 +16,14 @@ const (
 type Property struct {
 	ID                  uint                     `gorm:"type:bigserial;primaryKey" json:"id"`
 	Sysname             string                   `gorm:"type:varchar(100) not null;unique;index" json:"sysname"`
-	NameSourceID        *uint                    `sql:"type:bigint null REFERENCES \"text_source\"(id)" gorm:"index" json:"-"`
-	DescriptionSourceID *uint                    `sql:"type:bigint null REFERENCES \"text_source\"(id)" gorm:"index" json:"-"`
+	NameSourceID        *uint                    `gorm:"type:bigint null REFERENCES \"text_source\"(id);index" json:"-"`
+	DescriptionSourceID *uint                    `gorm:"type:bigint null REFERENCES \"text_source\"(id);index" json:"-"`
 	Name                *string                  `gorm:"-" json:"name"`
 	Description         *string                  `gorm:"-" json:"description"`
-	PropertyTypeID      uint                     `sql:"type:bigint not null REFERENCES \"property_type\"(id)" gorm:"index" json:"propertyTypeId"`
-	PropertyUnitID      uint                     `sql:"type:bigint not null REFERENCES \"property_unit\"(id)" gorm:"index" json:"propertyUnitId"`
-	PropertyViewTypeID  *uint                    `sql:"type:bigint null REFERENCES \"property_view_type\"(id)" gorm:"index" json:"propertyViewTypeId"`
-	PropertyGroupID     *uint                    `sql:"type:bigint null REFERENCES \"property_group\"(id)" gorm:"index" json:"propertyGroupId"`
+	PropertyTypeID      uint                     `gorm:"type:bigint not null REFERENCES \"property_type\"(id);index" json:"propertyTypeId"`
+	PropertyUnitID      uint                     `gorm:"type:bigint not null REFERENCES \"property_unit\"(id);index" json:"propertyUnitId"`
+	PropertyViewTypeID  *uint                    `gorm:"type:bigint null REFERENCES \"property_view_type\"(id);index" json:"propertyViewTypeId"`
+	PropertyGroupID     *uint                    `gorm:"type:bigint null REFERENCES \"property_group\"(id);index" json:"propertyGroupId"`
 	IsSpecific          bool                     `gorm:"type:boolean not null default false;" json:"isSpecific"`
 	IsRange             bool                     `gorm:"type:boolean not null default false;" json:"isRange"`
 	IsMultiple          bool                     `gorm:"type:boolean not null default false;" json:"isMultiple"`
