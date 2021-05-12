@@ -55,7 +55,7 @@ func (r *EntityTypeRepository) First(ctx context.Context, entity *entity_type.En
 // Query retrieves the album records with the specified offset and limit from the database.
 func (r *EntityTypeRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]entity_type.EntityType, error) {
 	items := []entity_type.EntityType{}
-	db := minipkg_gorm.Conditions(r.DB().Model(&entity_type.EntityType{}), cond)
+	db := minipkg_gorm.Conditions(r.DB(), cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -75,7 +75,7 @@ func (r *EntityTypeRepository) Count(ctx context.Context, cond *selection_condit
 	c := cond
 	c.Limit = 0
 	c.Offset = 0
-	db := minipkg_gorm.Conditions(r.DB().Model(&entity_type.EntityType{}), cond)
+	db := minipkg_gorm.Conditions(r.DB(), cond)
 	if db.Error != nil {
 		return 0, db.Error
 	}

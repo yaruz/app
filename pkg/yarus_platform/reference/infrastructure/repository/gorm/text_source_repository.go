@@ -56,7 +56,7 @@ func (r *TextSourceRepository) First(ctx context.Context, entity *text_source.Te
 // Query retrieves the album records with the specified offset and limit from the database.
 func (r *TextSourceRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]text_source.TextSource, error) {
 	items := []text_source.TextSource{}
-	db := minipkg_gorm.Conditions(r.DB().Model(&text_source.TextSource{}), cond)
+	db := minipkg_gorm.Conditions(r.DB(), cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -76,7 +76,7 @@ func (r *TextSourceRepository) Count(ctx context.Context, cond *selection_condit
 	c := cond
 	c.Limit = 0
 	c.Offset = 0
-	db := minipkg_gorm.Conditions(r.DB().Model(&text_source.TextSource{}), cond)
+	db := minipkg_gorm.Conditions(r.DB(), cond)
 	if db.Error != nil {
 		return 0, db.Error
 	}

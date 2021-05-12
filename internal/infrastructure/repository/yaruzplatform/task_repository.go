@@ -48,7 +48,7 @@ func (r *TaskRepository) First(ctx context.Context, entity *task.Task) (*task.Ta
 // Query retrieves the album records with the specified offset and limit from the database.
 func (r *TaskRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]task.Task, error) {
 	items := []task.Task{}
-	//db := minipkg_gorm.Conditions(r.DB().Model(&task.Task{}), cond)
+	//db := minipkg_gorm.Conditions(r.DB(), cond)
 	//if db.Error != nil {
 	//	return nil, db.Error
 	//}
@@ -68,7 +68,7 @@ func (r *TaskRepository) Count(ctx context.Context, cond *selection_condition.Se
 	//c := cond
 	//c.Limit = 0
 	//c.Offset = 0
-	//db := minipkg_gorm.Conditions(r.DB().Model(&task.Task{}), cond)
+	//db := minipkg_gorm.Conditions(r.DB(), cond)
 	//if db.Error != nil {
 	//	return 0, db.Error
 	//}

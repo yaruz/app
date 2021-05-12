@@ -55,7 +55,7 @@ func (r *PropertyType2PropertyViewTypeRepository) First(ctx context.Context, ent
 // Query retrieves the album records with the specified offset and limit from the database.
 func (r *PropertyType2PropertyViewTypeRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]property_type2property_view_type.PropertyType2PropertyViewType, error) {
 	items := []property_type2property_view_type.PropertyType2PropertyViewType{}
-	db := minipkg_gorm.Conditions(r.DB().Model(&property_type2property_view_type.PropertyType2PropertyViewType{}), cond)
+	db := minipkg_gorm.Conditions(r.DB(), cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -75,7 +75,7 @@ func (r *PropertyType2PropertyViewTypeRepository) Count(ctx context.Context, con
 	c := cond
 	c.Limit = 0
 	c.Offset = 0
-	db := minipkg_gorm.Conditions(r.DB().Model(&property_type2property_view_type.PropertyType2PropertyViewType{}), cond)
+	db := minipkg_gorm.Conditions(r.DB(), cond)
 	if db.Error != nil {
 		return 0, db.Error
 	}

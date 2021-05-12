@@ -55,7 +55,7 @@ func (r *PropertyUnitRepository) First(ctx context.Context, entity *property_uni
 // Query retrieves the album records with the specified offset and limit from the database.
 func (r *PropertyUnitRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]property_unit.PropertyUnit, error) {
 	items := []property_unit.PropertyUnit{}
-	db := minipkg_gorm.Conditions(r.DB().Model(&property_unit.PropertyUnit{}), cond)
+	db := minipkg_gorm.Conditions(r.DB(), cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -75,7 +75,7 @@ func (r *PropertyUnitRepository) Count(ctx context.Context, cond *selection_cond
 	c := cond
 	c.Limit = 0
 	c.Offset = 0
-	db := minipkg_gorm.Conditions(r.DB().Model(&property_unit.PropertyUnit{}), cond)
+	db := minipkg_gorm.Conditions(r.DB(), cond)
 	if db.Error != nil {
 		return 0, db.Error
 	}
@@ -110,7 +110,7 @@ func (r *PropertyUnitRepository) Save(ctx context.Context, entity *property_unit
 // Delete (soft) deletes a Maintenance record in the database.
 func (r *PropertyUnitRepository) Delete(ctx context.Context, id uint) error {
 
-	err := r.db.DB().Delete(&property_unit.PropertyUnit{}, id).Error
+	err := r.db.DB().Delete(id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apperror.ErrNotFound
