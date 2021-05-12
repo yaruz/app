@@ -11,17 +11,17 @@ import (
 )
 
 type testController struct {
-	Logger          log.ILogger
-	yaruzRepository yarus_platform.IPlatform
+	Logger        log.ILogger
+	yaruzPlatform yarus_platform.IPlatform
 }
 
 // RegisterHandlers sets up the routing of the HTTP handlers.
 //	GET /api/models/ - список всех моделей
 //	GET /api/model/{ID} - детали модели
-func RegisterTestHandlers(r *routing.RouteGroup, yaruzRepository yarus_platform.IPlatform, logger log.ILogger, authHandler routing.Handler) {
+func RegisterTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platform.IPlatform, logger log.ILogger, authHandler routing.Handler) {
 	c := testController{
-		Logger:          logger,
-		yaruzRepository: yaruzRepository,
+		Logger:        logger,
+		yaruzPlatform: yaruzPlatform,
 	}
 
 	r.Get("/property-unit", c.PropertyUnit)
@@ -36,7 +36,7 @@ func (c testController) PropertyUnit(ctx *routing.Context) error {
 	res["test"] = "property-unit"
 	cntx := ctx.Request.Context()
 
-	entity := c.yaruzRepository.Reference().PropertyUnit.Service.NewEntity()
+	entity := c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Service.NewEntity()
 	entity.Sysname = "WrongName"
 
 	err := entity.Validate()
@@ -44,18 +44,18 @@ func (c testController) PropertyUnit(ctx *routing.Context) error {
 		res["1. errValidate"] = err
 	}
 
-	err = c.yaruzRepository.Reference().PropertyUnit.Service.Create(cntx, entity)
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Service.Create(cntx, entity)
 	if err != nil {
 		res["2. errCreate1"] = err.Error()
 	}
 
 	entity.Sysname = "property_unit_1"
-	err = c.yaruzRepository.Reference().PropertyUnit.Service.Create(cntx, entity)
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Service.Create(cntx, entity)
 	if err != nil {
 		res["3. errCreate"] = err.Error()
 	}
 
-	e, err := c.yaruzRepository.Reference().PropertyUnit.Service.Get(cntx, entity.ID)
+	e, err := c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Service.Get(cntx, entity.ID)
 	if err != nil {
 		res["4. errCreate1"] = err.Error()
 	} else {
@@ -63,19 +63,19 @@ func (c testController) PropertyUnit(ctx *routing.Context) error {
 	}
 
 	entity.Sysname = "property_unit_1"
-	err = c.yaruzRepository.Reference().PropertyUnit.Service.Update(cntx, entity)
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Service.Update(cntx, entity)
 	if err != nil {
 		res["5. errCreate"] = err.Error()
 	}
 
-	e, err = c.yaruzRepository.Reference().PropertyUnit.Service.Get(cntx, entity.ID)
+	e, err = c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Service.Get(cntx, entity.ID)
 	if err != nil {
 		res["6. errGet"] = err.Error()
 	} else {
 		res["6. entity2"], _ = fmt.Printf("%#v", e)
 	}
 
-	err = c.yaruzRepository.Reference().PropertyUnit.Service.Delete(cntx, entity.ID)
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Service.Delete(cntx, entity.ID)
 	if err != nil {
 		res["7. errDelete"] = err.Error()
 	}

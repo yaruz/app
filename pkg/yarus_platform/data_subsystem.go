@@ -11,7 +11,7 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_value"
 )
 
-type DataDomain struct {
+type DataSubsystem struct {
 	Entity    DataDomainEntity
 	TextValue DataDomainTextValue
 }
@@ -26,8 +26,8 @@ type DataDomainTextValue struct {
 	Repository text_value.Repository
 }
 
-func newDataDomain(infra *infrastructure) (*DataDomain, error) {
-	d := &DataDomain{}
+func newDataSubsystem(infra *infrastructure) (*DataSubsystem, error) {
+	d := &DataSubsystem{}
 	if err := d.setupRepositories(infra); err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func newDataDomain(infra *infrastructure) (*DataDomain, error) {
 	return d, nil
 }
 
-func (d *DataDomain) setupRepositories(infra *infrastructure) (err error) {
+func (d *DataSubsystem) setupRepositories(infra *infrastructure) (err error) {
 	var ok bool
 
 	repo, err := gorm.GetRepository(infra.Logger, infra.DataDB, entity.EntityName)
@@ -59,7 +59,7 @@ func (d *DataDomain) setupRepositories(infra *infrastructure) (err error) {
 	return nil
 }
 
-func (d *DataDomain) setupServices(logger log.ILogger) {
+func (d *DataSubsystem) setupServices(logger log.ILogger) {
 	d.Entity.Service = entity.NewService(logger, d.Entity.Repository)
 	d.TextValue.Service = text_value.NewService(logger, d.TextValue.Repository)
 }

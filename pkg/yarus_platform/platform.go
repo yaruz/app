@@ -8,17 +8,17 @@ import (
 
 type IPlatform interface {
 	Stop() error
-	Data() *DataDomain
-	Reference() *ReferenceDomain
-	Search() *SearchDomain
+	DataSubsystem() *DataSubsystem
+	ReferenceSubsystem() *ReferenceSubsystem
+	SearchSubsystem() *SearchSubsystem
 }
 
 type Platform struct {
-	cfg             config.Configuration
-	DataDomain      *DataDomain
-	ReferenceDomain *ReferenceDomain
-	SearchDomain    *SearchDomain
-	infra           *infrastructure
+	cfg                config.Configuration
+	dataSubsystem      *DataSubsystem
+	referenceSubsystem *ReferenceSubsystem
+	searchSubsystem    *SearchSubsystem
+	infra              *infrastructure
 }
 
 func NewPlatform(cfg config.Configuration) (*Platform, error) {
@@ -32,40 +32,40 @@ func NewPlatform(cfg config.Configuration) (*Platform, error) {
 		return nil, err
 	}
 
-	data, err := newDataDomain(infra)
+	data, err := newDataSubsystem(infra)
 	if err != nil {
 		return nil, err
 	}
 
-	reference, err := newReferenceDomain(infra)
+	reference, err := newReferenceSubsystem(infra)
 	if err != nil {
 		return nil, err
 	}
 
-	search, err := newSearchDomain(infra)
+	search, err := newSearchSubsystem(infra)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Platform{
-		cfg:             cfg,
-		DataDomain:      data,
-		ReferenceDomain: reference,
-		SearchDomain:    search,
-		infra:           infra,
+		cfg:                cfg,
+		dataSubsystem:      data,
+		referenceSubsystem: reference,
+		searchSubsystem:    search,
+		infra:              infra,
 	}, nil
 }
 
-func (r *Platform) Data() *DataDomain {
-	return r.DataDomain
+func (r *Platform) DataSubsystem() *DataSubsystem {
+	return r.dataSubsystem
 }
 
-func (r *Platform) Reference() *ReferenceDomain {
-	return r.ReferenceDomain
+func (r *Platform) ReferenceSubsystem() *ReferenceSubsystem {
+	return r.referenceSubsystem
 }
 
-func (r *Platform) Search() *SearchDomain {
-	return r.SearchDomain
+func (r *Platform) SearchSubsystem() *SearchSubsystem {
+	return r.searchSubsystem
 }
 
 func (r *Platform) Stop() error {

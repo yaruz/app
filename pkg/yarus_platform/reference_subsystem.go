@@ -20,7 +20,7 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform/reference/infrastructure/repository/gorm"
 )
 
-type ReferenceDomain struct {
+type ReferenceSubsystem struct {
 	EntityType                    ReferenceDomainEntityType
 	EntityType2Property           ReferenceDomainEntityType2Property
 	Property                      ReferenceDomainProperty
@@ -82,8 +82,8 @@ type ReferenceDomainTextValue struct {
 	Repository text_value.Repository
 }
 
-func newReferenceDomain(infra *infrastructure) (*ReferenceDomain, error) {
-	d := &ReferenceDomain{}
+func newReferenceSubsystem(infra *infrastructure) (*ReferenceSubsystem, error) {
+	d := &ReferenceSubsystem{}
 	if err := d.autoMigrate(infra.ReferenceDB); err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func newReferenceDomain(infra *infrastructure) (*ReferenceDomain, error) {
 	return d, nil
 }
 
-func (d *ReferenceDomain) autoMigrate(db minipkg_gorm.IDB) error {
+func (d *ReferenceSubsystem) autoMigrate(db minipkg_gorm.IDB) error {
 	if db.IsAutoMigrate() {
 		db.DB().AutoMigrate(
 			&text_source.TextSource{},
@@ -118,7 +118,7 @@ func (d *ReferenceDomain) autoMigrate(db minipkg_gorm.IDB) error {
 	return nil
 }
 
-func (d *ReferenceDomain) setupRepositories(infra *infrastructure) (err error) {
+func (d *ReferenceSubsystem) setupRepositories(infra *infrastructure) (err error) {
 	var ok bool
 
 	repo, err := gorm.GetRepository(infra.Logger, infra.ReferenceDB, text_source.EntityName)
@@ -214,7 +214,7 @@ func (d *ReferenceDomain) setupRepositories(infra *infrastructure) (err error) {
 	return nil
 }
 
-func (d *ReferenceDomain) setupServices(logger log.ILogger) {
+func (d *ReferenceSubsystem) setupServices(logger log.ILogger) {
 	d.EntityType2Property.Service = entity_type2property.NewService(logger, d.EntityType2Property.Repository)
 	d.EntityType.Service = entity_type.NewService(logger, d.EntityType.Repository)
 	d.PropertyGroup.Service = property_group.NewService(logger, d.PropertyGroup.Repository)

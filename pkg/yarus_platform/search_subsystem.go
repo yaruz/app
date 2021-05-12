@@ -4,11 +4,11 @@ import (
 	"github.com/minipkg/log"
 )
 
-type SearchDomain struct {
+type SearchSubsystem struct {
 }
 
-func newSearchDomain(infra *infrastructure) (*SearchDomain, error) {
-	d := &SearchDomain{}
+func newSearchSubsystem(infra *infrastructure) (*SearchSubsystem, error) {
+	d := &SearchSubsystem{}
 	if err := d.setupRepositories(infra); err != nil {
 		return nil, err
 	}
@@ -16,10 +16,10 @@ func newSearchDomain(infra *infrastructure) (*SearchDomain, error) {
 	return d, nil
 }
 
-func (d *SearchDomain) setupRepositories(infra *infrastructure) (err error) {
+func (d *SearchSubsystem) setupRepositories(infra *infrastructure) (err error) {
 	return nil
 }
 
-func (d *SearchDomain) setupServices(logger log.ILogger) {
+func (d *SearchSubsystem) setupServices(logger log.ILogger) {
 
 }
