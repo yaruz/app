@@ -27,11 +27,17 @@ func RegisterTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platform.IP
 		yaruzPlatform: yaruzPlatform,
 	}
 
+	r.Get("/test", c.Test)
 	r.Get("/property-unit", c.PropertyUnit)
 	r.Get("/property-group", c.PropertyGroup)
 	r.Get("/property-view-type", c.PropertyViewType)
 	r.Get("/property-type", c.propertyType)
 	r.Get("/property", c.property)
+}
+
+func (c testController) Test(ctx *routing.Context) error {
+	return c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Repository.Test()
+
 }
 
 func (c testController) PropertyUnit(ctx *routing.Context) error {

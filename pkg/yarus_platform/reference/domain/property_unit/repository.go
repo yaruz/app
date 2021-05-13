@@ -19,4 +19,5 @@ type Repository interface {
 	Update(ctx context.Context, entity *PropertyUnit) error
 	Save(ctx context.Context, entity *PropertyUnit) error
 	Delete(ctx context.Context, id uint) error
+	Test() error
 }
