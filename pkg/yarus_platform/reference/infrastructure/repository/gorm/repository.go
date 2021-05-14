@@ -41,75 +41,76 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 	r := &repository{
 		logger: logger,
 	}
+	ctx := context.Background()
 
 	switch entityName {
 	case entity_type2property.EntityName:
 		r.model = entity_type2property.New()
 
-		if r.db, err = dbase.WithContext(context.Background()).Model(r.model); err != nil {
+		if r.db, err = dbase.ModelWithContext(ctx, r.model); err != nil {
 			return nil, err
 		}
 		repo, err = NewEntityType2PropertyRepository(r)
 	case entity_type.EntityName:
 		r.model = entity_type.New()
 
-		if r.db, err = dbase.WithContext(context.Background()).Model(r.model); err != nil {
+		if r.db, err = dbase.ModelWithContext(ctx, r.model); err != nil {
 			return nil, err
 		}
 		repo, err = NewEntityTypeRepository(r)
 	case property_group.EntityName:
 		r.model = property_group.New()
 
-		if r.db, err = dbase.WithContext(context.Background()).Model(r.model); err != nil {
+		if r.db, err = dbase.ModelWithContext(ctx, r.model); err != nil {
 			return nil, err
 		}
 		repo, err = NewPropertyGroupRepository(r)
 	case property.EntityName:
 		r.model = property.New()
 
-		if r.db, err = dbase.WithContext(context.Background()).Model(r.model); err != nil {
+		if r.db, err = dbase.ModelWithContext(ctx, r.model); err != nil {
 			return nil, err
 		}
 		repo, err = NewPropertyRepository(r)
 	case property_type2property_view_type.EntityName:
 		r.model = property_type2property_view_type.New()
 
-		if r.db, err = dbase.WithContext(context.Background()).Model(r.model); err != nil {
+		if r.db, err = dbase.ModelWithContext(ctx, r.model); err != nil {
 			return nil, err
 		}
 		repo, err = NewPropertyType2PropertyViewTypeRepository(r)
 	case property_type.EntityName:
 		r.model = property_type.New()
 
-		if r.db, err = dbase.WithContext(context.Background()).Model(r.model); err != nil {
+		if r.db, err = dbase.ModelWithContext(ctx, r.model); err != nil {
 			return nil, err
 		}
 		repo, err = NewPropertyTypeRepository(r)
 	case property_unit.EntityName:
 		r.model = property_unit.New()
 
-		if r.db, err = dbase.WithContext(context.Background()).Model(r.model); err != nil {
+		if r.db, err = dbase.ModelWithContext(ctx, r.model); err != nil {
 			return nil, err
 		}
 		repo, err = NewPropertyUnitRepository(r)
 	case property_view_type.EntityName:
 		r.model = property_view_type.New()
 
-		if r.db, err = dbase.WithContext(context.Background()).Model(r.model); err != nil {
+		if r.db, err = dbase.ModelWithContext(ctx, r.model); err != nil {
 			return nil, err
 		}
 		repo, err = NewPropertyViewTypeRepository(r)
 	case text_source.EntityName:
 		r.model = text_source.New()
 
-		if r.db, err = dbase.WithContext(context.Background()).Model(r.model); err != nil {
+		if r.db, err = dbase.ModelWithContext(ctx, r.model); err != nil {
 			return nil, err
 		}
 		repo, err = NewTextSourceRepository(r)
 	case text_value.EntityName:
 		r.model = text_value.New()
 
-		if r.db, err = dbase.WithContext(context.Background()).Model(r.model); err != nil {
+		if r.db, err = dbase.ModelWithContext(ctx, r.model); err != nil {
 			return nil, err
 		}
 		repo, err = NewTextValueRepository(r)

@@ -368,8 +368,8 @@ github.com/mattn/go-sqlite3 v1.14.7 h1:fxWBnXkxfM6sRiuH3bqJ4CfzZojMOLVc0UTsTglEg
 github.com/mattn/go-sqlite3 v1.14.7/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
 github.com/miekg/dns v1.0.14/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
-github.com/minipkg/db v0.0.9 h1:zh1YCT6f/k/l2BPkiIomBjhtxqrMMfJsl9LiLC3WalA=
-github.com/minipkg/db v0.0.9/go.mod h1:AlFlcjKgsjBX0zBS/VQuWu8S8Fz3CAi88wB5qmb4tFA=
+github.com/minipkg/db v0.0.10 h1:G6suHZbAGF4KuQhR8SmgMhMe/bogODukEYmn29ZWAE0=
+github.com/minipkg/db v0.0.10/go.mod h1:a52Q8osGSnB7g2Egnm+dJHlr36HaA0s3N3pkB7nY4ec=
 github.com/minipkg/log v0.0.0-20210401163336-53d77a21a670/go.mod h1:m0tUQAnQ5cpIkVoetqJwIuwMjamnVLHA0MfTiNQ9Vjc=
 github.com/minipkg/log v0.0.1 h1:QPYuiskThOREnzWA5kx1Ykyab9cAiKm0eAPabHWZeKo=
 github.com/minipkg/log v0.0.1/go.mod h1:m0tUQAnQ5cpIkVoetqJwIuwMjamnVLHA0MfTiNQ9Vjc=
@@ -378,7 +378,6 @@ github.com/minipkg/ozzo_routing v0.0.1/go.mod h1:xk6gmfz2s/JJq90e7Qo3fk4sriQ4I1f
 github.com/minipkg/pagination v0.0.0-20210401162640-c2a831d2cca4 h1:HdWOt9aqiZuPV/WE7W6oVaD290GrsZyy1VAbLTTKwLc=
 github.com/minipkg/pagination v0.0.0-20210401162640-c2a831d2cca4/go.mod h1:XfKurmXL6RXc2BaiBzaxHixRXsLuSggmVwFrJHtb1GI=
 github.com/minipkg/selection_condition v0.0.1/go.mod h1:Tb9I1xqD7rBBtMHcHKgN3mareh3VwVE4+lffzATo/jY=
-github.com/minipkg/selection_condition v0.0.2/go.mod h1:Tb9I1xqD7rBBtMHcHKgN3mareh3VwVE4+lffzATo/jY=
 github.com/minipkg/selection_condition v0.0.3 h1:j+XJZu8shOLAypSOIoZAHvPQX9XWsnyiIAil7asVRCA=
 github.com/minipkg/selection_condition v0.0.3/go.mod h1:Tb9I1xqD7rBBtMHcHKgN3mareh3VwVE4+lffzATo/jY=
 github.com/mitchellh/cli v1.0.0/go.mod h1:hNIlj7HEI86fIcpObd7a0FcrxTWetlwJDGcceTlRvqc=

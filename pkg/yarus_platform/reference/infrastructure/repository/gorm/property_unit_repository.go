@@ -120,13 +120,12 @@ func (r *PropertyUnitRepository) Delete(ctx context.Context, id uint) error {
 }
 
 func (r *PropertyUnitRepository) Test() error {
-	db := r.db.DB()
 
 	entity := &property_unit.PropertyUnit{}
 
-	db.First(entity, 1)
-	db.First(entity, 2)
-	db.First(entity, 3)
+	r.db.DB().First(entity, 1)
+	r.db.DB().First(entity, 2)
+	r.db.DB().First(entity, 3)
 
 	return nil
 }
