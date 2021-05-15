@@ -102,7 +102,7 @@ func (r *PropertyType2PropertyViewTypeRepository) Save(ctx context.Context, enti
 // Delete (soft) deletes a Maintenance record in the database.
 func (r *PropertyType2PropertyViewTypeRepository) Delete(ctx context.Context, propertyTypeID uint, propertyViewTypeID uint) error {
 
-	err := r.db.DB().Delete(&property_type2property_view_type.PropertyType2PropertyViewType{
+	err := r.db.DB().Delete(r.model, &property_type2property_view_type.PropertyType2PropertyViewType{
 		PropertyTypeID:     propertyTypeID,
 		PropertyViewTypeID: propertyViewTypeID,
 	}).Error

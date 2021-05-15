@@ -110,7 +110,7 @@ func (r *PropertyUnitRepository) Save(ctx context.Context, entity *property_unit
 // Delete (soft) deletes a Maintenance record in the database.
 func (r *PropertyUnitRepository) Delete(ctx context.Context, id uint) error {
 
-	err := r.db.DB().Delete(id).Error
+	err := r.db.DB().Delete(r.model, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apperror.ErrNotFound

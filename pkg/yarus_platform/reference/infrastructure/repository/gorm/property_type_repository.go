@@ -110,7 +110,7 @@ func (r *PropertyTypeRepository) Save(ctx context.Context, entity *property_type
 // Delete (soft) deletes a record in the database.
 func (r *PropertyTypeRepository) Delete(ctx context.Context, id uint) error {
 
-	err := r.db.DB().Delete(&property_type.PropertyType{}, id).Error
+	err := r.db.DB().Delete(r.model, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apperror.ErrNotFound
