@@ -2,7 +2,10 @@ package property
 
 import (
 	"encoding/json"
+	"regexp"
 	"time"
+
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 
 	"gorm.io/datatypes"
 )
@@ -43,6 +46,12 @@ func (e *Property) TableName() string {
 // New func is a constructor for the Property
 func New() *Property {
 	return &Property{}
+}
+
+func (e Property) Validate() error {
+	return validation.ValidateStruct(&e,
+		validation.Field(&e.Sysname, validation.Required, validation.Length(2, 100), validation.Match(regexp.MustCompile("^[a-z0-9_]+$"))),
+	)
 }
 
 func (e *Property) AfterFind() error {

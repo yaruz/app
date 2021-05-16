@@ -75,7 +75,12 @@ func (s *service) Count(ctx context.Context, cond *selection_condition.Selection
 }
 
 func (s *service) Create(ctx context.Context, entity *PropertyViewType) error {
-	err := s.repository.Create(ctx, entity)
+	err := entity.Validate()
+	if err != nil {
+		return errors.Wrapf(err, "Validation error: %v", err)
+	}
+
+	err = s.repository.Create(ctx, entity)
 	if err != nil {
 		return errors.Wrapf(err, "Can not create an entity: %v", entity)
 	}
@@ -83,7 +88,12 @@ func (s *service) Create(ctx context.Context, entity *PropertyViewType) error {
 }
 
 func (s *service) Update(ctx context.Context, entity *PropertyViewType) error {
-	err := s.repository.Update(ctx, entity)
+	err := entity.Validate()
+	if err != nil {
+		return errors.Wrapf(err, "Validation error: %v", err)
+	}
+
+	err = s.repository.Update(ctx, entity)
 	if err != nil {
 		return errors.Wrapf(err, "Can not update an entity: %v", entity)
 	}
@@ -91,7 +101,12 @@ func (s *service) Update(ctx context.Context, entity *PropertyViewType) error {
 }
 
 func (s *service) Save(ctx context.Context, entity *PropertyViewType) error {
-	err := s.repository.Save(ctx, entity)
+	err := entity.Validate()
+	if err != nil {
+		return errors.Wrapf(err, "Validation error: %v", err)
+	}
+
+	err = s.repository.Save(ctx, entity)
 	if err != nil {
 		return errors.Wrapf(err, "Can not save an entity: %v", entity)
 	}

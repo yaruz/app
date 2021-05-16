@@ -28,11 +28,12 @@ func RegisterTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platform.IP
 	}
 
 	r.Get("/test", c.Test)
-	r.Get("/property-unit", c.PropertyUnit)
-	r.Get("/property-group", c.PropertyGroup)
-	r.Get("/property-view-type", c.PropertyViewType)
+	r.Get("/property-unit", c.propertyUnit)
+	r.Get("/property-group", c.propertyGroup)
+	r.Get("/property-view-type", c.propertyViewType)
 	r.Get("/property-type", c.propertyType)
 	r.Get("/property", c.property)
+	r.Get("/entity-type", c.entityType)
 }
 
 func (c testController) Test(ctx *routing.Context) error {
@@ -40,7 +41,7 @@ func (c testController) Test(ctx *routing.Context) error {
 
 }
 
-func (c testController) PropertyUnit(ctx *routing.Context) error {
+func (c testController) propertyUnit(ctx *routing.Context) error {
 	res := make([]map[string]interface{}, 0, 10)
 	res = append(res, map[string]interface{}{"test": "property-unit"})
 	cntx := ctx.Request.Context()
@@ -105,22 +106,329 @@ func (c testController) PropertyUnit(ctx *routing.Context) error {
 	return ctx.Write(res)
 }
 
-func (c testController) PropertyGroup(ctx *routing.Context) error {
+func (c testController) propertyGroup(ctx *routing.Context) error {
+	res := make([]map[string]interface{}, 0, 10)
+	res = append(res, map[string]interface{}{"test": "property-group"})
+	cntx := ctx.Request.Context()
 
-	return ctx.Write("test: property-group")
+	entity := c.yaruzPlatform.ReferenceSubsystem().PropertyGroup.Service.NewEntity()
+	entity.Sysname = "WrongName"
+
+	err := entity.Validate()
+	if err != nil {
+		res = append(res, map[string]interface{}{"1. errValidate": err.Error()})
+	}
+
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyGroup.Service.Create(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"2. errCreate1": err.Error()})
+	}
+
+	entity.Sysname = "property_group"
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyGroup.Service.Create(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"3. errCreate": err.Error()})
+	}
+
+	e, err := c.yaruzPlatform.ReferenceSubsystem().PropertyGroup.Service.Get(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"4. errCreate1": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"4. entity1": fmt.Sprintf("%#v", e)})
+	}
+
+	entity.Sysname = "property_group_" + strconv.Itoa(int(entity.ID))
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyGroup.Service.Update(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"5. errCreate": err.Error()})
+	}
+
+	e, err = c.yaruzPlatform.ReferenceSubsystem().PropertyGroup.Service.Get(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"6. errGet": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"6. entity2": fmt.Sprintf("%#v", e)})
+	}
+
+	list, err := c.yaruzPlatform.ReferenceSubsystem().PropertyGroup.Service.Query(cntx, &selection_condition.SelectionCondition{
+		Where: selection_condition.WhereCondition{
+			Field:     "Sysname",
+			Condition: "eq",
+			Value:     entity.Sysname,
+		},
+	})
+	if err != nil {
+		res = append(res, map[string]interface{}{"6. errGet": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"6. list": fmt.Sprintf("%#v", list)})
+	}
+
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyGroup.Service.Delete(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"7. errDelete": err.Error()})
+	}
+
+	return ctx.Write(res)
 }
 
-func (c testController) PropertyViewType(ctx *routing.Context) error {
+func (c testController) propertyViewType(ctx *routing.Context) error {
+	res := make([]map[string]interface{}, 0, 10)
+	res = append(res, map[string]interface{}{"test": "property-view-type"})
+	cntx := ctx.Request.Context()
 
-	return ctx.Write("test: property-view-type")
+	entity := c.yaruzPlatform.ReferenceSubsystem().PropertyViewType.Service.NewEntity()
+	entity.Sysname = "WrongName"
+
+	err := entity.Validate()
+	if err != nil {
+		res = append(res, map[string]interface{}{"1. errValidate": err.Error()})
+	}
+
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyViewType.Service.Create(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"2. errCreate1": err.Error()})
+	}
+
+	entity.Sysname = "property_view_type"
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyViewType.Service.Create(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"3. errCreate": err.Error()})
+	}
+
+	e, err := c.yaruzPlatform.ReferenceSubsystem().PropertyViewType.Service.Get(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"4. errCreate1": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"4. entity1": fmt.Sprintf("%#v", e)})
+	}
+
+	entity.Sysname = "property_view_type_" + strconv.Itoa(int(entity.ID))
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyViewType.Service.Update(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"5. errCreate": err.Error()})
+	}
+
+	e, err = c.yaruzPlatform.ReferenceSubsystem().PropertyViewType.Service.Get(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"6. errGet": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"6. entity2": fmt.Sprintf("%#v", e)})
+	}
+
+	list, err := c.yaruzPlatform.ReferenceSubsystem().PropertyViewType.Service.Query(cntx, &selection_condition.SelectionCondition{
+		Where: selection_condition.WhereCondition{
+			Field:     "Sysname",
+			Condition: "eq",
+			Value:     entity.Sysname,
+		},
+	})
+	if err != nil {
+		res = append(res, map[string]interface{}{"6. errGet": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"6. list": fmt.Sprintf("%#v", list)})
+	}
+
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyViewType.Service.Delete(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"7. errDelete": err.Error()})
+	}
+
+	return ctx.Write(res)
 }
 
 func (c testController) propertyType(ctx *routing.Context) error {
+	res := make([]map[string]interface{}, 0, 10)
+	res = append(res, map[string]interface{}{"test": "property-type"})
+	cntx := ctx.Request.Context()
 
-	return ctx.Write("test: property-type")
+	entity := c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.NewEntity()
+	entity.Sysname = "WrongName"
+
+	err := entity.Validate()
+	if err != nil {
+		res = append(res, map[string]interface{}{"1. errValidate": err.Error()})
+	}
+
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.Create(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"2. errCreate1": err.Error()})
+	}
+
+	entity.Sysname = "property_type"
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.Create(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"3. errCreate": err.Error()})
+	}
+
+	e, err := c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.Get(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"4. errCreate1": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"4. entity1": fmt.Sprintf("%#v", e)})
+	}
+
+	entity.Sysname = "property_type_" + strconv.Itoa(int(entity.ID))
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.Update(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"5. errCreate": err.Error()})
+	}
+
+	e, err = c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.Get(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"6. errGet": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"6. entity2": fmt.Sprintf("%#v", e)})
+	}
+
+	list, err := c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.Query(cntx, &selection_condition.SelectionCondition{
+		Where: selection_condition.WhereCondition{
+			Field:     "Sysname",
+			Condition: "eq",
+			Value:     entity.Sysname,
+		},
+	})
+	if err != nil {
+		res = append(res, map[string]interface{}{"6. errGet": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"6. list": fmt.Sprintf("%#v", list)})
+	}
+
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.Delete(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"7. errDelete": err.Error()})
+	}
+
+	return ctx.Write(res)
 }
 
 func (c testController) property(ctx *routing.Context) error {
+	res := make([]map[string]interface{}, 0, 10)
+	res = append(res, map[string]interface{}{"test": "property"})
+	cntx := ctx.Request.Context()
 
-	return ctx.Write("test: property")
+	entity := c.yaruzPlatform.ReferenceSubsystem().Property.Service.NewEntity()
+	entity.Sysname = "WrongName"
+	entity.PropertyTypeID = 3
+	entity.PropertyUnitID = 1
+
+	err := entity.Validate()
+	if err != nil {
+		res = append(res, map[string]interface{}{"1. errValidate": err.Error()})
+	}
+
+	err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.Create(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"2. errCreate1": err.Error()})
+	}
+
+	entity.Sysname = "property"
+	err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.Create(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"3. errCreate": err.Error()})
+	}
+
+	e, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.Get(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"4. errCreate1": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"4. entity1": fmt.Sprintf("%#v", e)})
+	}
+
+	entity.Sysname = "property_" + strconv.Itoa(int(entity.ID))
+	err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.Update(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"5. errCreate": err.Error()})
+	}
+
+	e, err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.Get(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"6. errGet": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"6. entity2": fmt.Sprintf("%#v", e)})
+	}
+
+	list, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.Query(cntx, &selection_condition.SelectionCondition{
+		Where: selection_condition.WhereCondition{
+			Field:     "Sysname",
+			Condition: "eq",
+			Value:     entity.Sysname,
+		},
+	})
+	if err != nil {
+		res = append(res, map[string]interface{}{"6. errGet": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"6. list": fmt.Sprintf("%#v", list)})
+	}
+
+	err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.Delete(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"7. errDelete": err.Error()})
+	}
+
+	return ctx.Write(res)
+}
+
+func (c testController) entityType(ctx *routing.Context) error {
+	res := make([]map[string]interface{}, 0, 10)
+	res = append(res, map[string]interface{}{"test": "entity-type"})
+	cntx := ctx.Request.Context()
+
+	entity := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.NewEntity()
+	entity.Sysname = "WrongName"
+
+	err := entity.Validate()
+	if err != nil {
+		res = append(res, map[string]interface{}{"1. errValidate": err.Error()})
+	}
+
+	err = c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Create(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"2. errCreate1": err.Error()})
+	}
+
+	entity.Sysname = "entity_type"
+	err = c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Create(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"3. errCreate": err.Error()})
+	}
+
+	e, err := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Get(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"4. errCreate1": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"4. entity1": fmt.Sprintf("%#v", e)})
+	}
+
+	entity.Sysname = "entity_type_" + strconv.Itoa(int(entity.ID))
+	err = c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Update(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"5. errCreate": err.Error()})
+	}
+
+	e, err = c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Get(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"6. errGet": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"6. entity2": fmt.Sprintf("%#v", e)})
+	}
+
+	list, err := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Query(cntx, &selection_condition.SelectionCondition{
+		Where: selection_condition.WhereCondition{
+			Field:     "Sysname",
+			Condition: "eq",
+			Value:     entity.Sysname,
+		},
+	})
+	if err != nil {
+		res = append(res, map[string]interface{}{"6. errGet": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"6. list": fmt.Sprintf("%#v", list)})
+	}
+
+	err = c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Delete(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"7. errDelete": err.Error()})
+	}
+
+	return ctx.Write(res)
 }
