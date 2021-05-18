@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_view_type"
+
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
 
 	"github.com/yaruz/app/internal/pkg/apperror"
@@ -116,5 +118,19 @@ func (r *PropertyTypeRepository) Delete(ctx context.Context, id uint) error {
 			return apperror.ErrNotFound
 		}
 	}
+	return err
+}
+
+func (r *PropertyTypeRepository) InitPropertyViewTypes(ctx context.Context, entity *property_type.PropertyType) error {
+	return r.db.DB().Model(entity).Association("PropertyViewTypes").Error
+}
+
+func (r *PropertyTypeRepository) BindPropertyViewType(ctx context.Context, entity *property_type.PropertyType, viewTypeID uint) error {
+	err := r.db.DB().Model(entity).Association("PropertyViewTypes").Append(&property_view_type.PropertyViewType{ID: viewTypeID})
+	return err
+}
+
+func (r *PropertyTypeRepository) UnbindPropertyViewType(ctx context.Context, entity *property_type.PropertyType, viewTypeID uint) error {
+	err := r.db.DB().Model(entity).Association("PropertyViewTypes").Delete([]property_view_type.PropertyViewType{{ID: viewTypeID}})
 	return err
 }

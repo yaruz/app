@@ -22,8 +22,9 @@ type IService interface {
 	Update(ctx context.Context, entity *PropertyType) error
 	Save(ctx context.Context, entity *PropertyType) error
 	Delete(ctx context.Context, id uint) error
-	BindPropertyViewType(ctx context.Context, id uint, viewTypeID uint) error
-	UnbindPropertyViewType(ctx context.Context, id uint, viewTypeID uint) error
+	InitPropertyViewTypes(ctx context.Context, entity *PropertyType) error
+	BindPropertyViewType(ctx context.Context, entity *PropertyType, viewTypeID uint) error
+	UnbindPropertyViewType(ctx context.Context, entity *PropertyType, viewTypeID uint) error
 }
 
 type service struct {
@@ -127,14 +128,14 @@ func (s *service) Delete(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (s *service) BindPropertyViewType(ctx context.Context, id uint, viewTypeID uint) error {
-
-	return s.propertyType2propertyViewTypeRepository.Create(ctx, &property_type2property_view_type.PropertyType2PropertyViewType{
-		PropertyTypeID:     id,
-		PropertyViewTypeID: viewTypeID,
-	})
+func (s *service) InitPropertyViewTypes(ctx context.Context, entity *PropertyType) error {
+	return s.repository.InitPropertyViewTypes(ctx, entity)
 }
 
-func (s *service) UnbindPropertyViewType(ctx context.Context, id uint, viewTypeID uint) error {
-	return s.propertyType2propertyViewTypeRepository.Delete(ctx, id, viewTypeID)
+func (s *service) BindPropertyViewType(ctx context.Context, entity *PropertyType, viewTypeID uint) error {
+	return s.repository.BindPropertyViewType(ctx, entity, viewTypeID)
+}
+
+func (s *service) UnbindPropertyViewType(ctx context.Context, entity *PropertyType, viewTypeID uint) error {
+	return s.repository.UnbindPropertyViewType(ctx, entity, viewTypeID)
 }

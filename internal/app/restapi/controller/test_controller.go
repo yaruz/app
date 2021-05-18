@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/minipkg/selection_condition"
 
@@ -293,9 +294,35 @@ func (c testController) propertyType(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"6. list": fmt.Sprintf("%#v", list)})
 	}
 
+	// References
+	viewType := c.yaruzPlatform.ReferenceSubsystem().PropertyViewType.Service.NewEntity()
+	viewType.Sysname = "view_type_" + strconv.Itoa(int(time.Now().Unix()))
+
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyViewType.Service.Create(cntx, viewType)
+	if err != nil {
+		res = append(res, map[string]interface{}{"7. errCreate ViewType": err.Error()})
+	}
+
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.BindPropertyViewType(cntx, entity, viewType.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"8. BindPropertyViewType err": err.Error()})
+	}
+
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.InitPropertyViewTypes(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"9. GetPropertyViewTypes err": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"9. GetPropertyViewTypes list": fmt.Sprintf("%#v", entity.PropertyViewTypes)})
+	}
+
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.UnbindPropertyViewType(cntx, entity, viewType.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"10. UnbindPropertyViewType err": err.Error()})
+	}
+
 	err = c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.Delete(cntx, entity.ID)
 	if err != nil {
-		res = append(res, map[string]interface{}{"7. errDelete": err.Error()})
+		res = append(res, map[string]interface{}{"11. errDelete": err.Error()})
 	}
 
 	return ctx.Write(res)
