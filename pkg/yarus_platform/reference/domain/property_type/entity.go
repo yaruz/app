@@ -46,3 +46,9 @@ func (e PropertyType) Validate() error {
 func (e PropertyType) GetPropertyViewTypes() ([]property_view_type.PropertyViewType, error) {
 	return e.PropertyViewTypes, nil
 }
+
+// PropertyType2PropertyViewType ...
+type PropertyType2PropertyViewType struct {
+	PropertyTypeID     uint `gorm:"type:bigint not null REFERENCES \"property_type\"(id);primaryKey" json:"propertyTypeID"`
+	PropertyViewTypeID uint `gorm:"type:bigint not null REFERENCES \"property_view_type\"(id);primaryKey" json:"propertyViewTypeID"`
+}
