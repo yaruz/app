@@ -126,11 +126,9 @@ func (r *PropertyTypeRepository) InitPropertyViewTypes(ctx context.Context, enti
 }
 
 func (r *PropertyTypeRepository) BindPropertyViewType(ctx context.Context, entity *property_type.PropertyType, viewTypeID uint) error {
-	err := r.db.DB().Model(entity).Association("PropertyViewTypes").Append(&property_view_type.PropertyViewType{ID: viewTypeID})
-	return err
+	return r.db.DB().Model(entity).Association("PropertyViewTypes").Append(&property_view_type.PropertyViewType{ID: viewTypeID})
 }
 
 func (r *PropertyTypeRepository) UnbindPropertyViewType(ctx context.Context, entity *property_type.PropertyType, viewTypeID uint) error {
-	err := r.db.DB().Model(entity).Association("PropertyViewTypes").Delete([]property_view_type.PropertyViewType{{ID: viewTypeID}})
-	return err
+	return r.db.DB().Model(entity).Association("PropertyViewTypes").Delete(&property_view_type.PropertyViewType{ID: viewTypeID})
 }
