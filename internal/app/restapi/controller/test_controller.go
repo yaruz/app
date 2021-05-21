@@ -29,6 +29,8 @@ func RegisterTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platform.IP
 	}
 
 	r.Get("/test", c.Test)
+	r.Get("/text-source", c.textSource)
+	r.Get("/text-value", c.textValue)
 	r.Get("/property-unit", c.propertyUnit)
 	r.Get("/property-group", c.propertyGroup)
 	r.Get("/property-view-type", c.propertyViewType)
@@ -40,6 +42,94 @@ func RegisterTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platform.IP
 func (c testController) Test(ctx *routing.Context) error {
 	return c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Repository.Test()
 
+}
+
+func (c testController) textSource(ctx *routing.Context) error {
+	res := make([]map[string]interface{}, 0, 10)
+	res = append(res, map[string]interface{}{"test": "text-source"})
+	cntx := ctx.Request.Context()
+
+	entity := c.yaruzPlatform.ReferenceSubsystem().TextSource.Service.NewEntity()
+
+	err := c.yaruzPlatform.ReferenceSubsystem().TextSource.Service.Create(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"1. errCreate": err.Error()})
+	}
+
+	e, err := c.yaruzPlatform.ReferenceSubsystem().TextSource.Service.Get(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"4. errCreate1": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"4. entity1": fmt.Sprintf("%#v", e)})
+	}
+
+	err = c.yaruzPlatform.ReferenceSubsystem().TextSource.Service.Delete(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"7. errDelete": err.Error()})
+	}
+
+	return ctx.Write(res)
+}
+
+func (c testController) textValue(ctx *routing.Context) error {
+	res := make([]map[string]interface{}, 0, 10)
+	res = append(res, map[string]interface{}{"test": "text-value"})
+	cntx := ctx.Request.Context()
+
+	source := c.yaruzPlatform.ReferenceSubsystem().TextSource.Service.NewEntity()
+	err := c.yaruzPlatform.ReferenceSubsystem().TextSource.Service.Create(cntx, source)
+	if err != nil {
+		res = append(res, map[string]interface{}{"1. errCreate": err.Error()})
+	}
+
+	entity := c.yaruzPlatform.ReferenceSubsystem().TextValue.Service.NewEntity()
+	entity.TextSourceID = source.ID
+	entity.LangID = 1
+	entity.Value = "text value"
+	err = c.yaruzPlatform.ReferenceSubsystem().TextValue.Service.Create(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"2. Create err": err.Error()})
+	}
+
+	e, err := c.yaruzPlatform.ReferenceSubsystem().TextValue.Service.Get(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"3. Get err": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"3. entity1": fmt.Sprintf("%#v", e)})
+	}
+
+	entity.Value = "updated text value - " + strconv.Itoa(int(entity.ID))
+	err = c.yaruzPlatform.ReferenceSubsystem().TextValue.Service.Update(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"4. Update err": err.Error()})
+	}
+
+	e, err = c.yaruzPlatform.ReferenceSubsystem().TextValue.Service.Get(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"5. Get err": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"5. entity2": fmt.Sprintf("%#v", e)})
+	}
+
+	list, err := c.yaruzPlatform.ReferenceSubsystem().TextValue.Service.Query(cntx, &selection_condition.SelectionCondition{
+		Where: selection_condition.WhereCondition{
+			Field:     "Value",
+			Condition: "eq",
+			Value:     entity.Value,
+		},
+	})
+	if err != nil {
+		res = append(res, map[string]interface{}{"6. errGet": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"6. list": fmt.Sprintf("%#v", list)})
+	}
+
+	err = c.yaruzPlatform.ReferenceSubsystem().TextValue.Service.Delete(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"7. errDelete": err.Error()})
+	}
+
+	return ctx.Write(res)
 }
 
 func (c testController) propertyUnit(ctx *routing.Context) error {

@@ -11,7 +11,7 @@ const (
 
 // TextValue ...
 type TextValue struct {
-	ID           uint       `gorm:"type:bigint;primaryKey" json:"id"`
+	ID           uint       `gorm:"type:bigserial;primaryKey" json:"id"`
 	TextSourceID uint       `gorm:"type:bigint not null REFERENCES \"text_source\"(id);uniqueIndex:un_text_value;index" json:"textSourceID"`
 	LangID       uint       `gorm:"type:smallint not null;uniqueIndex:un_text_value" json:"langID"`
 	Value        string     `gorm:"type:text not null" json:"value"`
