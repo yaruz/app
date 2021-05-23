@@ -10,9 +10,18 @@ import (
 )
 
 const (
-	EntityName = "propertyType"
-	TableName  = "property_type"
+	EntityName       = "propertyType"
+	TableName        = "property_type"
+	SysnameBoolean   = "boolean"
+	SysnameInt       = "int"
+	SysnameBigint    = "bigint"
+	SysnameFloat     = "float"
+	SysnameDate      = "date"
+	SysnameTimestamp = "timestamp"
+	SysnameText      = "text"
 )
+
+var fl float64
 
 // PropertyType ...
 type PropertyType struct {

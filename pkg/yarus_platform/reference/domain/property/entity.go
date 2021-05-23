@@ -30,9 +30,10 @@ type Property struct {
 	IsSpecific          bool                     `gorm:"type:boolean not null default false;" json:"isSpecific"`
 	IsRange             bool                     `gorm:"type:boolean not null default false;" json:"isRange"`
 	IsMultiple          bool                     `gorm:"type:boolean not null default false;" json:"isMultiple"`
-	SortOrder           uint                     `gorm:"type:smallint not null default 9999" json:"sortOrder"`
+	SortOrder           uint                     `gorm:"type:smallint;not null;default:9999" json:"sortOrder"`
 	OptionsB            datatypes.JSON           `json:"-"`
 	Options             []map[string]interface{} `gorm:"-" json:"options"`
+	//PropertyUnit        *property_unit.PropertyUnit `gorm:""`
 
 	CreatedAt time.Time  `json:"createdAt"`
 	UpdatedAt time.Time  `json:"updatedAt"`
@@ -51,6 +52,8 @@ func New() *Property {
 func (e Property) Validate() error {
 	return validation.ValidateStruct(&e,
 		validation.Field(&e.Sysname, validation.Required, validation.Length(2, 100), validation.Match(regexp.MustCompile("^[a-z0-9_]+$"))),
+		validation.Field(&e.IsRange, validation.When(e.IsMultiple, validation.Empty)),
+		validation.Field(&e.IsMultiple, validation.When(e.IsRange, validation.Empty)),
 	)
 }
 

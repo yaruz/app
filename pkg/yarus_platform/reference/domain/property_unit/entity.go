@@ -8,8 +8,9 @@ import (
 )
 
 const (
-	EntityName = "propertyUnit"
-	TableName  = "property_unit"
+	EntityName  = "propertyUnit"
+	TableName   = "property_unit"
+	SysnameItem = "item"
 )
 
 // PropertyUnit ...

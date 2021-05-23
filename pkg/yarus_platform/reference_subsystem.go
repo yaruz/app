@@ -1,7 +1,10 @@
 package yarus_platform
 
 import (
+	"context"
 	golog "log"
+
+	"github.com/minipkg/selection_condition"
 
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/log"
@@ -84,36 +87,34 @@ type ReferenceDomainTextValue struct {
 
 func newReferenceSubsystem(infra *infrastructure) (*ReferenceSubsystem, error) {
 	d := &ReferenceSubsystem{}
-	if err := d.autoMigrate(infra.ReferenceDB); err != nil {
-		return nil, err
-	}
-
 	if err := d.setupRepositories(infra); err != nil {
 		return nil, err
 	}
 	d.setupServices(infra.Logger)
+
+	if err := d.autoMigrate(infra.ReferenceDB); err != nil {
+		return nil, err
+	}
 
 	return d, nil
 }
 
 func (d *ReferenceSubsystem) autoMigrate(db minipkg_gorm.IDB) error {
 	if db.IsAutoMigrate() {
-		db.DB().AutoMigrate(
+		err := db.DB().AutoMigrate(
 			&text_source.TextSource{},
 			&text_value.TextValue{},
 			&property_unit.PropertyUnit{},
 			&property_group.PropertyGroup{},
 			&property_type.PropertyType{},
 			&property_view_type.PropertyViewType{},
-			//&property_type2property_view_type.PropertyType2PropertyViewType{},
 			&property.Property{},
 			&entity_type.EntityType{},
-			//&entity_type2property.EntityType2Property{},
 		)
-		//err := db.DB().SetupJoinTable(&property_type.PropertyType{}, "PropertyViewTypes", &property_type2property_view_type.PropertyType2PropertyViewType{})
-		//if err != nil {
-		//	return err
-		//}
+		if err != nil {
+			return err
+		}
+		return d.dbDataInit()
 	}
 	return nil
 }
@@ -224,4 +225,83 @@ func (d *ReferenceSubsystem) setupServices(logger log.ILogger) {
 	d.PropertyViewType.Service = property_view_type.NewService(logger, d.PropertyViewType.Repository)
 	d.TextSource.Service = text_source.NewService(logger, d.TextSource.Repository)
 	d.TextValue.Service = text_value.NewService(logger, d.TextValue.Repository)
+}
+
+func (d *ReferenceSubsystem) dbDataInit() error {
+	ctx := context.Background()
+	err := d.PropertyTypeDataInit(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = d.PropertyUnitDataInit(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *ReferenceSubsystem) PropertyTypeDataInit(ctx context.Context) error {
+	count, err := d.PropertyType.Service.Count(ctx, &selection_condition.SelectionCondition{})
+	if err != nil {
+		return err
+	}
+
+	if count == 0 {
+		items := []property_type.PropertyType{
+			{
+				Sysname: property_type.SysnameBoolean,
+			},
+			{
+				Sysname: property_type.SysnameInt,
+			},
+			{
+				Sysname: property_type.SysnameBigint,
+			},
+			{
+				Sysname: property_type.SysnameFloat,
+			},
+			{
+				Sysname: property_type.SysnameDate,
+			},
+			{
+				Sysname: property_type.SysnameTimestamp,
+			},
+			{
+				Sysname: property_type.SysnameText,
+			},
+		}
+		for _, i := range items {
+			err = d.PropertyType.Service.Create(ctx, &i)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (d *ReferenceSubsystem) PropertyUnitDataInit(ctx context.Context) error {
+	count, err := d.PropertyUnit.Service.Count(ctx, &selection_condition.SelectionCondition{})
+	if err != nil {
+		return err
+	}
+
+	if count == 0 {
+		items := []property_unit.PropertyUnit{
+			{
+				Sysname: property_unit.SysnameItem,
+			},
+		}
+		for _, i := range items {
+			err = d.PropertyUnit.Service.Create(ctx, &i)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }

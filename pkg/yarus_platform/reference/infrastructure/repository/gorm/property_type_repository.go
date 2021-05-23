@@ -62,7 +62,7 @@ func (r *PropertyTypeRepository) Query(ctx context.Context, cond *selection_cond
 		return nil, db.Error
 	}
 
-	err := db.Find(&items).Error
+	err := db.Model(r.model).Find(&items).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return items, yaruzerror.ErrNotFound
@@ -82,8 +82,7 @@ func (r *PropertyTypeRepository) Count(ctx context.Context, cond *selection_cond
 		return 0, db.Error
 	}
 
-	err := db.Count(&count).Error
-	return count, err
+	return count, db.Model(r.model).Count(&count).Error
 }
 
 // Create saves a new record in the database.

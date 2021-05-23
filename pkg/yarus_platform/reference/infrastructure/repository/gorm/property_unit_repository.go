@@ -60,7 +60,7 @@ func (r *PropertyUnitRepository) Query(ctx context.Context, cond *selection_cond
 		return nil, db.Error
 	}
 
-	err := db.Find(&items).Error
+	err := db.Model(r.model).Find(&items).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return items, yaruzerror.ErrNotFound
@@ -80,8 +80,7 @@ func (r *PropertyUnitRepository) Count(ctx context.Context, cond *selection_cond
 		return 0, db.Error
 	}
 
-	err := db.Count(&count).Error
-	return count, err
+	return count, db.Model(r.model).Count(&count).Error
 }
 
 // Create saves a new record in the database.
@@ -117,15 +116,4 @@ func (r *PropertyUnitRepository) Delete(ctx context.Context, id uint) error {
 		}
 	}
 	return err
-}
-
-func (r *PropertyUnitRepository) Test() error {
-
-	entity := &property_unit.PropertyUnit{}
-
-	r.db.DB().First(entity, 1)
-	r.db.DB().First(entity, 2)
-	r.db.DB().First(entity, 3)
-
-	return nil
 }

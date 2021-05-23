@@ -18,7 +18,7 @@ type PropertyGroup struct {
 	Sysname             string     `gorm:"type:varchar(100) not null;unique;index" json:"sysname"`
 	NameSourceID        *uint      `gorm:"type:bigint null REFERENCES \"text_source\"(id);index" json:"-"`
 	DescriptionSourceID *uint      `gorm:"type:bigint null REFERENCES \"text_source\"(id);index" json:"-"`
-	SortOrder           uint       `gorm:"type:smallint not null default 9999" json:"sortOrder"`
+	SortOrder           uint       `gorm:"type:smallint;not null;default:9999" json:"sortOrder"`
 	Name                *string    `gorm:"-" json:"name"`
 	Description         *string    `gorm:"-" json:"description"`
 	CreatedAt           time.Time  `json:"createdAt"`
