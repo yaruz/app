@@ -2,8 +2,13 @@ package property
 
 import (
 	"encoding/json"
+	"errors"
 	"regexp"
 	"time"
+
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain"
+
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
@@ -51,10 +56,32 @@ func New() *Property {
 
 func (e Property) Validate() error {
 	return validation.ValidateStruct(&e,
-		validation.Field(&e.Sysname, validation.Required, validation.Length(2, 100), validation.Match(regexp.MustCompile("^[a-z0-9_]+$"))),
+		validation.Field(&e.Sysname, validation.Required, validation.Length(2, 100), validation.Match(regexp.MustCompile(domain.SysnameRegexp))),
 		validation.Field(&e.IsRange, validation.When(e.IsMultiple, validation.Empty)),
 		validation.Field(&e.IsMultiple, validation.When(e.IsRange, validation.Empty)),
+		validation.Field(&e.Options, validation.By(e.optionsValidate)),
 	)
+}
+
+func (e Property) optionsValidate(value interface{}) (err error) {
+	v, ok := value.([]map[string]interface{})
+	if !ok {
+		return errors.New("Property.Options must be []map[string]interface{} type")
+	}
+
+LOOP:
+	for _, item := range v {
+		for _, itemVal := range item {
+			switch e.PropertyTypeID {
+			case property_type.IDBoolean:
+				if _, ok := itemVal.(bool); !ok {
+					err = errors.New("Property.Options")
+					break LOOP
+				}
+			}
+		}
+	}
+	return err
 }
 
 func (e *Property) AfterFind() error {

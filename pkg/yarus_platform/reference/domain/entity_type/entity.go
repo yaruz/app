@@ -4,6 +4,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain"
+
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -39,6 +41,6 @@ func New() *EntityType {
 
 func (e EntityType) Validate() error {
 	return validation.ValidateStruct(&e,
-		validation.Field(&e.Sysname, validation.Required, validation.Length(2, 100), validation.Match(regexp.MustCompile("^[a-z0-9_]+$"))),
+		validation.Field(&e.Sysname, validation.Required, validation.Length(2, 100), validation.Match(regexp.MustCompile(domain.SysnameRegexp))),
 	)
 }

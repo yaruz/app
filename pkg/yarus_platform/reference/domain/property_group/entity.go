@@ -4,6 +4,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain"
+
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
@@ -37,6 +39,6 @@ func New() *PropertyGroup {
 
 func (e PropertyGroup) Validate() error {
 	return validation.ValidateStruct(&e,
-		validation.Field(&e.Sysname, validation.Required, validation.Length(2, 100), validation.Match(regexp.MustCompile("^[a-z0-9_]+$"))),
+		validation.Field(&e.Sysname, validation.Required, validation.Length(2, 100), validation.Match(regexp.MustCompile(domain.SysnameRegexp))),
 	)
 }

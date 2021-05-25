@@ -4,6 +4,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain"
+
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_view_type"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -19,6 +21,13 @@ const (
 	SysnameDate      = "date"
 	SysnameTimestamp = "timestamp"
 	SysnameText      = "text"
+	IDBoolean        = 1
+	IDInt            = 2
+	IDBigint         = 3
+	IDFloat          = 4
+	IDDate           = 5
+	IDTimestamp      = 6
+	IDText           = 7
 )
 
 var fl float64
@@ -48,7 +57,7 @@ func New() *PropertyType {
 
 func (e PropertyType) Validate() error {
 	return validation.ValidateStruct(&e,
-		validation.Field(&e.Sysname, validation.Required, validation.Length(2, 100), validation.Match(regexp.MustCompile("^[a-z0-9_]+$"))),
+		validation.Field(&e.Sysname, validation.Required, validation.Length(2, 100), validation.Match(regexp.MustCompile(domain.SysnameRegexp))),
 	)
 }
 
