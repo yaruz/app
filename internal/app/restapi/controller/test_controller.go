@@ -35,6 +35,7 @@ func RegisterTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platform.IP
 	r.Get("/property-view-type", c.propertyViewType)
 	r.Get("/property-type", c.propertyType)
 	r.Get("/property", c.property)
+	r.Get("/property-options-validation", c.propertyOptionsValidation)
 	r.Get("/entity-type", c.entityType)
 }
 
@@ -477,6 +478,32 @@ func (c testController) property(ctx *routing.Context) error {
 	}
 
 	return ctx.Write(res)
+}
+
+func (c testController) propertyOptionsValidation(ctx *routing.Context) error {
+	res := make([]map[string]interface{}, 0, 10)
+	res = append(res, map[string]interface{}{"test": "property"})
+	cntx := ctx.Request.Context()
+
+	entity := c.yaruzPlatform.ReferenceSubsystem().Property.Service.NewEntity()
+	entity.Sysname = "options_validation_test_" + strconv.Itoa(int(time.Now().Unix()))
+	entity.PropertyUnitID = 1
+	var typeTestCases = [][][]map[string]interface{}{}
+
+	for propertyType, testCases := range typeTestCases {
+		entity.PropertyTypeID = uint(propertyType)
+		for caseNum, options := range testCases {
+			entity.Options = options
+			err := entity.Validate()
+		}
+	}
+
+	err := entity.Validate()
+	if err != nil {
+		res = append(res, map[string]interface{}{"1. errValidate": err.Error()})
+	}
+
+	return nil
 }
 
 func (c testController) entityType(ctx *routing.Context) error {
