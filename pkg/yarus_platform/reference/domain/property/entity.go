@@ -2,22 +2,23 @@ package property
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"regexp"
 	"time"
 
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain"
-
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
+	"github.com/pkg/errors"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
 
 	"gorm.io/datatypes"
 )
 
 const (
-	EntityName = "property"
-	TableName  = "property"
+	EntityName       = "property"
+	TableName        = "property"
+	ParseFormateDate = "2006-01-02"
 )
 
 // Property ...
@@ -71,11 +72,71 @@ func (e Property) optionsValidate(value interface{}) (err error) {
 
 LOOP:
 	for _, item := range v {
+
 		for _, itemVal := range item {
+
 			switch e.PropertyTypeID {
+
 			case property_type.IDBoolean:
 				if _, ok := itemVal.(bool); !ok {
-					err = errors.New("Property.Options")
+					err = errors.Errorf("value type must be a boolean, value: %#v", itemVal)
+					break LOOP
+				}
+
+			case property_type.IDInt:
+				if _, ok := itemVal.(int); !ok {
+					err = errors.Errorf("value type must be an int, value: %#v", itemVal)
+					break LOOP
+				}
+
+			case property_type.IDBigint:
+				if _, ok := itemVal.(int); !ok {
+					if _, ok := itemVal.(int64); !ok {
+						err = errors.Errorf("value type must be a bigint, value: %#v", itemVal)
+						break LOOP
+					}
+				}
+
+			case property_type.IDFloat:
+				if _, ok := itemVal.(float64); !ok {
+					if _, ok := itemVal.(int); !ok {
+						err = errors.Errorf("value type must be a float, value: %#v", itemVal)
+						break LOOP
+					}
+				}
+
+			case property_type.IDDate:
+				s, ok := itemVal.(string)
+				if !ok {
+					err = errors.Errorf("value type must be a date, value: %#v", itemVal)
+					break LOOP
+				}
+				//d := &datatypes.Date{}
+				var t time.Time
+				t, err = time.Parse(ParseFormateDate, s)
+				if err != nil {
+					err = errors.Errorf("value type must be a date, value: %#v", itemVal)
+					break LOOP
+				}
+				d := datatypes.Date(t)
+				dv, err := d.Value()
+				if err != nil {
+					err = errors.Errorf("value type must be a date, value: %#v", itemVal)
+					break LOOP
+				}
+				fmt.Printf("%#v", dv)
+
+			case property_type.IDTimestamp:
+				if _, ok := itemVal.(int); !ok {
+					if _, ok := itemVal.(int64); !ok {
+						err = errors.Errorf("value type must be a timestamp, value: %#v", itemVal)
+						break LOOP
+					}
+				}
+
+			case property_type.IDText:
+				if _, ok := itemVal.(string); !ok {
+					err = errors.Errorf("value type must be a text, value: %#v", itemVal)
 					break LOOP
 				}
 			}

@@ -5,13 +5,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/minipkg/selection_condition"
-
-	"github.com/yaruz/app/pkg/yarus_platform"
-
-	"github.com/minipkg/log"
-
 	routing "github.com/go-ozzo/ozzo-routing/v2"
+	"github.com/minipkg/log"
+	"github.com/minipkg/selection_condition"
+	"github.com/yaruz/app/pkg/yarus_platform"
 )
 
 type testController struct {
@@ -480,30 +477,138 @@ func (c testController) property(ctx *routing.Context) error {
 	return ctx.Write(res)
 }
 
+type PropertyOptionsTestCases [][][]map[string]interface{}
+
 func (c testController) propertyOptionsValidation(ctx *routing.Context) error {
 	res := make([]map[string]interface{}, 0, 10)
-	res = append(res, map[string]interface{}{"test": "property"})
-	cntx := ctx.Request.Context()
+	res = append(res, map[string]interface{}{"test": "property option validation"})
 
 	entity := c.yaruzPlatform.ReferenceSubsystem().Property.Service.NewEntity()
 	entity.Sysname = "options_validation_test_" + strconv.Itoa(int(time.Now().Unix()))
 	entity.PropertyUnitID = 1
-	var typeTestCases = [][][]map[string]interface{}{}
+
+	var typeTestCases = [][][]map[string]interface{}{
+		{ // boolean
+			{
+				{"1": 1},
+				{"2": 2},
+			},
+			{
+				{"1": "one"},
+				{"2": "two"},
+			},
+			{
+				{"1": true},
+				{"2": false},
+			},
+		},
+		{ // int
+			{
+				{"1": "one"},
+				{"2": "two"},
+			},
+			{
+				{"1": true},
+				{"2": false},
+			},
+			{
+				{"1": 1},
+				{"2": 2},
+			},
+		},
+		{ // bigint
+			{
+				{"1": "one"},
+				{"2": "two"},
+			},
+			{
+				{"1": true},
+				{"2": false},
+			},
+			{
+				{"1": 1},
+				{"2": 2},
+			},
+		},
+		{ // float
+			{
+				{"1": "one"},
+				{"2": "two"},
+			},
+			{
+				{"1": true},
+				{"2": false},
+			},
+			{
+				{"1": 1},
+				{"2": 2},
+			},
+			{
+				{"1": 1.1},
+				{"2": 2.1},
+			},
+		},
+		{ // date
+			{
+				{"1": 1},
+				{"2": 2},
+			},
+			{
+				{"1": "one"},
+				{"2": "two"},
+			},
+			{
+				{"1": "2021-05-27"},
+				{"2": "2021-05-30"},
+			},
+		},
+		{ // timestamp
+			{
+				{"1": "one"},
+				{"2": "two"},
+			},
+			{
+				{"1": true},
+				{"2": false},
+			},
+			{
+				{"1": 1405544146},
+				{"2": 1405545146},
+			},
+		},
+		{ // text
+			{
+				{"1": 1},
+				{"2": 2},
+			},
+			{
+				{"1": true},
+				{"2": false},
+			},
+			{
+				{"1": "one"},
+				{"2": "two"},
+			},
+		},
+	}
 
 	for propertyType, testCases := range typeTestCases {
+		propertyType++
 		entity.PropertyTypeID = uint(propertyType)
+
 		for caseNum, options := range testCases {
 			entity.Options = options
+
 			err := entity.Validate()
+			if err != nil {
+				res = append(res, map[string]interface{}{"PropertyType:" + strconv.Itoa(propertyType) + " test case #" + strconv.Itoa(caseNum) + ". error": err.Error()})
+			} else {
+				res = append(res, map[string]interface{}{"PropertyType:" + strconv.Itoa(propertyType) + " test case #" + strconv.Itoa(caseNum) + ".": "success"})
+			}
 		}
 	}
 
-	err := entity.Validate()
-	if err != nil {
-		res = append(res, map[string]interface{}{"1. errValidate": err.Error()})
-	}
-
-	return nil
+	return ctx.Write(res)
 }
 
 func (c testController) entityType(ctx *routing.Context) error {
