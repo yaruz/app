@@ -101,7 +101,12 @@ func newReferenceSubsystem(infra *infrastructure) (*ReferenceSubsystem, error) {
 
 func (d *ReferenceSubsystem) autoMigrate(db minipkg_gorm.IDB) error {
 	if db.IsAutoMigrate() {
-		err := db.DB().AutoMigrate(
+		err := db.DB().SetupJoinTable(&entity_type.EntityType{}, "Properties", &entity_type2property.EntityType2Property{})
+		if err != nil {
+			return err
+		}
+
+		err = db.DB().AutoMigrate(
 			&text_source.TextSource{},
 			&text_value.TextValue{},
 			&property_unit.PropertyUnit{},
@@ -250,6 +255,9 @@ func (d *ReferenceSubsystem) PropertyTypeDataInit(ctx context.Context) error {
 
 	if count == 0 {
 		items := []property_type.PropertyType{
+			{
+				Sysname: property_type.SysnameRelation,
+			},
 			{
 				Sysname: property_type.SysnameBoolean,
 			},

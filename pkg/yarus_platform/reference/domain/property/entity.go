@@ -6,6 +6,11 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_group"
+
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_unit"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_view_type"
+
 	"github.com/pkg/errors"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -23,23 +28,26 @@ const (
 
 // Property ...
 type Property struct {
-	ID                  uint                     `gorm:"type:bigserial;primaryKey" json:"id"`
-	Sysname             string                   `gorm:"type:varchar(100) not null;unique;index" json:"sysname"`
-	NameSourceID        *uint                    `gorm:"type:bigint null REFERENCES \"text_source\"(id);index" json:"-"`
-	DescriptionSourceID *uint                    `gorm:"type:bigint null REFERENCES \"text_source\"(id);index" json:"-"`
-	Name                *string                  `gorm:"-" json:"name"`
-	Description         *string                  `gorm:"-" json:"description"`
-	PropertyTypeID      uint                     `gorm:"type:bigint not null REFERENCES \"property_type\"(id);index" json:"propertyTypeId"`
-	PropertyUnitID      uint                     `gorm:"type:bigint not null REFERENCES \"property_unit\"(id);index" json:"propertyUnitId"`
-	PropertyViewTypeID  *uint                    `gorm:"type:bigint null REFERENCES \"property_view_type\"(id);index" json:"propertyViewTypeId"`
-	PropertyGroupID     *uint                    `gorm:"type:bigint null REFERENCES \"property_group\"(id);index" json:"propertyGroupId"`
-	IsSpecific          bool                     `gorm:"type:boolean not null default false;" json:"isSpecific"`
-	IsRange             bool                     `gorm:"type:boolean not null default false;" json:"isRange"`
-	IsMultiple          bool                     `gorm:"type:boolean not null default false;" json:"isMultiple"`
-	SortOrder           uint                     `gorm:"type:smallint;not null;default:9999" json:"sortOrder"`
-	OptionsB            datatypes.JSON           `json:"-"`
-	Options             []map[string]interface{} `gorm:"-" json:"options"`
-	//PropertyUnit        *property_unit.PropertyUnit `gorm:""`
+	ID                  uint                                 `gorm:"type:bigserial;primaryKey" json:"id"`
+	Sysname             string                               `gorm:"type:varchar(100) not null;unique;index" json:"sysname"`
+	NameSourceID        *uint                                `gorm:"type:bigint null REFERENCES \"text_source\"(id);index" json:"-"`
+	DescriptionSourceID *uint                                `gorm:"type:bigint null REFERENCES \"text_source\"(id);index" json:"-"`
+	Name                *string                              `gorm:"-" json:"name"`
+	Description         *string                              `gorm:"-" json:"description"`
+	PropertyTypeID      uint                                 `gorm:"type:bigint not null REFERENCES \"property_type\"(id);index" json:"propertyTypeId"`
+	PropertyUnitID      uint                                 `gorm:"type:bigint not null REFERENCES \"property_unit\"(id);index" json:"propertyUnitId"`
+	PropertyViewTypeID  *uint                                `gorm:"type:bigint null REFERENCES \"property_view_type\"(id);index" json:"propertyViewTypeId"`
+	PropertyGroupID     *uint                                `gorm:"type:bigint null REFERENCES \"property_group\"(id);index" json:"propertyGroupId"`
+	IsSpecific          bool                                 `gorm:"type:boolean not null default false;" json:"isSpecific"`
+	IsRange             bool                                 `gorm:"type:boolean not null default false;" json:"isRange"`
+	IsMultiple          bool                                 `gorm:"type:boolean not null default false;" json:"isMultiple"`
+	SortOrder           uint                                 `gorm:"type:smallint;not null;default:9999" json:"sortOrder"`
+	OptionsB            datatypes.JSON                       `json:"-"`
+	Options             []map[string]interface{}             `gorm:"-" json:"options"`
+	PropertyType        *property_type.PropertyType          `json:"propertyType"`
+	PropertyViewType    *property_view_type.PropertyViewType `json:"propertyViewType"`
+	PropertyUnit        *property_unit.PropertyUnit          `json:"propertyUnit"`
+	PropertyGroup       *property_group.PropertyGroup        `json:"propertyGroup"`
 
 	CreatedAt time.Time  `json:"createdAt"`
 	UpdatedAt time.Time  `json:"updatedAt"`
@@ -89,7 +97,7 @@ LOOP:
 					break LOOP
 				}
 
-			case property_type.IDBigint:
+			case property_type.IDBigint, property_type.IDRelation:
 				if _, ok := itemVal.(int); !ok {
 					if _, ok := itemVal.(int64); !ok {
 						err = errors.Errorf("value type must be a bigint, value: %#v", itemVal)

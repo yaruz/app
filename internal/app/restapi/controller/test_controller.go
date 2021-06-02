@@ -414,13 +414,31 @@ func (c testController) property(ctx *routing.Context) error {
 	res := make([]map[string]interface{}, 0, 10)
 	res = append(res, map[string]interface{}{"test": "property"})
 	cntx := ctx.Request.Context()
+	// ViewType
+	viewType := c.yaruzPlatform.ReferenceSubsystem().PropertyViewType.Service.NewEntity()
+	viewType.Sysname = "view_type_" + strconv.Itoa(int(time.Now().Unix()))
 
+	err := c.yaruzPlatform.ReferenceSubsystem().PropertyViewType.Service.Create(cntx, viewType)
+	if err != nil {
+		res = append(res, map[string]interface{}{"0. Create ViewType err": err.Error()})
+	}
+	// Group
+	group := c.yaruzPlatform.ReferenceSubsystem().PropertyGroup.Service.NewEntity()
+	group.Sysname = "group_" + strconv.Itoa(int(time.Now().Unix()))
+
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyGroup.Service.Create(cntx, group)
+	if err != nil {
+		res = append(res, map[string]interface{}{"0. Create Group err": err.Error()})
+	}
+	var one uint = 1
 	entity := c.yaruzPlatform.ReferenceSubsystem().Property.Service.NewEntity()
 	entity.Sysname = "WrongName"
 	entity.PropertyTypeID = 3
 	entity.PropertyUnitID = 1
+	entity.PropertyViewTypeID = &one
+	entity.PropertyGroupID = &one
 
-	err := entity.Validate()
+	err = entity.Validate()
 	if err != nil {
 		res = append(res, map[string]interface{}{"1. errValidate": err.Error()})
 	}
@@ -430,7 +448,7 @@ func (c testController) property(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"2. errCreate1": err.Error()})
 	}
 
-	entity.Sysname = "property"
+	entity.Sysname = "property" + strconv.Itoa(int(time.Now().Unix()))
 	err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.Create(cntx, entity)
 	if err != nil {
 		res = append(res, map[string]interface{}{"3. errCreate": err.Error()})

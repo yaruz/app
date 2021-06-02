@@ -31,7 +31,7 @@ func NewPropertyRepository(repository *repository) (*PropertyRepository, error) 
 func (r *PropertyRepository) Get(ctx context.Context, id uint) (*property.Property, error) {
 	entity := &property.Property{}
 
-	err := r.DB().First(entity, id).Error
+	err := r.DB().Joins("PropertyType").Joins("PropertyViewType").Joins("PropertyUnit").Joins("PropertyGroup").First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -47,7 +47,7 @@ func (r *PropertyRepository) Get(ctx context.Context, id uint) (*property.Proper
 }
 
 func (r *PropertyRepository) First(ctx context.Context, entity *property.Property) (*property.Property, error) {
-	err := r.DB().Where(entity).First(entity).Error
+	err := r.DB().Joins("PropertyType").Joins("PropertyViewType").Joins("PropertyUnit").Joins("PropertyGroup").Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -70,7 +70,7 @@ func (r *PropertyRepository) Query(ctx context.Context, cond *selection_conditio
 		return nil, db.Error
 	}
 
-	err := db.Find(&items).Error
+	err := db.Joins("PropertyType").Joins("PropertyViewType").Joins("PropertyUnit").Joins("PropertyGroup").Find(&items).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return items, yaruzerror.ErrNotFound

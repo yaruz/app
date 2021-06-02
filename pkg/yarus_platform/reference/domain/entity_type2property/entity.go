@@ -11,7 +11,7 @@ const (
 type EntityType2Property struct {
 	EntityTypeID uint       `gorm:"type:bigint not null REFERENCES \"entity_type\"(id);primaryKey" json:"entityTypeId"`
 	PropertyID   uint       `gorm:"type:bigint not null REFERENCES \"property\"(id);primaryKey" json:"propertyId"`
-	IsComposite  bool       `gorm:"type:boolean not null default false;" json:"isComposite"`
+	IsDependent  bool       `gorm:"type:boolean not null default false;primaryKey;" json:"isDependent"`
 	CreatedAt    time.Time  `json:"createdAt"`
 	UpdatedAt    time.Time  `json:"updatedAt"`
 	DeletedAt    *time.Time `gorm:"index" json:"deletedAt,omitempty"`

@@ -14,6 +14,7 @@ import (
 const (
 	EntityName       = "propertyType"
 	TableName        = "property_type"
+	SysnameRelation  = "relation"
 	SysnameBoolean   = "boolean"
 	SysnameInt       = "int"
 	SysnameBigint    = "bigint"
@@ -21,13 +22,14 @@ const (
 	SysnameDate      = "date"
 	SysnameTimestamp = "timestamp"
 	SysnameText      = "text"
-	IDBoolean        = 1
-	IDInt            = 2
-	IDBigint         = 3
-	IDFloat          = 4
-	IDDate           = 5
-	IDTimestamp      = 6
-	IDText           = 7
+	IDRelation       = 1
+	IDBoolean        = 2
+	IDInt            = 3
+	IDBigint         = 4
+	IDFloat          = 5
+	IDDate           = 6
+	IDTimestamp      = 7
+	IDText           = 8
 )
 
 var fl float64
@@ -66,7 +68,7 @@ func (e PropertyType) GetPropertyViewTypes() ([]property_view_type.PropertyViewT
 }
 
 // PropertyType2PropertyViewType ...
-type PropertyType2PropertyViewType struct {
-	PropertyTypeID     uint `gorm:"type:bigint not null REFERENCES \"property_type\"(id);primaryKey" json:"propertyTypeID"`
-	PropertyViewTypeID uint `gorm:"type:bigint not null REFERENCES \"property_view_type\"(id);primaryKey" json:"propertyViewTypeID"`
-}
+//type PropertyType2PropertyViewType struct {
+//	PropertyTypeID     uint `gorm:"type:bigint not null REFERENCES \"property_type\"(id);primaryKey" json:"propertyTypeID"`
+//	PropertyViewTypeID uint `gorm:"type:bigint not null REFERENCES \"property_view_type\"(id);primaryKey" json:"propertyViewTypeID"`
+//}
