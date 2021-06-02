@@ -4,6 +4,8 @@ import (
 	"context"
 	golog "log"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/relation"
+
 	"github.com/minipkg/selection_condition"
 
 	minipkg_gorm "github.com/minipkg/db/gorm"
@@ -27,6 +29,7 @@ type ReferenceSubsystem struct {
 	EntityType                    ReferenceDomainEntityType
 	EntityType2Property           ReferenceDomainEntityType2Property
 	Property                      ReferenceDomainProperty
+	Relation                      ReferenceDomainRelation
 	PropertyGroup                 ReferenceDomainPropertyGroup
 	PropertyType                  ReferenceDomainPropertyType
 	PropertyType2PropertyViewType ReferenceDomainPropertyType2PropertyViewType
@@ -49,6 +52,11 @@ type ReferenceDomainEntityType2Property struct {
 type ReferenceDomainProperty struct {
 	Service    property.IService
 	Repository property.Repository
+}
+
+type ReferenceDomainRelation struct {
+	Service    relation.IService
+	Repository relation.Repository
 }
 
 type ReferenceDomainPropertyGroup struct {
@@ -217,6 +225,15 @@ func (d *ReferenceSubsystem) setupRepositories(infra *infrastructure) (err error
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", entity_type2property.EntityName, entity_type2property.EntityName, repo)
 	}
 
+	repo, err = gorm.GetRepository(infra.Logger, infra.ReferenceDB, relation.EntityName)
+	if err != nil {
+		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", relation.EntityName, err)
+	}
+	d.Relation.Repository, ok = repo.(relation.Repository)
+	if !ok {
+		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", relation.EntityName, relation.EntityName, repo)
+	}
+
 	return nil
 }
 
@@ -230,6 +247,7 @@ func (d *ReferenceSubsystem) setupServices(logger log.ILogger) {
 	d.PropertyViewType.Service = property_view_type.NewService(logger, d.PropertyViewType.Repository)
 	d.TextSource.Service = text_source.NewService(logger, d.TextSource.Repository)
 	d.TextValue.Service = text_value.NewService(logger, d.TextValue.Repository)
+	d.Relation.Service = relation.NewService(logger, d.Relation.Repository)
 }
 
 func (d *ReferenceSubsystem) dbDataInit() error {

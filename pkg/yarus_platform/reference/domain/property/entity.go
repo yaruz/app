@@ -3,7 +3,6 @@ package property
 import (
 	"encoding/json"
 	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_group"
@@ -65,7 +64,7 @@ func New() *Property {
 
 func (e Property) Validate() error {
 	return validation.ValidateStruct(&e,
-		validation.Field(&e.Sysname, validation.Required, validation.Length(2, 100), validation.Match(regexp.MustCompile(domain.SysnameRegexp))),
+		validation.Field(&e.Sysname, domain.SysnameValidationRules...),
 		validation.Field(&e.IsRange, validation.When(e.IsMultiple, validation.Empty)),
 		validation.Field(&e.IsMultiple, validation.When(e.IsRange, validation.Empty)),
 		validation.Field(&e.Options, validation.By(e.optionsValidate)),

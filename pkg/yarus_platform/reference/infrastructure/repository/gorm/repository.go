@@ -3,6 +3,8 @@ package gorm
 import (
 	"context"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/relation"
+
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/log"
 	"github.com/minipkg/selection_condition"
@@ -114,6 +116,13 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 			return nil, err
 		}
 		repo, err = NewTextValueRepository(r)
+	case relation.EntityName:
+		r.model = relation.New()
+
+		if r.db, err = dbase.SchemeInitWithContext(ctx, r.model); err != nil {
+			return nil, err
+		}
+		repo, err = NewRelationRepository(r)
 	default:
 		err = errors.Errorf("Repository for entity %q not found", entityName)
 	}

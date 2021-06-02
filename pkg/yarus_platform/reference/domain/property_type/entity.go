@@ -1,7 +1,6 @@
 package property_type
 
 import (
-	"regexp"
 	"time"
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain"
@@ -59,7 +58,7 @@ func New() *PropertyType {
 
 func (e PropertyType) Validate() error {
 	return validation.ValidateStruct(&e,
-		validation.Field(&e.Sysname, validation.Required, validation.Length(2, 100), validation.Match(regexp.MustCompile(domain.SysnameRegexp))),
+		validation.Field(&e.Sysname, domain.SysnameValidationRules...),
 	)
 }
 
