@@ -88,21 +88,25 @@ func (r *EntityType2PropertyRepository) Count(ctx context.Context, cond *selecti
 func (r *EntityType2PropertyRepository) Create(ctx context.Context, entity *entity_type2property.EntityType2Property) error {
 	return r.db.DB().Create(entity).Error
 }
-
-// Update saves a changed Maintenance record in the database.
-func (r *EntityType2PropertyRepository) Update(ctx context.Context, entity *entity_type2property.EntityType2Property) error {
-	return r.Save(ctx, entity)
-}
-
-// Save update value in database, if the value doesn't have primary key, will insert it
-func (r *EntityType2PropertyRepository) Save(ctx context.Context, entity *entity_type2property.EntityType2Property) error {
-	return r.db.DB().Save(entity).Error
+func (r *EntityType2PropertyRepository) CreateTx(ctx context.Context, tx *gorm.DB, entity *entity_type2property.EntityType2Property) error {
+	return tx.Create(entity).Error
 }
 
 // Delete (soft) deletes a Maintenance record in the database.
-func (r *EntityType2PropertyRepository) Delete(ctx context.Context, id uint) error {
+func (r *EntityType2PropertyRepository) Delete(ctx context.Context, entity *entity_type2property.EntityType2Property) error {
 
-	err := r.db.DB().Delete(r.model, id).Error
+	err := r.db.DB().Delete(r.model, entity).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return apperror.ErrNotFound
+		}
+	}
+	return err
+}
+
+func (r *EntityType2PropertyRepository) DeleteTx(ctx context.Context, tx *gorm.DB, entity *entity_type2property.EntityType2Property) error {
+
+	err := tx.Delete(r.model, entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apperror.ErrNotFound

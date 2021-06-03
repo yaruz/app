@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type2property"
+
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/relation"
 
 	"github.com/yaruz/app/internal/pkg/apperror"
@@ -18,13 +20,14 @@ import (
 // RelationRepository is a repository for the model entity
 type RelationRepository struct {
 	repository
+	entityType2PropertyRepository entity_type2property.Repository
 }
 
 var _ relation.Repository = (*RelationRepository)(nil)
 
 // New creates a new RelationRepository
-func NewRelationRepository(repository *repository) (*RelationRepository, error) {
-	return &RelationRepository{repository: *repository}, nil
+func NewRelationRepository(repository *repository, entityType2PropertyRepository entity_type2property.Repository) (*RelationRepository, error) {
+	return &RelationRepository{repository: *repository, entityType2PropertyRepository: entityType2PropertyRepository}, nil
 }
 
 // Get reads the album with the specified ID from the database.
@@ -112,7 +115,26 @@ func (r *RelationRepository) Create(ctx context.Context, entity *relation.Relati
 		return err
 	}
 
-	return r.db.DB().Create(entity).Error
+	//return r.db.DB().Create(entity).Error
+	return r.db.DB().Transaction(func(tx *gorm.DB) error {
+		if err := r.entityType2PropertyRepository.CreateTx(ctx, tx, &entity_type2property.EntityType2Property{
+			EntityTypeID: entity.UndependedEntityType.ID,
+			PropertyID:   entity.ID,
+			IsDependent:  false,
+		}); err != nil {
+			return err
+		}
+
+		if err := r.entityType2PropertyRepository.CreateTx(ctx, tx, &entity_type2property.EntityType2Property{
+			EntityTypeID: entity.DependedEntityType.ID,
+			PropertyID:   entity.ID,
+			IsDependent:  true,
+		}); err != nil {
+			return err
+		}
+
+		return tx.Create(entity).Error
+	})
 }
 
 // Update saves a changed Maintenance record in the database.

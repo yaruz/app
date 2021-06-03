@@ -17,9 +17,7 @@ type IService interface {
 	Query(ctx context.Context, query *selection_condition.SelectionCondition) ([]EntityType2Property, error)
 	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error)
 	Create(ctx context.Context, entity *EntityType2Property) error
-	Update(ctx context.Context, entity *EntityType2Property) error
-	Save(ctx context.Context, entity *EntityType2Property) error
-	Delete(ctx context.Context, id uint) error
+	Delete(ctx context.Context, entity *EntityType2Property) error
 }
 
 type service struct {
@@ -82,26 +80,10 @@ func (s *service) Create(ctx context.Context, entity *EntityType2Property) error
 	return nil
 }
 
-func (s *service) Update(ctx context.Context, entity *EntityType2Property) error {
-	err := s.repository.Update(ctx, entity)
+func (s *service) Delete(ctx context.Context, entity *EntityType2Property) error {
+	err := s.repository.Delete(ctx, entity)
 	if err != nil {
-		return errors.Wrapf(err, "Can not update an entity: %v", entity)
-	}
-	return nil
-}
-
-func (s *service) Save(ctx context.Context, entity *EntityType2Property) error {
-	err := s.repository.Save(ctx, entity)
-	if err != nil {
-		return errors.Wrapf(err, "Can not save an entity: %v", entity)
-	}
-	return nil
-}
-
-func (s *service) Delete(ctx context.Context, id uint) error {
-	err := s.repository.Delete(ctx, id)
-	if err != nil {
-		return errors.Wrapf(err, "Can not delete an entity by ID: %v", id)
+		return errors.Wrapf(err, "Can not delete an entity: %#v", entity)
 	}
 	return nil
 }
