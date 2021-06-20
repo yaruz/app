@@ -14,13 +14,15 @@ const (
 
 // Entity ...
 type Entity struct {
-	ID               uint                 `gorm:"type:bigserial;primaryKey" json:"id"`
-	EntityTypeID     uint                 `gorm:"type:bigint not null;index" json:"entityTypeID"`
-	PropertiesB      datatypes.JSON       `json:"-"`
-	PropertiesValues map[uint]interface{} `gorm:"-" json:"properties"`
-	CreatedAt        time.Time            `json:"createdAt"`
-	UpdatedAt        time.Time            `json:"updatedAt"`
-	DeletedAt        *time.Time           `gorm:"index" json:"deletedAt,omitempty"`
+	ID           uint           `gorm:"type:bigserial;primaryKey" json:"id"`
+	EntityTypeID uint           `gorm:"type:bigint not null;index" json:"entityTypeID"`
+	PropertiesB  datatypes.JSON `json:"-"`
+	//PropertiesValuesMap map[uint]interface{}   `gorm:"-" json:"propertiesValuesMap"`
+	PropertiesValues map[string]PropertyValues  `gorm:"-" json:"propertiesValues"`
+	RelationsValues  map[string]RelatedEntities `gorm:"-" json:"relationsValues"`
+	CreatedAt        time.Time                  `json:"createdAt"`
+	UpdatedAt        time.Time                  `json:"updatedAt"`
+	DeletedAt        *time.Time                 `gorm:"index" json:"deletedAt,omitempty"`
 }
 
 func (e *Entity) TableName() string {

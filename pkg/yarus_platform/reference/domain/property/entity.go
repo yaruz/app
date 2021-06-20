@@ -34,7 +34,7 @@ type Property struct {
 	Name                *string                              `gorm:"-" json:"name"`
 	Description         *string                              `gorm:"-" json:"description"`
 	PropertyTypeID      uint                                 `gorm:"type:bigint not null REFERENCES \"property_type\"(id);index" json:"propertyTypeId"`
-	PropertyUnitID      uint                                 `gorm:"type:bigint not null REFERENCES \"property_unit\"(id);index" json:"propertyUnitId"`
+	PropertyUnitID      *uint                                `gorm:"type:bigint null REFERENCES \"property_unit\"(id);index" json:"propertyUnitId"`
 	PropertyViewTypeID  *uint                                `gorm:"type:bigint null REFERENCES \"property_view_type\"(id);index" json:"propertyViewTypeId"`
 	PropertyGroupID     *uint                                `gorm:"type:bigint null REFERENCES \"property_group\"(id);index" json:"propertyGroupId"`
 	IsSpecific          bool                                 `gorm:"type:boolean not null default false;" json:"isSpecific"`
@@ -67,6 +67,7 @@ func (e Property) Validate() error {
 		validation.Field(&e.Sysname, domain.SysnameValidationRules...),
 		validation.Field(&e.IsRange, validation.When(e.IsMultiple, validation.Empty)),
 		validation.Field(&e.IsMultiple, validation.When(e.IsRange, validation.Empty)),
+		validation.Field(&e.PropertyUnitID, validation.When(e.PropertyTypeID != property_type.IDRelation, validation.Required)),
 		validation.Field(&e.Options, validation.By(e.optionsValidate)),
 	)
 }

@@ -2,19 +2,17 @@ package gorm
 
 import (
 	"context"
-	"errors"
-
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type2property"
-
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/relation"
 
 	"github.com/yaruz/app/internal/pkg/apperror"
-	"gorm.io/gorm"
+
+	"github.com/pkg/errors"
 
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/selection_condition"
-
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type2property"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/relation"
 	"github.com/yaruz/app/pkg/yarus_platform/yaruzerror"
+	"gorm.io/gorm"
 )
 
 // RelationRepository is a repository for the model entity
@@ -115,25 +113,12 @@ func (r *RelationRepository) Create(ctx context.Context, entity *relation.Relati
 		return err
 	}
 
-	//return r.db.DB().Create(entity).Error
 	return r.db.DB().Transaction(func(tx *gorm.DB) error {
-		if err := r.entityType2PropertyRepository.CreateTx(ctx, tx, &entity_type2property.EntityType2Property{
-			EntityTypeID: entity.UndependedEntityType.ID,
-			PropertyID:   entity.ID,
-			IsDependent:  false,
-		}); err != nil {
+		if err := tx.Create(entity).Error; err != nil {
 			return err
 		}
 
-		if err := r.entityType2PropertyRepository.CreateTx(ctx, tx, &entity_type2property.EntityType2Property{
-			EntityTypeID: entity.DependedEntityType.ID,
-			PropertyID:   entity.ID,
-			IsDependent:  true,
-		}); err != nil {
-			return err
-		}
-
-		return tx.Create(entity).Error
+		return r.createLinksTx(ctx, tx, entity)
 	})
 }
 
@@ -144,35 +129,84 @@ func (r *RelationRepository) Update(ctx context.Context, entity *relation.Relati
 		return errors.New("entity is new")
 	}
 
-	if err := entity.BeforeSave(); err != nil {
-		return err
-	}
-
 	return r.Save(ctx, entity)
 }
 
 // Save update value in database, if the value doesn't have primary key, will insert it
 func (r *RelationRepository) Save(ctx context.Context, entity *relation.Relation) error {
 
+	if entity.ID == 0 {
+		return r.Create(ctx, entity)
+	}
+
 	if err := entity.BeforeSave(); err != nil {
 		return err
 	}
 
-	return r.db.DB().Save(entity).Error
+	return r.db.DB().Transaction(func(tx *gorm.DB) error {
+		if err := r.deleteLinksTx(ctx, tx, entity.ID); err != nil {
+			return err
+		}
+
+		if err := r.createLinksTx(ctx, tx, entity); err != nil {
+			return err
+		}
+
+		return tx.Save(entity).Error
+	})
 }
 
 // Delete (soft) deletes a Maintenance record in the database.
 func (r *RelationRepository) Delete(ctx context.Context, id uint) error {
-
-	err := r.db.DB().Delete(r.model, id).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return apperror.ErrNotFound
+	return r.db.DB().Transaction(func(tx *gorm.DB) error {
+		if err := r.deleteLinksTx(ctx, tx, id); err != nil {
+			return err
 		}
+
+		err := tx.Delete(r.model, id).Error
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return apperror.ErrNotFound
+			}
+		}
+
+		return err
+	})
+}
+
+func (r *RelationRepository) deleteLinksTx(ctx context.Context, tx *gorm.DB, entityID uint) error {
+	return r.entityType2PropertyRepository.DeleteTx(ctx, tx, &entity_type2property.EntityType2Property{
+		PropertyID: entityID,
+	})
+}
+
+func (r *RelationRepository) createLinksTx(ctx context.Context, tx *gorm.DB, entity *relation.Relation) error {
+	if err := r.validateLinks(entity); err != nil {
+		return err
 	}
-	return err
+
+	if err := r.entityType2PropertyRepository.CreateTx(ctx, tx, &entity_type2property.EntityType2Property{
+		EntityTypeID: entity.UndependedEntityType.ID,
+		PropertyID:   entity.ID,
+		IsDependent:  false,
+	}); err != nil {
+		return err
+	}
+
+	return r.entityType2PropertyRepository.CreateTx(ctx, tx, &entity_type2property.EntityType2Property{
+		EntityTypeID: entity.DependedEntityType.ID,
+		PropertyID:   entity.ID,
+		IsDependent:  true,
+	})
+}
+
+func (r *RelationRepository) validateLinks(entity *relation.Relation) error {
+	if entity.DependedEntityType.ID == 0 || entity.UndependedEntityType.ID == 0 {
+		return errors.Wrapf(apperror.ErrBadParams, "Some of links is empty")
+	}
+	return nil
 }
 
 func (r *RelationRepository) joins(db *gorm.DB) *gorm.DB {
-	return db.Joins("PropertyType").Joins("PropertyViewType").Joins("PropertyUnit").Joins("PropertyGroup")
+	return db.Joins("PropertyType").Joins("PropertyViewType").Joins("PropertyGroup").Joins("UndependedEntityType").Preload
 }

@@ -631,7 +631,7 @@
             <stringProp name="HTTPSampler.response_timeout"></stringProp>
           </HTTPSamplerProxy>
           <hashTree>
-            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="get markId" enabled="true">
+            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="get markId" enabled="false">
               <stringProp name="JSONPostProcessor.referenceNames">markId</stringProp>
               <stringProp name="JSONPostProcessor.jsonPathExprs">.id</stringProp>
               <stringProp name="JSONPostProcessor.match_numbers">0</stringProp>

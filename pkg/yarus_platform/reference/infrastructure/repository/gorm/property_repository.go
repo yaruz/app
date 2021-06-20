@@ -122,10 +122,6 @@ func (r *PropertyRepository) Update(ctx context.Context, entity *property.Proper
 		return errors.New("entity is new")
 	}
 
-	if err := entity.BeforeSave(); err != nil {
-		return err
-	}
-
 	return r.Save(ctx, entity)
 }
 

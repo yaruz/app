@@ -15,8 +15,8 @@ const (
 // Relation ...
 type Relation struct {
 	property.Property
-	UndependedEntityType entity_type.EntityType `gorm:"-" json:"entityType"`
-	DependedEntityType   entity_type.EntityType `gorm:"-" json:"dependedEntityType"`
+	UndependedEntityType entity_type.EntityType `gorm:"many2many:entity_type;" json:"entityType"`
+	DependedEntityType   entity_type.EntityType `gorm:"many2many:entity_type;" json:"dependedEntityType"`
 }
 
 func (e *Relation) TableName() string {
@@ -31,6 +31,7 @@ func New() *Relation {
 func (e Relation) Validate() error {
 	err := validation.ValidateStruct(&e,
 		validation.Field(&e.PropertyTypeID, validation.Required, validation.In(property_type.IDRelation)),
+		validation.Field(&e.IsRange, validation.In(false)),
 	)
 	if err != nil {
 		return err
