@@ -434,7 +434,7 @@ func (c testController) property(ctx *routing.Context) error {
 	entity := c.yaruzPlatform.ReferenceSubsystem().Property.Service.NewEntity()
 	entity.Sysname = "WrongName"
 	entity.PropertyTypeID = 3
-	entity.PropertyUnitID = 1
+	entity.PropertyUnitID = &one
 	entity.PropertyViewTypeID = &one
 	entity.PropertyGroupID = &one
 
@@ -503,7 +503,8 @@ func (c testController) propertyOptionsValidation(ctx *routing.Context) error {
 
 	entity := c.yaruzPlatform.ReferenceSubsystem().Property.Service.NewEntity()
 	entity.Sysname = "options_validation_test_" + strconv.Itoa(int(time.Now().Unix()))
-	entity.PropertyUnitID = 1
+	var one uint = 1
+	entity.PropertyUnitID = &one
 
 	var typeTestCases = [][][]map[string]interface{}{
 		{ // boolean
@@ -689,6 +690,48 @@ func (c testController) entityType(ctx *routing.Context) error {
 	err = c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Delete(cntx, entity.ID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"7. errDelete": err.Error()})
+	}
+
+	return ctx.Write(res)
+}
+
+func (c testController) relation(ctx *routing.Context) error {
+	res := make([]map[string]interface{}, 0, 10)
+	res = append(res, map[string]interface{}{"test": "entity-type"})
+	cntx := ctx.Request.Context()
+
+	entityType1 := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.NewEntity()
+	entityType1.Sysname = "entity_type1_" + strconv.Itoa(int(time.Now().Unix()))
+
+	err := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Create(cntx, entityType1)
+	if err != nil {
+		res = append(res, map[string]interface{}{"1. Create EntityType1 error": err.Error()})
+	}
+
+	entityType2 := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.NewEntity()
+	entityType1.Sysname = "entity_type2_" + strconv.Itoa(int(time.Now().Unix()))
+
+	err = c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Create(cntx, entityType2)
+	if err != nil {
+		res = append(res, map[string]interface{}{"2. Create EntityType2 error": err.Error()})
+	}
+
+	entity := c.yaruzPlatform.ReferenceSubsystem().Relation.Service.NewEntity()
+	entity.Sysname = "relation_" + strconv.Itoa(int(time.Now().Unix()))
+	entity.PropertyTypeID = 1
+	entity.UndependedEntityType = entityType2
+	entity.DependedEntityType = entityType1
+
+	err = c.yaruzPlatform.ReferenceSubsystem().Relation.Service.Create(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"3. Create Relation error": err.Error()})
+	}
+
+	e, err := c.yaruzPlatform.ReferenceSubsystem().Relation.Service.Get(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"4. Get new Relation error": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"4. New Relation": fmt.Sprintf("%#v", e)})
 	}
 
 	return ctx.Write(res)

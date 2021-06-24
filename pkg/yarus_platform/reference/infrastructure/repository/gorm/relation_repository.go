@@ -208,5 +208,5 @@ func (r *RelationRepository) validateLinks(entity *relation.Relation) error {
 }
 
 func (r *RelationRepository) joins(db *gorm.DB) *gorm.DB {
-	return db.Joins("PropertyType").Joins("PropertyViewType").Joins("PropertyGroup").Joins("UndependedEntityType").Preload
+	return db.Joins("PropertyType").Joins("PropertyViewType").Joins("PropertyGroup").Joins("UndependedEntityType")
 }
