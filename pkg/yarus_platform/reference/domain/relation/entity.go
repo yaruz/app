@@ -30,8 +30,8 @@ func New() *Relation {
 
 func (e Relation) Validate() error {
 	err := validation.ValidateStruct(&e,
-		validation.Field(&e.PropertyTypeID, validation.Required, validation.In(property_type.IDRelation)),
-		validation.Field(&e.IsRange, validation.In(false)),
+		validation.Field(&e.Property.PropertyTypeID, validation.Required, validation.In(uint(property_type.IDRelation))),
+		validation.Field(&e.Property.IsRange, validation.In(false)),
 	)
 	if err != nil {
 		return err

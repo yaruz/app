@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
+
 	routing "github.com/go-ozzo/ozzo-routing/v2"
 	"github.com/minipkg/log"
 	"github.com/minipkg/selection_condition"
@@ -32,6 +34,7 @@ func RegisterTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platform.IP
 	r.Get("/property-view-type", c.propertyViewType)
 	r.Get("/property-type", c.propertyType)
 	r.Get("/property", c.property)
+	r.Get("/relation", c.relation)
 	r.Get("/property-options-validation", c.propertyOptionsValidation)
 	r.Get("/entity-type", c.entityType)
 }
@@ -709,7 +712,7 @@ func (c testController) relation(ctx *routing.Context) error {
 	}
 
 	entityType2 := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.NewEntity()
-	entityType1.Sysname = "entity_type2_" + strconv.Itoa(int(time.Now().Unix()))
+	entityType2.Sysname = "entity_type2_" + strconv.Itoa(int(time.Now().Unix()))
 
 	err = c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Create(cntx, entityType2)
 	if err != nil {
@@ -718,7 +721,7 @@ func (c testController) relation(ctx *routing.Context) error {
 
 	entity := c.yaruzPlatform.ReferenceSubsystem().Relation.Service.NewEntity()
 	entity.Sysname = "relation_" + strconv.Itoa(int(time.Now().Unix()))
-	entity.PropertyTypeID = 1
+	entity.PropertyTypeID = property_type.IDRelation
 	entity.UndependedEntityType = entityType2
 	entity.DependedEntityType = entityType1
 

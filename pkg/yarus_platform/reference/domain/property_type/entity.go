@@ -31,6 +31,17 @@ const (
 	IDText           = 8
 )
 
+var ValidTypesIDs = []interface{}{
+	uint(IDRelation),
+	uint(IDBoolean),
+	uint(IDInt),
+	uint(IDBigint),
+	uint(IDFloat),
+	uint(IDDate),
+	uint(IDTimestamp),
+	uint(IDText),
+}
+
 var fl float64
 
 // PropertyType ...

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_group"
-
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_unit"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_view_type"
 
@@ -44,9 +43,9 @@ type Property struct {
 	OptionsB            datatypes.JSON                       `json:"-"`
 	Options             []map[string]interface{}             `gorm:"-" json:"options"`
 	PropertyType        *property_type.PropertyType          `json:"propertyType"`
-	PropertyViewType    *property_view_type.PropertyViewType `json:"propertyViewType"`
-	PropertyUnit        *property_unit.PropertyUnit          `json:"propertyUnit"`
-	PropertyGroup       *property_group.PropertyGroup        `json:"propertyGroup"`
+	PropertyViewType    *property_view_type.PropertyViewType `json:"propertyViewType,omitempty"`
+	PropertyUnit        *property_unit.PropertyUnit          `json:"propertyUnit,omitempty"`
+	PropertyGroup       *property_group.PropertyGroup        `json:"propertyGroup,omitempty"`
 
 	CreatedAt time.Time  `json:"createdAt"`
 	UpdatedAt time.Time  `json:"updatedAt"`
@@ -65,6 +64,7 @@ func New() *Property {
 func (e Property) Validate() error {
 	return validation.ValidateStruct(&e,
 		validation.Field(&e.Sysname, domain.SysnameValidationRules...),
+		validation.Field(&e.PropertyTypeID, validation.In(property_type.ValidTypesIDs...)),
 		validation.Field(&e.IsRange, validation.When(e.IsMultiple, validation.Empty)),
 		validation.Field(&e.IsMultiple, validation.When(e.IsRange, validation.Empty)),
 		validation.Field(&e.PropertyUnitID, validation.When(e.PropertyTypeID != property_type.IDRelation, validation.Required)),

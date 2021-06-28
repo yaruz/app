@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"encoding/json"
 	"time"
 
 	"gorm.io/datatypes"
@@ -18,11 +17,11 @@ type Entity struct {
 	EntityTypeID uint           `gorm:"type:bigint not null;index" json:"entityTypeID"`
 	PropertiesB  datatypes.JSON `json:"-"`
 	//PropertiesValuesMap map[uint]interface{}   `gorm:"-" json:"propertiesValuesMap"`
-	PropertiesValues map[string]PropertyValues  `gorm:"-" json:"propertiesValues"`
-	RelationsValues  map[string]RelatedEntities `gorm:"-" json:"relationsValues"`
-	CreatedAt        time.Time                  `json:"createdAt"`
-	UpdatedAt        time.Time                  `json:"updatedAt"`
-	DeletedAt        *time.Time                 `gorm:"index" json:"deletedAt,omitempty"`
+	//PropertiesValues map[string]PropertyValues  `gorm:"-" json:"propertiesValues"`
+	//RelationsValues  map[string]RelatedEntities `gorm:"-" json:"relationsValues"`
+	CreatedAt time.Time  `json:"createdAt"`
+	UpdatedAt time.Time  `json:"updatedAt"`
+	DeletedAt *time.Time `gorm:"index" json:"deletedAt,omitempty"`
 }
 
 func (e *Entity) TableName() string {
@@ -43,17 +42,19 @@ func (e *Entity) BeforeSave() error {
 }
 
 func (e *Entity) propertiesB2PropertiesValues() error {
-	jsonb, err := e.PropertiesB.MarshalJSON()
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(jsonb, &e.PropertiesValues)
+	//jsonb, err := e.PropertiesB.MarshalJSON()
+	//if err != nil {
+	//	return err
+	//}
+	//return json.Unmarshal(jsonb, &e.PropertiesValues)
+	return nil
 }
 
 func (e *Entity) propertiesValues2PropertiesB() error {
-	jsonb, err := json.Marshal(&e.PropertiesValues)
-	if err != nil {
-		return err
-	}
-	return e.PropertiesB.UnmarshalJSON(jsonb)
+	//jsonb, err := json.Marshal(&e.PropertiesValues)
+	//if err != nil {
+	//	return err
+	//}
+	//return e.PropertiesB.UnmarshalJSON(jsonb)
+	return nil
 }
