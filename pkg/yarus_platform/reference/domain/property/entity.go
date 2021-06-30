@@ -43,9 +43,9 @@ type Property struct {
 	OptionsB            datatypes.JSON                       `json:"-"`
 	Options             []map[string]interface{}             `gorm:"-" json:"options"`
 	PropertyType        *property_type.PropertyType          `json:"propertyType"`
-	PropertyViewType    *property_view_type.PropertyViewType `json:"propertyViewType,omitempty"`
-	PropertyUnit        *property_unit.PropertyUnit          `json:"propertyUnit,omitempty"`
-	PropertyGroup       *property_group.PropertyGroup        `json:"propertyGroup,omitempty"`
+	PropertyViewType    *property_view_type.PropertyViewType `json:"propertyViewType"`
+	PropertyUnit        *property_unit.PropertyUnit          `json:"propertyUnit"`
+	PropertyGroup       *property_group.PropertyGroup        `json:"propertyGroup"`
 
 	CreatedAt time.Time  `json:"createdAt"`
 	UpdatedAt time.Time  `json:"updatedAt"`

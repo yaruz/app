@@ -2,6 +2,7 @@ package yarus_platform
 
 import (
 	"context"
+	"fmt"
 	golog "log"
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/relation"
@@ -127,6 +128,10 @@ func (d *ReferenceSubsystem) autoMigrate(db minipkg_gorm.IDB) error {
 		if err != nil {
 			return err
 		}
+
+		if err = d.dbStructFix(db); err != nil {
+			return err
+		}
 		return d.dbDataInit()
 	}
 	return nil
@@ -248,6 +253,28 @@ func (d *ReferenceSubsystem) setupServices(logger log.ILogger) {
 	d.TextSource.Service = text_source.NewService(logger, d.TextSource.Repository)
 	d.TextValue.Service = text_value.NewService(logger, d.TextValue.Repository)
 	d.Relation.Service = relation.NewService(logger, d.Relation.Repository)
+}
+
+func (d *ReferenceSubsystem) dbStructFix(db minipkg_gorm.IDB) error {
+	typeSpec := "DROP NOT NULL"
+	fields := []string{
+		"property_unit_id",
+		"property_view_type_id",
+		"property_group_id",
+	}
+	for _, f := range fields {
+		sql := fmt.Sprintf("ALTER TABLE %q ALTER COLUMN %q %s",
+			property.TableName,
+			f,
+			typeSpec,
+		)
+		err := db.DB().Exec(sql).Error
+
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (d *ReferenceSubsystem) dbDataInit() error {
