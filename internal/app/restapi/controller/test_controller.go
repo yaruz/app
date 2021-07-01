@@ -436,7 +436,7 @@ func (c testController) property(ctx *routing.Context) error {
 	var one uint = 1
 	entity := c.yaruzPlatform.ReferenceSubsystem().Property.Service.NewEntity()
 	entity.Sysname = "WrongName"
-	entity.PropertyTypeID = 3
+	entity.PropertyTypeID = property_type.IDInt
 	entity.PropertyUnitID = &one
 	entity.PropertyViewTypeID = &one
 	entity.PropertyGroupID = &one

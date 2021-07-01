@@ -1,6 +1,10 @@
 package entity_type2property
 
-import "time"
+import (
+	"time"
+
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
+)
 
 const (
 	EntityName = "entityType2Property"
@@ -9,12 +13,13 @@ const (
 
 // EntityType2Property ...
 type EntityType2Property struct {
-	EntityTypeID uint       `gorm:"type:bigint not null REFERENCES \"entity_type\"(id);primaryKey" json:"entityTypeId"`
-	PropertyID   uint       `gorm:"type:bigint not null REFERENCES \"property\"(id);primaryKey" json:"propertyId"`
-	IsDependent  bool       `gorm:"type:boolean not null default false;primaryKey;" json:"isDependent"`
-	CreatedAt    time.Time  `json:"createdAt"`
-	UpdatedAt    time.Time  `json:"updatedAt"`
-	DeletedAt    *time.Time `gorm:"index" json:"deletedAt,omitempty"`
+	EntityTypeID uint                    `gorm:"type:bigint not null REFERENCES \"entity_type\"(id);primaryKey" json:"entityTypeId"`
+	PropertyID   uint                    `gorm:"type:bigint not null REFERENCES \"property\"(id);primaryKey" json:"propertyId"`
+	IsDependent  bool                    `gorm:"type:boolean not null default false;primaryKey;" json:"isDependent"`
+	EntityType   *entity_type.EntityType `json:"entityType"`
+	CreatedAt    time.Time               `json:"createdAt"`
+	UpdatedAt    time.Time               `json:"updatedAt"`
+	DeletedAt    *time.Time              `gorm:"index" json:"deletedAt,omitempty"`
 }
 
 func (e *EntityType2Property) TableName() string {

@@ -368,8 +368,8 @@ github.com/mattn/go-sqlite3 v1.14.7 h1:fxWBnXkxfM6sRiuH3bqJ4CfzZojMOLVc0UTsTglEg
 github.com/mattn/go-sqlite3 v1.14.7/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
 github.com/miekg/dns v1.0.14/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
-github.com/minipkg/db v0.0.12 h1:DAu160hUXaLcWpSQ2Tm4d9UjGopkx4pR5pJAKVEo+iw=
-github.com/minipkg/db v0.0.12/go.mod h1:a52Q8osGSnB7g2Egnm+dJHlr36HaA0s3N3pkB7nY4ec=
+github.com/minipkg/db v0.0.13 h1:Z8LQ/UOdxL1WXUW5V0TjI9llYlnbKLvRTxD2sFYYHGs=
+github.com/minipkg/db v0.0.13/go.mod h1:a52Q8osGSnB7g2Egnm+dJHlr36HaA0s3N3pkB7nY4ec=
 github.com/minipkg/log v0.0.0-20210401163336-53d77a21a670/go.mod h1:m0tUQAnQ5cpIkVoetqJwIuwMjamnVLHA0MfTiNQ9Vjc=
 github.com/minipkg/log v0.0.1 h1:QPYuiskThOREnzWA5kx1Ykyab9cAiKm0eAPabHWZeKo=
 github.com/minipkg/log v0.0.1/go.mod h1:m0tUQAnQ5cpIkVoetqJwIuwMjamnVLHA0MfTiNQ9Vjc=

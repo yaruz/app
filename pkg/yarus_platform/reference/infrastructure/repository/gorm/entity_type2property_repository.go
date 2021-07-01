@@ -31,7 +31,7 @@ func NewEntityType2PropertyRepository(repository *repository) (*EntityType2Prope
 func (r *EntityType2PropertyRepository) Get(ctx context.Context, id uint) (*entity_type2property.EntityType2Property, error) {
 	entity := &entity_type2property.EntityType2Property{}
 
-	err := r.DB().First(entity, id).Error
+	err := r.joins(r.DB()).First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -42,7 +42,7 @@ func (r *EntityType2PropertyRepository) Get(ctx context.Context, id uint) (*enti
 }
 
 func (r *EntityType2PropertyRepository) First(ctx context.Context, entity *entity_type2property.EntityType2Property) (*entity_type2property.EntityType2Property, error) {
-	err := r.DB().Where(entity).First(entity).Error
+	err := r.joins(r.DB()).Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -60,7 +60,7 @@ func (r *EntityType2PropertyRepository) Query(ctx context.Context, cond *selecti
 		return nil, db.Error
 	}
 
-	err := db.Find(&items).Error
+	err := r.joins(db).Find(&items).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return items, yaruzerror.ErrNotFound
@@ -113,4 +113,8 @@ func (r *EntityType2PropertyRepository) DeleteTx(ctx context.Context, tx *gorm.D
 		}
 	}
 	return err
+}
+
+func (r *EntityType2PropertyRepository) joins(db *gorm.DB) *gorm.DB {
+	return db.Joins("EntityType")
 }

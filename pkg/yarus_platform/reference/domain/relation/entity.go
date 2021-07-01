@@ -15,8 +15,8 @@ const (
 // Relation ...
 type Relation struct {
 	property.Property
-	UndependedEntityType *entity_type.EntityType `gorm:"many2many:entity_type;" json:"entityType"`
-	DependedEntityType   *entity_type.EntityType `gorm:"many2many:entity_type;" json:"dependedEntityType"`
+	UndependedEntityType *entity_type.EntityType `gorm:"-" json:"undependedEntityType"`
+	DependedEntityType   *entity_type.EntityType `gorm:"-" json:"dependedEntityType"`
 }
 
 func (e *Relation) TableName() string {

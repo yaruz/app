@@ -40,7 +40,7 @@ func (r *RelationRepository) Get(ctx context.Context, id uint) (*relation.Relati
 		return nil, err
 	}
 
-	if err = entity.AfterFind(); err != nil {
+	if err = r.AfterFind(ctx, entity); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +56,7 @@ func (r *RelationRepository) First(ctx context.Context, entity *relation.Relatio
 		return nil, err
 	}
 
-	if err = entity.AfterFind(); err != nil {
+	if err = r.AfterFind(ctx, entity); err != nil {
 		return nil, err
 	}
 
@@ -80,7 +80,7 @@ func (r *RelationRepository) Query(ctx context.Context, cond *selection_conditio
 	}
 
 	for _, entity := range items {
-		if err = entity.AfterFind(); err != nil {
+		if err = r.AfterFind(ctx, &entity); err != nil {
 			return nil, err
 		}
 	}
@@ -100,6 +100,37 @@ func (r *RelationRepository) Count(ctx context.Context, cond *selection_conditio
 
 	err := db.Count(&count).Error
 	return count, err
+}
+
+func (r *RelationRepository) AfterFind(ctx context.Context, entity *relation.Relation) error {
+
+	if err := entity.AfterFind(); err != nil {
+		return err
+	}
+
+	if err := r.InitRelatedEntityTypes(ctx, entity); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *RelationRepository) InitRelatedEntityTypes(ctx context.Context, entity *relation.Relation) error {
+	rels, err := r.entityType2PropertyRepository.Query(ctx, &selection_condition.SelectionCondition{
+		Where: &entity_type2property.EntityType2Property{
+			PropertyID: entity.ID,
+		},
+	})
+	if err != nil {
+		return err
+	}
+	for _, r := range rels {
+		if r.IsDependent {
+			entity.DependedEntityType = r.EntityType
+		} else {
+			entity.UndependedEntityType = r.EntityType
+		}
+	}
+	return nil
 }
 
 // Create saves a new record in the database.
@@ -144,7 +175,7 @@ func (r *RelationRepository) Save(ctx context.Context, entity *relation.Relation
 	}
 
 	return r.db.DB().Transaction(func(tx *gorm.DB) error {
-		if err := r.deleteLinksTx(ctx, tx, entity.ID); err != nil {
+		if err := r.deleteAllLinksTx(ctx, tx, entity.ID); err != nil {
 			return err
 		}
 
@@ -159,7 +190,7 @@ func (r *RelationRepository) Save(ctx context.Context, entity *relation.Relation
 // Delete (soft) deletes a Maintenance record in the database.
 func (r *RelationRepository) Delete(ctx context.Context, id uint) error {
 	return r.db.DB().Transaction(func(tx *gorm.DB) error {
-		if err := r.deleteLinksTx(ctx, tx, id); err != nil {
+		if err := r.deleteAllLinksTx(ctx, tx, id); err != nil {
 			return err
 		}
 
@@ -174,7 +205,7 @@ func (r *RelationRepository) Delete(ctx context.Context, id uint) error {
 	})
 }
 
-func (r *RelationRepository) deleteLinksTx(ctx context.Context, tx *gorm.DB, entityID uint) error {
+func (r *RelationRepository) deleteAllLinksTx(ctx context.Context, tx *gorm.DB, entityID uint) error {
 	return r.entityType2PropertyRepository.DeleteTx(ctx, tx, &entity_type2property.EntityType2Property{
 		PropertyID: entityID,
 	})
@@ -208,5 +239,9 @@ func (r *RelationRepository) validateLinks(entity *relation.Relation) error {
 }
 
 func (r *RelationRepository) joins(db *gorm.DB) *gorm.DB {
-	return db.Joins("PropertyType").Joins("PropertyViewType").Joins("PropertyGroup").Joins("UndependedEntityType")
+	return db.Joins("PropertyType").Joins("PropertyViewType").Joins("PropertyGroup")
 }
+
+//func (r *RelationRepository) omit(db *gorm.DB) *gorm.DB {
+//	return db.Omit("UndependedEntityType").Omit("DependedEntityType")
+//}
