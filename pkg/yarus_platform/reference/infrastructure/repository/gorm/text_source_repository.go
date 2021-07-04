@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_source"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_value"
 
 	"github.com/yaruz/app/internal/pkg/apperror"
 
@@ -29,10 +30,10 @@ func NewTextSourceRepository(repository *repository) (*TextSourceRepository, err
 }
 
 // Get reads the album with the specified ID from the database.
-func (r *TextSourceRepository) Get(ctx context.Context, id uint) (*text_source.TextSource, error) {
+func (r *TextSourceRepository) Get(ctx context.Context, id uint, langID uint) (*text_source.TextSource, error) {
 	entity := &text_source.TextSource{}
 
-	err := r.DB().First(entity, id).Error
+	err := r.joins(r.DB(), langID).First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -120,4 +121,10 @@ func (r *TextSourceRepository) Delete(ctx context.Context, id uint) error {
 		}
 	}
 	return err
+}
+
+func (r *TextSourceRepository) joins(db *gorm.DB, langID uint) *gorm.DB {
+	return db.Joins("TextValue").Where(&text_value.TextValue{
+		LangID: langID,
+	})
 }

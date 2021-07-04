@@ -19,4 +19,7 @@ type Repository interface {
 	Update(ctx context.Context, entity *EntityType) error
 	Save(ctx context.Context, entity *EntityType) error
 	Delete(ctx context.Context, id uint) error
+	BindProperty(ctx context.Context, id uint, propertyID uint) error
+	UnbindProperty(ctx context.Context, id uint, propertyID uint) error
+	UnbindAllProperty(ctx context.Context, id uint) error
 }

@@ -3,6 +3,8 @@ package relation
 import (
 	"context"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
+
 	"github.com/minipkg/selection_condition"
 )
 
@@ -19,4 +21,6 @@ type Repository interface {
 	Update(ctx context.Context, entity *Relation) error
 	Save(ctx context.Context, entity *Relation) error
 	Delete(ctx context.Context, id uint) error
+	PropertyAndRelationQuery(ctx context.Context, cond *selection_condition.SelectionCondition) ([]property.Property, []Relation, error)
+	GetPropertiesAndRelationsByEntityTypeID(ctx context.Context, entityTypeID uint) ([]property.Property, []Relation, error)
 }

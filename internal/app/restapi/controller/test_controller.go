@@ -51,7 +51,7 @@ func (c testController) textSource(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"1. errCreate": err.Error()})
 	}
 
-	e, err := c.yaruzPlatform.ReferenceSubsystem().TextSource.Service.Get(cntx, entity.ID)
+	e, err := c.yaruzPlatform.ReferenceSubsystem().TextSource.Service.Get(cntx, entity.ID, 1)
 	if err != nil {
 		res = append(res, map[string]interface{}{"4. errCreate1": err.Error()})
 	} else {

@@ -13,7 +13,7 @@ import (
 // IService encapsulates usecase logic.
 type IService interface {
 	NewEntity() *TextSource
-	Get(ctx context.Context, id uint) (*TextSource, error)
+	Get(ctx context.Context, id uint, langID uint) (*TextSource, error)
 	Query(ctx context.Context, query *selection_condition.SelectionCondition) ([]TextSource, error)
 	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error)
 	Create(ctx context.Context, entity *TextSource) error
@@ -49,8 +49,8 @@ func (s *service) NewEntity() *TextSource {
 }
 
 // Get returns the entity with the specified ID.
-func (s *service) Get(ctx context.Context, id uint) (*TextSource, error) {
-	entity, err := s.repository.Get(ctx, id)
+func (s *service) Get(ctx context.Context, id uint, langID uint) (*TextSource, error) {
+	entity, err := s.repository.Get(ctx, id, langID)
 	if err != nil {
 		return nil, err
 	}

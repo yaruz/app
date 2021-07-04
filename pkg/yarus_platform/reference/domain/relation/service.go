@@ -3,6 +3,8 @@ package relation
 import (
 	"context"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
+
 	"github.com/minipkg/selection_condition"
 
 	"github.com/pkg/errors"
@@ -20,6 +22,8 @@ type IService interface {
 	Update(ctx context.Context, entity *Relation) error
 	Save(ctx context.Context, entity *Relation) error
 	Delete(ctx context.Context, id uint) error
+	PropertyAndRelationQuery(ctx context.Context, cond *selection_condition.SelectionCondition) ([]property.Property, []Relation, error)
+	GetPropertiesAndRelationsByEntityTypeID(ctx context.Context, entityTypeID uint) ([]property.Property, []Relation, error)
 }
 
 type service struct {
@@ -119,4 +123,20 @@ func (s *service) Delete(ctx context.Context, id uint) error {
 		return errors.Wrapf(err, "Can not delete an entity by ID: %v", id)
 	}
 	return nil
+}
+
+func (s *service) PropertyAndRelationQuery(ctx context.Context, cond *selection_condition.SelectionCondition) ([]property.Property, []Relation, error) {
+	props, rels, err := s.repository.PropertyAndRelationQuery(ctx, cond)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "Can not get properties and relations by query: %v", cond)
+	}
+	return props, rels, nil
+}
+
+func (s *service) GetPropertiesAndRelationsByEntityTypeID(ctx context.Context, entityTypeID uint) ([]property.Property, []Relation, error) {
+	props, rels, err := s.repository.GetPropertiesAndRelationsByEntityTypeID(ctx, entityTypeID)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "Can not get properties and relations by entityTypeID: %v", entityTypeID)
+	}
+	return props, rels, nil
 }

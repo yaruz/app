@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/yaruz/app/internal/pkg/apperror"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
 
 	"github.com/pkg/errors"
 
@@ -24,15 +26,15 @@ type RelationRepository struct {
 var _ relation.Repository = (*RelationRepository)(nil)
 
 // New creates a new RelationRepository
-func NewRelationRepository(repository *repository, entityType2PropertyRepository entity_type2property.Repository) (*RelationRepository, error) {
-	return &RelationRepository{repository: *repository, entityType2PropertyRepository: entityType2PropertyRepository}, nil
+func NewRelationRepository(repository *repository, entityType2PropertyRepository *entity_type2property.Repository) (*RelationRepository, error) {
+	return &RelationRepository{repository: *repository, entityType2PropertyRepository: *entityType2PropertyRepository}, nil
 }
 
 // Get reads the album with the specified ID from the database.
 func (r *RelationRepository) Get(ctx context.Context, id uint) (*relation.Relation, error) {
 	entity := &relation.Relation{}
 
-	err := r.joins(r.DB()).First(entity, id).Error
+	err := r.joins(r.relationTypeDB()).First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -48,7 +50,7 @@ func (r *RelationRepository) Get(ctx context.Context, id uint) (*relation.Relati
 }
 
 func (r *RelationRepository) First(ctx context.Context, entity *relation.Relation) (*relation.Relation, error) {
-	err := r.joins(r.DB()).Where(entity).First(entity).Error
+	err := r.joins(r.relationTypeDB()).Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -66,7 +68,7 @@ func (r *RelationRepository) First(ctx context.Context, entity *relation.Relatio
 // Query retrieves the album records with the specified offset and limit from the database.
 func (r *RelationRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]relation.Relation, error) {
 	items := []relation.Relation{}
-	db := minipkg_gorm.Conditions(r.DB(), cond)
+	db := minipkg_gorm.Conditions(r.relationTypeDB(), cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -74,7 +76,7 @@ func (r *RelationRepository) Query(ctx context.Context, cond *selection_conditio
 	err := r.joins(db).Find(&items).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return items, yaruzerror.ErrNotFound
+			return nil, yaruzerror.ErrNotFound
 		}
 		return nil, err
 	}
@@ -88,12 +90,75 @@ func (r *RelationRepository) Query(ctx context.Context, cond *selection_conditio
 	return items, err
 }
 
+func (r *RelationRepository) PropertyAndRelationQuery(ctx context.Context, cond *selection_condition.SelectionCondition) ([]property.Property, []relation.Relation, error) {
+	items := []property.Property{}
+	db := minipkg_gorm.Conditions(r.relationTypeDB(), cond)
+	if db.Error != nil {
+		return nil, nil, db.Error
+	}
+
+	err := r.joins(db).Find(&items).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil, yaruzerror.ErrNotFound
+		}
+		return nil, nil, err
+	}
+	props := make([]property.Property, 0, len(items))
+	rels := make([]relation.Relation, 0, len(items))
+
+	for _, item := range items {
+
+		if item.PropertyTypeID == property_type.IDRelation {
+			rel := relation.New()
+			rel.Property = item
+
+			if err = r.AfterFind(ctx, rel); err != nil {
+				return nil, nil, err
+			}
+			rels = append(rels, *rel)
+		} else {
+
+			if err = item.AfterFind(); err != nil {
+				return nil, nil, err
+			}
+			props = append(props, item)
+		}
+	}
+
+	return props, rels, err
+}
+
+func (r *RelationRepository) GetPropertiesAndRelationsByEntityTypeID(ctx context.Context, entityTypeID uint) ([]property.Property, []relation.Relation, error) {
+	rels, err := r.entityType2PropertyRepository.Query(ctx, &selection_condition.SelectionCondition{
+		Where: &entity_type2property.EntityType2Property{
+			EntityTypeID: entityTypeID,
+		},
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	IDs := make([]uint, 0, len(rels))
+	for _, rel := range rels {
+		IDs = append(IDs, rel.PropertyID)
+	}
+
+	return r.PropertyAndRelationQuery(ctx, &selection_condition.SelectionCondition{
+		Where: &selection_condition.WhereCondition{
+			Field:     "ID",
+			Condition: "in",
+			Value:     IDs,
+		},
+	})
+}
+
 func (r *RelationRepository) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error) {
 	var count int64
 	c := cond
 	c.Limit = 0
 	c.Offset = 0
-	db := minipkg_gorm.Conditions(r.DB(), cond)
+	db := minipkg_gorm.Conditions(r.relationTypeDB(), cond)
 	if db.Error != nil {
 		return 0, db.Error
 	}
@@ -115,7 +180,7 @@ func (r *RelationRepository) AfterFind(ctx context.Context, entity *relation.Rel
 }
 
 func (r *RelationRepository) InitRelatedEntityTypes(ctx context.Context, entity *relation.Relation) error {
-	rels, err := r.entityType2PropertyRepository.Query(ctx, &selection_condition.SelectionCondition{
+	rels, err := r.entityType2PropertyRepository.QueryWithEntityType(ctx, &selection_condition.SelectionCondition{
 		Where: &entity_type2property.EntityType2Property{
 			PropertyID: entity.ID,
 		},
@@ -205,9 +270,9 @@ func (r *RelationRepository) Delete(ctx context.Context, id uint) error {
 	})
 }
 
-func (r *RelationRepository) deleteAllLinksTx(ctx context.Context, tx *gorm.DB, entityID uint) error {
+func (r *RelationRepository) deleteAllLinksTx(ctx context.Context, tx *gorm.DB, id uint) error {
 	return r.entityType2PropertyRepository.DeleteTx(ctx, tx, &entity_type2property.EntityType2Property{
-		PropertyID: entityID,
+		PropertyID: id,
 	})
 }
 
@@ -238,10 +303,12 @@ func (r *RelationRepository) validateLinks(entity *relation.Relation) error {
 	return nil
 }
 
+func (r *RelationRepository) relationTypeDB() *gorm.DB {
+	return r.DB().Where(&property.Property{
+		PropertyTypeID: property_type.IDRelation,
+	})
+}
+
 func (r *RelationRepository) joins(db *gorm.DB) *gorm.DB {
 	return db.Joins("PropertyType").Joins("PropertyViewType").Joins("PropertyGroup")
 }
-
-//func (r *RelationRepository) omit(db *gorm.DB) *gorm.DB {
-//	return db.Omit("UndependedEntityType").Omit("DependedEntityType")
-//}

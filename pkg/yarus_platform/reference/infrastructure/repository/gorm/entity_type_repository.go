@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type2property"
+
 	"github.com/yaruz/app/internal/pkg/apperror"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
 
@@ -18,13 +20,14 @@ import (
 // EntityTypeRepository is a repository for the model entity
 type EntityTypeRepository struct {
 	repository
+	entityType2PropertyRepository entity_type2property.Repository
 }
 
 var _ entity_type.Repository = (*EntityTypeRepository)(nil)
 
 // New creates a new EntityTypeRepository
-func NewEntityTypeRepository(repository *repository) (*EntityTypeRepository, error) {
-	return &EntityTypeRepository{repository: *repository}, nil
+func NewEntityTypeRepository(repository *repository, entityType2PropertyRepository *entity_type2property.Repository) (*EntityTypeRepository, error) {
+	return &EntityTypeRepository{repository: *repository, entityType2PropertyRepository: *entityType2PropertyRepository}, nil
 }
 
 // Get reads the album with the specified ID from the database.
@@ -109,12 +112,45 @@ func (r *EntityTypeRepository) Save(ctx context.Context, entity *entity_type.Ent
 
 // Delete (soft) deletes a Maintenance record in the database.
 func (r *EntityTypeRepository) Delete(ctx context.Context, id uint) error {
-
-	err := r.db.DB().Delete(r.model, id).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return apperror.ErrNotFound
+	return r.db.DB().Transaction(func(tx *gorm.DB) error {
+		if err := r.unbindAllPropertyTx(ctx, tx, id); err != nil {
+			return err
 		}
-	}
-	return err
+
+		err := tx.Delete(r.model, id).Error
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return apperror.ErrNotFound
+			}
+		}
+
+		return err
+	})
+}
+
+func (r *EntityTypeRepository) BindProperty(ctx context.Context, id uint, propertyID uint) error {
+	// todo: хорошо бы сделать валидацию на тип свойства - все, кроме связей
+	return r.entityType2PropertyRepository.Create(ctx, &entity_type2property.EntityType2Property{
+		EntityTypeID: id,
+		PropertyID:   propertyID,
+	})
+}
+
+func (r *EntityTypeRepository) UnbindProperty(ctx context.Context, id uint, propertyID uint) error {
+	return r.entityType2PropertyRepository.Delete(ctx, &entity_type2property.EntityType2Property{
+		EntityTypeID: id,
+		PropertyID:   propertyID,
+	})
+}
+
+func (r *EntityTypeRepository) unbindAllPropertyTx(ctx context.Context, tx *gorm.DB, id uint) error {
+	return r.entityType2PropertyRepository.DeleteTx(ctx, tx, &entity_type2property.EntityType2Property{
+		EntityTypeID: id,
+	})
+}
+
+func (r *EntityTypeRepository) UnbindAllProperty(ctx context.Context, id uint) error {
+	return r.entityType2PropertyRepository.Delete(ctx, &entity_type2property.EntityType2Property{
+		EntityTypeID: id,
+	})
 }

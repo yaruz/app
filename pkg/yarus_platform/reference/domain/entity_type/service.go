@@ -20,6 +20,9 @@ type IService interface {
 	Update(ctx context.Context, entity *EntityType) error
 	Save(ctx context.Context, entity *EntityType) error
 	Delete(ctx context.Context, id uint) error
+	BindProperty(ctx context.Context, id uint, propertyID uint) error
+	UnbindProperty(ctx context.Context, id uint, propertyID uint) error
+	UnbindAllProperty(ctx context.Context, id uint) error
 }
 
 type service struct {
@@ -117,6 +120,30 @@ func (s *service) Delete(ctx context.Context, id uint) error {
 	err := s.repository.Delete(ctx, id)
 	if err != nil {
 		return errors.Wrapf(err, "Can not delete an entity by ID: %v", id)
+	}
+	return nil
+}
+
+func (s *service) BindProperty(ctx context.Context, id uint, propertyID uint) error {
+	err := s.repository.BindProperty(ctx, id, propertyID)
+	if err != nil {
+		return errors.Wrapf(err, "Can not for an entity ID = %v bind an property ID = %v", id, propertyID)
+	}
+	return nil
+}
+
+func (s *service) UnbindProperty(ctx context.Context, id uint, propertyID uint) error {
+	err := s.repository.UnbindProperty(ctx, id, propertyID)
+	if err != nil {
+		return errors.Wrapf(err, "Can not for an entity ID = %v unbind an property ID = %v", id, propertyID)
+	}
+	return nil
+}
+
+func (s *service) UnbindAllProperty(ctx context.Context, id uint) error {
+	err := s.repository.UnbindAllProperty(ctx, id)
+	if err != nil {
+		return errors.Wrapf(err, "Can not for an entity ID = %v unbind all properties", id)
 	}
 	return nil
 }
