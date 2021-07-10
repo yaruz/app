@@ -26,17 +26,19 @@ type IService interface {
 }
 
 type service struct {
-	logger     log.ILogger
-	repository Repository
+	logger          log.ILogger
+	repository      Repository
+	relationService RelationService
 }
 
 var _ IService = (*service)(nil)
 
 // NewService creates a new service.
-func NewService(logger log.ILogger, repo Repository) IService {
+func NewService(logger log.ILogger, repo Repository, relationService RelationService) IService {
 	s := &service{
-		logger:     logger,
-		repository: repo,
+		logger:          logger,
+		repository:      repo,
+		relationService: relationService,
 	}
 	repo.SetDefaultConditions(s.defaultConditions())
 	return s
@@ -51,13 +53,18 @@ func (s *service) NewEntity() *EntityType {
 	return New()
 }
 
+func (s *service) initPropertiesAndRelations(ctx context.Context, entity *EntityType) (err error) {
+	(*entity).Properties, (*entity).Relations, err = s.relationService.GetPropertiesAndRelationsByEntityTypeID(ctx, (*entity).ID)
+	return err
+}
+
 // Get returns the entity with the specified ID.
 func (s *service) Get(ctx context.Context, id uint) (*EntityType, error) {
 	entity, err := s.repository.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	return entity, nil
+	return entity, s.initPropertiesAndRelations(ctx, entity)
 }
 
 // Query returns the items with the specified selection condition.

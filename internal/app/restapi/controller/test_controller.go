@@ -828,5 +828,12 @@ func (c testController) relation(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"5. EntityType rels: ": rels})
 	}
 
+	entityType, err := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Get(cntx, entityType1.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"6. EntityType Getting error: ": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"6. entityType": entityType})
+	}
+
 	return ctx.Write(res)
 }

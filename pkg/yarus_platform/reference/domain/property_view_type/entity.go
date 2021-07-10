@@ -3,7 +3,7 @@ package property_view_type
 import (
 	"time"
 
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/sysname"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
@@ -37,6 +37,6 @@ func New() *PropertyViewType {
 
 func (e PropertyViewType) Validate() error {
 	return validation.ValidateStruct(&e,
-		validation.Field(&e.Sysname, domain.SysnameValidationRules...),
+		validation.Field(&e.Sysname, sysname.ValidationRules...),
 	)
 }

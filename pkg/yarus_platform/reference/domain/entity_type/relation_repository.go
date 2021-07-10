@@ -1,4 +1,4 @@
-package relation
+package entity_type
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 	"github.com/minipkg/selection_condition"
 )
 
-// Repository encapsulates the logic to access albums from the data source.
-type Repository interface {
+// RelationRepository encapsulates the logic to access albums from the data source.
+type RelationRepository interface {
 	SetDefaultConditions(conditions *selection_condition.SelectionCondition)
 	// Get returns the album with the specified album ID.
 	Get(ctx context.Context, id uint) (*Relation, error)

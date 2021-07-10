@@ -1,30 +1,29 @@
-package relation
+package entity_type
 
 import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
 )
 
 const (
-	EntityName = "relation"
-	TableName  = "property"
+	RelationEntityName = "relation"
+	RelationTableName  = "property"
 )
 
 // Relation ...
 type Relation struct {
 	property.Property
-	UndependedEntityType *entity_type.EntityType `gorm:"-" json:"undependedEntityType"`
-	DependedEntityType   *entity_type.EntityType `gorm:"-" json:"dependedEntityType"`
+	UndependedEntityType *EntityType `gorm:"-" json:"undependedEntityType"`
+	DependedEntityType   *EntityType `gorm:"-" json:"dependedEntityType"`
 }
 
 func (e *Relation) TableName() string {
-	return TableName
+	return RelationTableName
 }
 
-// New func is a constructor for the Property
-func New() *Relation {
+// NewRelation func is a constructor for the Property
+func NewRelation() *Relation {
 	return &Relation{}
 }
 

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/sysname"
+
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_group"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_unit"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_view_type"
@@ -12,7 +14,6 @@ import (
 	"github.com/pkg/errors"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
 
 	"gorm.io/datatypes"
@@ -63,7 +64,7 @@ func New() *Property {
 
 func (e Property) Validate() error {
 	return validation.ValidateStruct(&e,
-		validation.Field(&e.Sysname, domain.SysnameValidationRules...),
+		validation.Field(&e.Sysname, sysname.ValidationRules...),
 		validation.Field(&e.PropertyTypeID, validation.In(property_type.ValidTypesIDs...)),
 		validation.Field(&e.IsRange, validation.When(e.IsMultiple, validation.Empty)),
 		validation.Field(&e.IsMultiple, validation.When(e.IsRange, validation.Empty)),

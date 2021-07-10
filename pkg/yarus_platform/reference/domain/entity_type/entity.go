@@ -3,7 +3,7 @@ package entity_type
 import (
 	"time"
 
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/sysname"
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
 
@@ -24,6 +24,7 @@ type EntityType struct {
 	Name                *string             `gorm:"-" json:"name"`
 	Description         *string             `gorm:"-" json:"description"`
 	Properties          []property.Property `gorm:"many2many:entity_type2property;"`
+	Relations           []Relation          `gorm:"-"`
 	CreatedAt           time.Time           `json:"createdAt"`
 	UpdatedAt           time.Time           `json:"updatedAt"`
 	DeletedAt           *time.Time          `gorm:"index" json:"deletedAt,omitempty"`
@@ -40,6 +41,6 @@ func New() *EntityType {
 
 func (e EntityType) Validate() error {
 	return validation.ValidateStruct(&e,
-		validation.Field(&e.Sysname, domain.SysnameValidationRules...),
+		validation.Field(&e.Sysname, sysname.ValidationRules...),
 	)
 }

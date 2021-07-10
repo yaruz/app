@@ -5,7 +5,7 @@ import (
 	"fmt"
 	golog "log"
 
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/relation"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
 
 	"github.com/minipkg/selection_condition"
 
@@ -13,7 +13,6 @@ import (
 	"github.com/minipkg/log"
 	"github.com/pkg/errors"
 
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type2property"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_group"
@@ -56,8 +55,8 @@ type ReferenceDomainProperty struct {
 }
 
 type ReferenceDomainRelation struct {
-	Service    relation.IService
-	Repository relation.Repository
+	Service    entity_type.RelationService
+	Repository entity_type.RelationRepository
 }
 
 type ReferenceDomainPropertyGroup struct {
@@ -230,13 +229,13 @@ func (d *ReferenceSubsystem) setupRepositories(infra *infrastructure) (err error
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", entity_type2property.EntityName, entity_type2property.EntityName, repo)
 	}
 
-	repo, err = gorm.GetRepository(infra.Logger, infra.ReferenceDB, relation.EntityName)
+	repo, err = gorm.GetRepository(infra.Logger, infra.ReferenceDB, entity_type.RelationEntityName)
 	if err != nil {
-		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", relation.EntityName, err)
+		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", entity_type.EntityName, err)
 	}
-	d.Relation.Repository, ok = repo.(relation.Repository)
+	d.Relation.Repository, ok = repo.(entity_type.RelationRepository)
 	if !ok {
-		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", relation.EntityName, relation.EntityName, repo)
+		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", entity_type.EntityName, entity_type.EntityName, repo)
 	}
 
 	return nil
@@ -244,7 +243,8 @@ func (d *ReferenceSubsystem) setupRepositories(infra *infrastructure) (err error
 
 func (d *ReferenceSubsystem) setupServices(logger log.ILogger) {
 	d.EntityType2Property.Service = entity_type2property.NewService(logger, d.EntityType2Property.Repository)
-	d.EntityType.Service = entity_type.NewService(logger, d.EntityType.Repository)
+	d.Relation.Service = entity_type.NewRelationService(logger, d.Relation.Repository)
+	d.EntityType.Service = entity_type.NewService(logger, d.EntityType.Repository, d.Relation.Service)
 	d.PropertyGroup.Service = property_group.NewService(logger, d.PropertyGroup.Repository)
 	d.Property.Service = property.NewService(logger, d.Property.Repository)
 	d.PropertyType.Service = property_type.NewService(logger, d.PropertyType.Repository, d.PropertyType2PropertyViewType.Repository)
@@ -252,7 +252,6 @@ func (d *ReferenceSubsystem) setupServices(logger log.ILogger) {
 	d.PropertyViewType.Service = property_view_type.NewService(logger, d.PropertyViewType.Repository)
 	d.TextSource.Service = text_source.NewService(logger, d.TextSource.Repository)
 	d.TextValue.Service = text_value.NewService(logger, d.TextValue.Repository)
-	d.Relation.Service = relation.NewService(logger, d.Relation.Repository)
 }
 
 func (d *ReferenceSubsystem) dbStructFix(db minipkg_gorm.IDB) error {

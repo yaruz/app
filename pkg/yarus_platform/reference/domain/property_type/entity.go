@@ -3,7 +3,7 @@ package property_type
 import (
 	"time"
 
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/sysname"
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_view_type"
 
@@ -69,7 +69,7 @@ func New() *PropertyType {
 
 func (e PropertyType) Validate() error {
 	return validation.ValidateStruct(&e,
-		validation.Field(&e.Sysname, domain.SysnameValidationRules...),
+		validation.Field(&e.Sysname, sysname.ValidationRules...),
 	)
 }
 

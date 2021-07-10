@@ -3,6 +3,8 @@ package gorm
 import (
 	"context"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
+
 	"github.com/yaruz/app/internal/pkg/apperror"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
@@ -12,7 +14,6 @@ import (
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/selection_condition"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type2property"
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/relation"
 	"github.com/yaruz/app/pkg/yarus_platform/yaruzerror"
 	"gorm.io/gorm"
 )
@@ -23,7 +24,7 @@ type RelationRepository struct {
 	entityType2PropertyRepository entity_type2property.Repository
 }
 
-var _ relation.Repository = (*RelationRepository)(nil)
+var _ entity_type.RelationRepository = (*RelationRepository)(nil)
 
 // New creates a new RelationRepository
 func NewRelationRepository(repository *repository, entityType2PropertyRepository *entity_type2property.Repository) (*RelationRepository, error) {
@@ -31,8 +32,8 @@ func NewRelationRepository(repository *repository, entityType2PropertyRepository
 }
 
 // Get reads the album with the specified ID from the database.
-func (r *RelationRepository) Get(ctx context.Context, id uint) (*relation.Relation, error) {
-	entity := &relation.Relation{}
+func (r *RelationRepository) Get(ctx context.Context, id uint) (*entity_type.Relation, error) {
+	entity := &entity_type.Relation{}
 
 	err := r.joins(r.relationTypeDB()).First(entity, id).Error
 	if err != nil {
@@ -49,7 +50,7 @@ func (r *RelationRepository) Get(ctx context.Context, id uint) (*relation.Relati
 	return entity, err
 }
 
-func (r *RelationRepository) First(ctx context.Context, entity *relation.Relation) (*relation.Relation, error) {
+func (r *RelationRepository) First(ctx context.Context, entity *entity_type.Relation) (*entity_type.Relation, error) {
 	err := r.joins(r.relationTypeDB()).Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -66,8 +67,8 @@ func (r *RelationRepository) First(ctx context.Context, entity *relation.Relatio
 }
 
 // Query retrieves the album records with the specified offset and limit from the database.
-func (r *RelationRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]relation.Relation, error) {
-	items := []relation.Relation{}
+func (r *RelationRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]entity_type.Relation, error) {
+	items := []entity_type.Relation{}
 	db := minipkg_gorm.Conditions(r.relationTypeDB(), cond)
 	if db.Error != nil {
 		return nil, db.Error
@@ -90,7 +91,7 @@ func (r *RelationRepository) Query(ctx context.Context, cond *selection_conditio
 	return items, err
 }
 
-func (r *RelationRepository) PropertyAndRelationQuery(ctx context.Context, cond *selection_condition.SelectionCondition) ([]property.Property, []relation.Relation, error) {
+func (r *RelationRepository) PropertyAndRelationQuery(ctx context.Context, cond *selection_condition.SelectionCondition) ([]property.Property, []entity_type.Relation, error) {
 	items := []property.Property{}
 	db := minipkg_gorm.Conditions(r.DB(), cond)
 	if db.Error != nil {
@@ -105,12 +106,12 @@ func (r *RelationRepository) PropertyAndRelationQuery(ctx context.Context, cond 
 		return nil, nil, err
 	}
 	props := make([]property.Property, 0, len(items))
-	rels := make([]relation.Relation, 0, len(items))
+	rels := make([]entity_type.Relation, 0, len(items))
 
 	for _, item := range items {
 
 		if item.PropertyTypeID == property_type.IDRelation {
-			rel := relation.New()
+			rel := entity_type.NewRelation()
 			rel.Property = item
 
 			if err = r.AfterFind(ctx, rel); err != nil {
@@ -129,7 +130,7 @@ func (r *RelationRepository) PropertyAndRelationQuery(ctx context.Context, cond 
 	return props, rels, err
 }
 
-func (r *RelationRepository) GetPropertiesAndRelationsByEntityTypeID(ctx context.Context, entityTypeID uint) ([]property.Property, []relation.Relation, error) {
+func (r *RelationRepository) GetPropertiesAndRelationsByEntityTypeID(ctx context.Context, entityTypeID uint) ([]property.Property, []entity_type.Relation, error) {
 	rels, err := r.entityType2PropertyRepository.Query(ctx, &selection_condition.SelectionCondition{
 		Where: &entity_type2property.EntityType2Property{
 			EntityTypeID: entityTypeID,
@@ -167,7 +168,7 @@ func (r *RelationRepository) Count(ctx context.Context, cond *selection_conditio
 	return count, err
 }
 
-func (r *RelationRepository) AfterFind(ctx context.Context, entity *relation.Relation) error {
+func (r *RelationRepository) AfterFind(ctx context.Context, entity *entity_type.Relation) error {
 
 	if err := entity.AfterFind(); err != nil {
 		return err
@@ -179,7 +180,7 @@ func (r *RelationRepository) AfterFind(ctx context.Context, entity *relation.Rel
 	return nil
 }
 
-func (r *RelationRepository) InitRelatedEntityTypes(ctx context.Context, entity *relation.Relation) error {
+func (r *RelationRepository) InitRelatedEntityTypes(ctx context.Context, entity *entity_type.Relation) error {
 	rels, err := r.entityType2PropertyRepository.QueryWithEntityType(ctx, &selection_condition.SelectionCondition{
 		Where: &entity_type2property.EntityType2Property{
 			PropertyID: entity.ID,
@@ -199,7 +200,7 @@ func (r *RelationRepository) InitRelatedEntityTypes(ctx context.Context, entity 
 }
 
 // Create saves a new record in the database.
-func (r *RelationRepository) Create(ctx context.Context, entity *relation.Relation) error {
+func (r *RelationRepository) Create(ctx context.Context, entity *entity_type.Relation) error {
 
 	if entity.ID > 0 {
 		return errors.New("entity is not new")
@@ -219,7 +220,7 @@ func (r *RelationRepository) Create(ctx context.Context, entity *relation.Relati
 }
 
 // Update saves a changed Maintenance record in the database.
-func (r *RelationRepository) Update(ctx context.Context, entity *relation.Relation) error {
+func (r *RelationRepository) Update(ctx context.Context, entity *entity_type.Relation) error {
 
 	if entity.ID == 0 {
 		return errors.New("entity is new")
@@ -229,7 +230,7 @@ func (r *RelationRepository) Update(ctx context.Context, entity *relation.Relati
 }
 
 // Save update value in database, if the value doesn't have primary key, will insert it
-func (r *RelationRepository) Save(ctx context.Context, entity *relation.Relation) error {
+func (r *RelationRepository) Save(ctx context.Context, entity *entity_type.Relation) error {
 
 	if entity.ID == 0 {
 		return r.Create(ctx, entity)
@@ -276,7 +277,7 @@ func (r *RelationRepository) deleteAllLinksTx(ctx context.Context, tx *gorm.DB, 
 	})
 }
 
-func (r *RelationRepository) createLinksTx(ctx context.Context, tx *gorm.DB, entity *relation.Relation) error {
+func (r *RelationRepository) createLinksTx(ctx context.Context, tx *gorm.DB, entity *entity_type.Relation) error {
 	if err := r.validateLinks(entity); err != nil {
 		return err
 	}
@@ -296,7 +297,7 @@ func (r *RelationRepository) createLinksTx(ctx context.Context, tx *gorm.DB, ent
 	})
 }
 
-func (r *RelationRepository) validateLinks(entity *relation.Relation) error {
+func (r *RelationRepository) validateLinks(entity *entity_type.Relation) error {
 	if entity.DependedEntityType.ID == 0 || entity.UndependedEntityType.ID == 0 {
 		return errors.Wrapf(apperror.ErrBadParams, "Some of links is empty")
 	}

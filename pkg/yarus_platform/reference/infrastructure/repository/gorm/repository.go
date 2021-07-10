@@ -3,7 +3,7 @@ package gorm
 import (
 	"context"
 
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/relation"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
 
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/log"
@@ -11,7 +11,6 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type2property"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_group"
@@ -125,7 +124,7 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 			return nil, err
 		}
 		repo, err = NewTextValueRepository(r)
-	case relation.EntityName:
+	case entity_type.RelationEntityName:
 		entityType2PropertyRepo, err := GetRepository(logger, dbase, entity_type2property.EntityName)
 		if err != nil {
 			return nil, errors.Wrapf(err, "Can not get db repository for entity %q, error happened: %v", entity_type2property.EntityName, err)
@@ -135,7 +134,7 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 			return nil, errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", entity_type2property.EntityName, entity_type2property.EntityName, entityType2PropertyRepo)
 		}
 
-		r.model = relation.New()
+		r.model = entity_type.NewRelation()
 
 		if r.db, err = dbase.SchemeInitWithContext(ctx, r.model); err != nil {
 			return nil, err

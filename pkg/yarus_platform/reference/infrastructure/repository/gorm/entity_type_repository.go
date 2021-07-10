@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
+
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type2property"
 
 	"github.com/yaruz/app/internal/pkg/apperror"
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
-
 	"gorm.io/gorm"
 
 	minipkg_gorm "github.com/minipkg/db/gorm"
