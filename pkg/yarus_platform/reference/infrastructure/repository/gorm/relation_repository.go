@@ -92,7 +92,7 @@ func (r *RelationRepository) Query(ctx context.Context, cond *selection_conditio
 
 func (r *RelationRepository) PropertyAndRelationQuery(ctx context.Context, cond *selection_condition.SelectionCondition) ([]property.Property, []relation.Relation, error) {
 	items := []property.Property{}
-	db := minipkg_gorm.Conditions(r.relationTypeDB(), cond)
+	db := minipkg_gorm.Conditions(r.DB(), cond)
 	if db.Error != nil {
 		return nil, nil, db.Error
 	}
@@ -139,15 +139,15 @@ func (r *RelationRepository) GetPropertiesAndRelationsByEntityTypeID(ctx context
 		return nil, nil, err
 	}
 
-	IDs := make([]uint, 0, len(rels))
+	IDs := make([]interface{}, 0, len(rels))
 	for _, rel := range rels {
 		IDs = append(IDs, rel.PropertyID)
 	}
 
 	return r.PropertyAndRelationQuery(ctx, &selection_condition.SelectionCondition{
-		Where: &selection_condition.WhereCondition{
+		Where: selection_condition.WhereCondition{
 			Field:     "ID",
-			Condition: "in",
+			Condition: selection_condition.ConditionIn,
 			Value:     IDs,
 		},
 	})

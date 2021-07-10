@@ -37,6 +37,7 @@ func RegisterTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platform.IP
 	r.Get("/relation", c.relation)
 	r.Get("/property-options-validation", c.propertyOptionsValidation)
 	r.Get("/entity-type", c.entityType)
+	r.Get("/entity-type-binding", c.entityTypeBinding)
 }
 
 func (c testController) textSource(ctx *routing.Context) error {
@@ -643,36 +644,36 @@ func (c testController) entityType(ctx *routing.Context) error {
 
 	err := entity.Validate()
 	if err != nil {
-		res = append(res, map[string]interface{}{"1. errValidate": err.Error()})
+		res = append(res, map[string]interface{}{"1. EntityType Validation error: ": err.Error()})
 	}
 
 	err = c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Create(cntx, entity)
 	if err != nil {
-		res = append(res, map[string]interface{}{"2. errCreate1": err.Error()})
+		res = append(res, map[string]interface{}{"2. EntityType Creation error: ": err.Error()})
 	}
 
 	entity.Sysname = "entity_type"
 	err = c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Create(cntx, entity)
 	if err != nil {
-		res = append(res, map[string]interface{}{"3. errCreate": err.Error()})
+		res = append(res, map[string]interface{}{"3. EntityType Creation error: ": err.Error()})
 	}
 
 	e, err := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Get(cntx, entity.ID)
 	if err != nil {
-		res = append(res, map[string]interface{}{"4. errCreate1": err.Error()})
+		res = append(res, map[string]interface{}{"3. EntityType Getting error: ": err.Error()})
 	} else {
-		res = append(res, map[string]interface{}{"4. entity1": fmt.Sprintf("%#v", e)})
+		res = append(res, map[string]interface{}{"4. EntityType: ": fmt.Sprintf("%#v", e)})
 	}
 
 	entity.Sysname = "entity_type_" + strconv.Itoa(int(entity.ID))
 	err = c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Update(cntx, entity)
 	if err != nil {
-		res = append(res, map[string]interface{}{"5. errCreate": err.Error()})
+		res = append(res, map[string]interface{}{"5. EntityType Updating error: ": err.Error()})
 	}
 
 	e, err = c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Get(cntx, entity.ID)
 	if err != nil {
-		res = append(res, map[string]interface{}{"6. errGet": err.Error()})
+		res = append(res, map[string]interface{}{"6. EntityType Getting error: ": err.Error()})
 	} else {
 		res = append(res, map[string]interface{}{"6. entity2": fmt.Sprintf("%#v", e)})
 	}
@@ -685,14 +686,96 @@ func (c testController) entityType(ctx *routing.Context) error {
 		},
 	})
 	if err != nil {
-		res = append(res, map[string]interface{}{"6. errGet": err.Error()})
+		res = append(res, map[string]interface{}{"7. EntityType Getting a list error: ": err.Error()})
 	} else {
-		res = append(res, map[string]interface{}{"6. list": fmt.Sprintf("%#v", list)})
+		res = append(res, map[string]interface{}{"7. list": fmt.Sprintf("%#v", list)})
 	}
 
 	err = c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Delete(cntx, entity.ID)
 	if err != nil {
-		res = append(res, map[string]interface{}{"7. errDelete": err.Error()})
+		res = append(res, map[string]interface{}{"8. EntityType Deleting error: ": err.Error()})
+	}
+
+	return ctx.Write(res)
+}
+
+func (c testController) entityTypeBinding(ctx *routing.Context) error {
+	res := make([]map[string]interface{}, 0, 10)
+	res = append(res, map[string]interface{}{"test": "entity-type"})
+	cntx := ctx.Request.Context()
+
+	var one uint = 1
+	property1 := c.yaruzPlatform.ReferenceSubsystem().Property.Service.NewEntity()
+	property1.Sysname = "property_" + strconv.Itoa(int(time.Now().Unix()))
+	property1.PropertyTypeID = property_type.IDInt
+	property1.PropertyUnitID = &one
+	property2 := c.yaruzPlatform.ReferenceSubsystem().Property.Service.NewEntity()
+	property2.Sysname = "property_" + strconv.Itoa(int(time.Now().Unix()))
+	property2.PropertyTypeID = property_type.IDFloat
+	property2.PropertyUnitID = &one
+	err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.Create(cntx, property1)
+	if err != nil {
+		res = append(res, map[string]interface{}{"0. Property1 Create error: ": err.Error()})
+	}
+	err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.Create(cntx, property2)
+	if err != nil {
+		res = append(res, map[string]interface{}{"0. Property2 Create error: ": err.Error()})
+	}
+
+	entity := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.NewEntity()
+	entity.Sysname = "entity_type_" + strconv.Itoa(int(time.Now().Unix()))
+	err = c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Create(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"1. EntityType Creation error: ": err.Error()})
+	}
+
+	err = c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.BindProperty(cntx, entity.ID, property1.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"2. EntityType Updating error: ": err.Error()})
+	}
+	err = c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.BindProperty(cntx, entity.ID, property2.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"2. EntityType Updating error: ": err.Error()})
+	}
+
+	e, err := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Get(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"3. EntityType Getting error: ": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"3. EntityType: ": fmt.Sprintf("%#v", e)})
+	}
+
+	props, rels, err := c.yaruzPlatform.ReferenceSubsystem().Relation.Service.GetPropertiesAndRelationsByEntityTypeID(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"4. EntityType Getting error: ": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"4. EntityType props: ": props})
+		res = append(res, map[string]interface{}{"4. EntityType rels: ": rels})
+	}
+
+	err = c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.UnbindProperty(cntx, entity.ID, property1.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"5. EntityType Unbind error: ": err.Error()})
+	}
+
+	err = c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.UnbindAllProperty(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"6. EntityType UnbindAll error: ": err.Error()})
+	}
+
+	e, err = c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Get(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"7. EntityType Getting error: ": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"7. entity2": fmt.Sprintf("%#v", e)})
+	}
+
+	props, rels, err = c.yaruzPlatform.ReferenceSubsystem().Relation.Service.GetPropertiesAndRelationsByEntityTypeID(cntx, entity.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"4. EntityType Getting error: ": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"4. EntityType props: ": props})
+		res = append(res, map[string]interface{}{"4. EntityType rels: ": rels})
 	}
 
 	return ctx.Write(res)
@@ -735,6 +818,14 @@ func (c testController) relation(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"4. Get new Relation error": err.Error()})
 	} else {
 		res = append(res, map[string]interface{}{"4. New Relation": fmt.Sprintf("%#v", e)})
+	}
+
+	props, rels, err := c.yaruzPlatform.ReferenceSubsystem().Relation.Service.GetPropertiesAndRelationsByEntityTypeID(cntx, entityType1.ID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"5. EntityType Getting error: ": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"5. EntityType props: ": props})
+		res = append(res, map[string]interface{}{"5. EntityType rels: ": rels})
 	}
 
 	return ctx.Write(res)
