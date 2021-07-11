@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_value"
+
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_view_type"
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
@@ -20,20 +22,50 @@ import (
 // PropertyTypeRepository is a repository for the model entity
 type PropertyTypeRepository struct {
 	repository
+	textValueRepository text_value.Repository
 }
 
 var _ property_type.Repository = (*PropertyTypeRepository)(nil)
 
 // New creates a new PropertyTypeRepository
-func NewPropertyTypeRepository(repository *repository) (*PropertyTypeRepository, error) {
-	return &PropertyTypeRepository{repository: *repository}, nil
+func NewPropertyTypeRepository(repository *repository, textValueRepository text_value.Repository) (*PropertyTypeRepository, error) {
+	return &PropertyTypeRepository{
+		repository:          *repository,
+		textValueRepository: textValueRepository,
+	}, nil
 }
 
 // Get reads the album with the specified ID from the database.
 func (r *PropertyTypeRepository) Get(ctx context.Context, id uint) (*property_type.PropertyType, error) {
+	return r.getTx(ctx, r.DB(), id)
+}
+
+func (r *PropertyTypeRepository) TGet(ctx context.Context, id uint, langID uint) (*property_type.PropertyType, error) {
+	var entity *property_type.PropertyType
+	err := r.db.DB().Transaction(func(tx *gorm.DB) error {
+		var err error
+		entity, err = r.getTx(ctx, tx, id)
+
+		if langID > 0 {
+			IDs := make([]uint, 0, 2)
+
+			if entity.NameSourceID != nil {
+				IDs = append(IDs, *entity.NameSourceID)
+			}
+
+			if entity.DescriptionSourceID != nil {
+				IDs = append(IDs, *entity.DescriptionSourceID)
+			}
+		}
+		return err
+	})
+	return entity, err
+}
+
+func (r *PropertyTypeRepository) getTx(ctx context.Context, tx *gorm.DB, id uint) (*property_type.PropertyType, error) {
 	entity := &property_type.PropertyType{}
 
-	err := r.DB().First(entity, id).Error
+	err := tx.First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound

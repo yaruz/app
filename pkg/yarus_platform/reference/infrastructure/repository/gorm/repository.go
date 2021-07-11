@@ -92,12 +92,21 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 		}
 		repo, err = NewPropertyType2PropertyViewTypeRepository(r)
 	case property_type.EntityName:
+		textValueRepo, err := GetRepository(logger, dbase, text_value.EntityName)
+		if err != nil {
+			return nil, errors.Wrapf(err, "Can not get db repository for entity %q, error happened: %v", text_value.EntityName, err)
+		}
+		textValueRepository, ok := textValueRepo.(text_value.Repository)
+		if !ok {
+			return nil, errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", text_value.EntityName, text_value.EntityName, textValueRepo)
+		}
+
 		r.model = property_type.New()
 
 		if r.db, err = dbase.SchemeInitWithContext(ctx, r.model); err != nil {
 			return nil, err
 		}
-		repo, err = NewPropertyTypeRepository(r)
+		repo, err = NewPropertyTypeRepository(r, textValueRepository)
 	case property_unit.EntityName:
 		r.model = property_unit.New()
 
