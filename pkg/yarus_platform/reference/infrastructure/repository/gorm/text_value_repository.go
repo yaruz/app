@@ -55,8 +55,12 @@ func (r *TextValueRepository) First(ctx context.Context, entity *text_value.Text
 
 // Query retrieves the album records with the specified offset and limit from the database.
 func (r *TextValueRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]text_value.TextValue, error) {
+	return r.QueryTx(ctx, r.DB(), cond)
+}
+
+func (r *TextValueRepository) QueryTx(ctx context.Context, tx *gorm.DB, cond *selection_condition.SelectionCondition) ([]text_value.TextValue, error) {
 	items := []text_value.TextValue{}
-	db := minipkg_gorm.Conditions(r.DB(), cond)
+	db := minipkg_gorm.Conditions(tx, cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}

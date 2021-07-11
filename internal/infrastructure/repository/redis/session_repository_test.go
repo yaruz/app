@@ -1,12 +1,13 @@
 package redis
 
 import (
-	"github.com/yaruz/app/internal/pkg/session"
 	"context"
 	"encoding/hex"
-	"github.com/minipkg/selection_condition"
 	"testing"
 	"time"
+
+	"github.com/minipkg/selection_condition"
+	"github.com/yaruz/app/internal/pkg/session"
 
 	mock2 "github.com/minipkg/db/redis/mock"
 
@@ -42,12 +43,16 @@ type userRepoMock struct {
 
 var _ user.Repository = (*userRepoMock)(nil)
 
-func (m *userRepoMock) SetDefaultConditions(conditions selection_condition.SelectionCondition) {
+func (m *userRepoMock) SetDefaultConditions(conditions *selection_condition.SelectionCondition) {
 
 }
 
 func (m *userRepoMock) Get(ctx context.Context, id uint) (*user.User, error) {
 	return m.user, nil
+}
+
+func (m *userRepoMock) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]user.User, error) {
+	return []user.User{*m.user}, nil
 }
 
 func (m *userRepoMock) Create(ctx context.Context, entity *user.User) error {

@@ -52,11 +52,21 @@ func (c testController) textSource(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"1. errCreate": err.Error()})
 	}
 
-	e, err := c.yaruzPlatform.ReferenceSubsystem().TextSource.Service.Get(cntx, entity.ID, 1)
+	val := c.yaruzPlatform.ReferenceSubsystem().TextValue.Service.NewEntity()
+	val.TextSourceID = entity.ID
+	val.LangID = 1
+	val.Value = "Тестовое значение текстового поля"
+
+	err = c.yaruzPlatform.ReferenceSubsystem().TextValue.Service.Create(cntx, val)
+	if err != nil {
+		res = append(res, map[string]interface{}{"1. errCreate": err.Error()})
+	}
+
+	e, err := c.yaruzPlatform.ReferenceSubsystem().TextSource.Service.TGet(cntx, entity.ID, val.LangID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"4. errCreate1": err.Error()})
 	} else {
-		res = append(res, map[string]interface{}{"4. entity1": fmt.Sprintf("%#v", e)})
+		res = append(res, map[string]interface{}{"4. entity1": e})
 	}
 
 	err = c.yaruzPlatform.ReferenceSubsystem().TextSource.Service.Delete(cntx, entity.ID)

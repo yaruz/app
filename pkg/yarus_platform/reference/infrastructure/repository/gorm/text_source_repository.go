@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_source"
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_value"
-
 	"github.com/yaruz/app/internal/pkg/apperror"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_source"
 
 	"gorm.io/gorm"
 
@@ -30,10 +28,20 @@ func NewTextSourceRepository(repository *repository) (*TextSourceRepository, err
 }
 
 // Get reads the album with the specified ID from the database.
-func (r *TextSourceRepository) Get(ctx context.Context, id uint, langID uint) (*text_source.TextSource, error) {
+func (r *TextSourceRepository) Get(ctx context.Context, id uint) (*text_source.TextSource, error) {
+	return r.getTx(ctx, r.DB(), id)
+}
+
+// TGet reads the album with the specified ID from the database.
+func (r *TextSourceRepository) TGet(ctx context.Context, id uint, langID uint) (*text_source.TextSource, error) {
+	db := r.joins(r.DB(), langID)
+	return r.getTx(ctx, db, id)
+}
+
+func (r *TextSourceRepository) getTx(ctx context.Context, tx *gorm.DB, id uint) (*text_source.TextSource, error) {
 	entity := &text_source.TextSource{}
 
-	err := r.joins(r.DB(), langID).First(entity, id).Error
+	err := tx.First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -124,7 +132,10 @@ func (r *TextSourceRepository) Delete(ctx context.Context, id uint) error {
 }
 
 func (r *TextSourceRepository) joins(db *gorm.DB, langID uint) *gorm.DB {
-	return db.Joins("TextValue").Where(&text_value.TextValue{
-		LangID: langID,
-	})
+	if langID == 0 {
+		return db.Joins("TextValues")
+	} else {
+		return db.Preload("TextValue", "lang_id = ?", langID)
+	}
+	return db
 }

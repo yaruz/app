@@ -13,8 +13,9 @@ const (
 
 // TextSource ...
 type TextSource struct {
-	ID        uint                  `gorm:"type:bigserial;primaryKey" json:"id"`
-	TextValue *text_value.TextValue `json:"textValue"`
+	ID         uint                   `gorm:"type:bigserial;primaryKey" json:"id"`
+	TextValue  *text_value.TextValue  `json:"textValue"`
+	TextValues []text_value.TextValue `json:"textValues"`
 
 	CreatedAt time.Time  `json:"createdAt"`
 	UpdatedAt time.Time  `json:"updatedAt"`

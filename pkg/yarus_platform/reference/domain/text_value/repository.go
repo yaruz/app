@@ -3,6 +3,8 @@ package text_value
 import (
 	"context"
 
+	"gorm.io/gorm"
+
 	"github.com/minipkg/selection_condition"
 )
 
@@ -14,6 +16,7 @@ type Repository interface {
 	First(ctx context.Context, entity *TextValue) (*TextValue, error)
 	// Query returns the list of albums with the given offset and limit.
 	Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]TextValue, error)
+	QueryTx(ctx context.Context, tx *gorm.DB, cond *selection_condition.SelectionCondition) ([]TextValue, error)
 	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error)
 	Create(ctx context.Context, entity *TextValue) error
 	Update(ctx context.Context, entity *TextValue) error
