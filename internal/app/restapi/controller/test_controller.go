@@ -54,7 +54,7 @@ func (c testController) textSource(ctx *routing.Context) error {
 
 	val := c.yaruzPlatform.ReferenceSubsystem().TextValue.Service.NewEntity()
 	val.TextSourceID = entity.ID
-	val.LangID = 1
+	val.TextLangID = 1
 	val.Value = "Тестовое значение текстового поля"
 
 	err = c.yaruzPlatform.ReferenceSubsystem().TextValue.Service.Create(cntx, val)
@@ -62,7 +62,7 @@ func (c testController) textSource(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"1. errCreate": err.Error()})
 	}
 
-	e, err := c.yaruzPlatform.ReferenceSubsystem().TextSource.Service.TGet(cntx, entity.ID, val.LangID)
+	e, err := c.yaruzPlatform.ReferenceSubsystem().TextSource.Service.TGet(cntx, entity.ID, val.TextLangID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"4. errCreate1": err.Error()})
 	} else {
@@ -90,7 +90,7 @@ func (c testController) textValue(ctx *routing.Context) error {
 
 	entity := c.yaruzPlatform.ReferenceSubsystem().TextValue.Service.NewEntity()
 	entity.TextSourceID = source.ID
-	entity.LangID = 1
+	entity.TextLangID = 1
 	entity.Value = "text value"
 	err = c.yaruzPlatform.ReferenceSubsystem().TextValue.Service.Create(cntx, entity)
 	if err != nil {

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	golog "log"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_lang"
+
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
 
 	"github.com/minipkg/selection_condition"
@@ -37,6 +39,7 @@ type ReferenceSubsystem struct {
 	PropertyViewType              ReferenceDomainPropertyViewType
 	TextSource                    ReferenceDomainTextSource
 	TextValue                     ReferenceDomainTextValue
+	TextLang                      ReferenceDomainTextLang
 }
 
 type ReferenceDomainEntityType struct {
@@ -93,6 +96,11 @@ type ReferenceDomainTextValue struct {
 	Repository text_value.Repository
 }
 
+type ReferenceDomainTextLang struct {
+	Service    text_lang.IService
+	Repository text_lang.Repository
+}
+
 func newReferenceSubsystem(infra *infrastructure) (*ReferenceSubsystem, error) {
 	d := &ReferenceSubsystem{}
 	if err := d.setupRepositories(infra); err != nil {
@@ -115,6 +123,7 @@ func (d *ReferenceSubsystem) autoMigrate(db minipkg_gorm.IDB) error {
 		}
 
 		err = db.DB().AutoMigrate(
+			&text_lang.TextLang{},
 			&text_source.TextSource{},
 			&text_value.TextValue{},
 			&property_unit.PropertyUnit{},
@@ -231,11 +240,20 @@ func (d *ReferenceSubsystem) setupRepositories(infra *infrastructure) (err error
 
 	repo, err = gorm.GetRepository(infra.Logger, infra.ReferenceDB, entity_type.RelationEntityName)
 	if err != nil {
-		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", entity_type.EntityName, err)
+		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", entity_type.RelationEntityName, err)
 	}
 	d.Relation.Repository, ok = repo.(entity_type.RelationRepository)
 	if !ok {
-		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", entity_type.EntityName, entity_type.EntityName, repo)
+		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", entity_type.RelationEntityName, entity_type.RelationEntityName, repo)
+	}
+
+	repo, err = gorm.GetRepository(infra.Logger, infra.ReferenceDB, text_lang.EntityName)
+	if err != nil {
+		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", text_lang.EntityName, err)
+	}
+	d.TextLang.Repository, ok = repo.(text_lang.Repository)
+	if !ok {
+		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", text_lang.EntityName, text_lang.EntityName, repo)
 	}
 
 	return nil
@@ -252,6 +270,7 @@ func (d *ReferenceSubsystem) setupServices(logger log.ILogger) {
 	d.PropertyViewType.Service = property_view_type.NewService(logger, d.PropertyViewType.Repository)
 	d.TextSource.Service = text_source.NewService(logger, d.TextSource.Repository)
 	d.TextValue.Service = text_value.NewService(logger, d.TextValue.Repository)
+	d.TextLang.Service = text_lang.NewService(logger, d.TextLang.Repository)
 }
 
 func (d *ReferenceSubsystem) dbStructFix(db minipkg_gorm.IDB) error {
@@ -284,6 +303,11 @@ func (d *ReferenceSubsystem) dbDataInit() error {
 	}
 
 	err = d.PropertyUnitDataInit(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = d.LangDataInit(ctx)
 	if err != nil {
 		return err
 	}
@@ -349,6 +373,34 @@ func (d *ReferenceSubsystem) PropertyUnitDataInit(ctx context.Context) error {
 		}
 		for _, i := range items {
 			err = d.PropertyUnit.Service.Create(ctx, &i)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (d *ReferenceSubsystem) LangDataInit(ctx context.Context) error {
+	count, err := d.TextLang.Service.Count(ctx, &selection_condition.SelectionCondition{})
+	if err != nil {
+		return err
+	}
+
+	if count == 0 {
+		items := []text_lang.TextLang{
+			{
+				Code: "eng",
+				Name: "english",
+			},
+			{
+				Code: "rus",
+				Name: "русский",
+			},
+		}
+		for _, i := range items {
+			err = d.TextLang.Service.Create(ctx, &i)
 			if err != nil {
 				return err
 			}

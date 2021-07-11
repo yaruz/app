@@ -3,6 +3,8 @@ package gorm
 import (
 	"context"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_lang"
+
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
 
 	minipkg_gorm "github.com/minipkg/db/gorm"
@@ -124,6 +126,13 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 			return nil, err
 		}
 		repo, err = NewTextValueRepository(r)
+	case text_lang.EntityName:
+		r.model = text_lang.New()
+
+		if r.db, err = dbase.SchemeInitWithContext(ctx, r.model); err != nil {
+			return nil, err
+		}
+		repo, err = NewTextLangRepository(r)
 	case entity_type.RelationEntityName:
 		entityType2PropertyRepo, err := GetRepository(logger, dbase, entity_type2property.EntityName)
 		if err != nil {
