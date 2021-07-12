@@ -45,21 +45,17 @@ func (r *PropertyTypeRepository) TGet(ctx context.Context, id uint, langID uint)
 	err := r.db.DB().Transaction(func(tx *gorm.DB) error {
 		var err error
 		entity, err = r.getTx(ctx, tx, id)
-
-		if langID > 0 {
-			IDs := make([]uint, 0, 2)
-
-			if entity.NameSourceID != nil {
-				IDs = append(IDs, *entity.NameSourceID)
-			}
-
-			if entity.DescriptionSourceID != nil {
-				IDs = append(IDs, *entity.DescriptionSourceID)
-			}
-		}
+		r.entityNameAndDescriptionInitTx(ctx, tx, entity, langID)
 		return err
 	})
 	return entity, err
+}
+
+func (r *PropertyTypeRepository) entityNameAndDescriptionInitTx(ctx context.Context, tx *gorm.DB, entity *property_type.PropertyType, langID uint) error {
+	s, err := r.textValueRepository.GetValuesTx(ctx, tx, langID, entity.NameSourceID, entity.DescriptionSourceID)
+	entity.Name = s[0]
+	entity.Description = s[1]
+	return err
 }
 
 func (r *PropertyTypeRepository) getTx(ctx context.Context, tx *gorm.DB, id uint) (*property_type.PropertyType, error) {

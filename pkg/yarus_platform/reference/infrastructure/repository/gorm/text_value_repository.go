@@ -42,6 +42,46 @@ func (r *TextValueRepository) Get(ctx context.Context, id uint) (*text_value.Tex
 	return entity, err
 }
 
+func (r *TextValueRepository) GetValuesTx(ctx context.Context, tx *gorm.DB, langID uint, sourceIDs ...*uint) ([]*string, error) {
+	var err error
+	values := make([]*string, len(sourceIDs))
+
+	if langID > 0 {
+
+		if len(sourceIDs) > 0 {
+			IDs := make([]interface{}, 0, 2)
+			for _, sourceID := range sourceIDs {
+				if sourceID != nil {
+					IDs = append(IDs, *sourceID)
+				}
+			}
+
+			textValues, err := r.QueryTx(ctx, tx, &selection_condition.SelectionCondition{
+				Where: selection_condition.WhereConditions{
+					selection_condition.WhereCondition{
+						Field:     "TextLangID",
+						Condition: selection_condition.ConditionEq,
+						Value:     langID,
+					},
+					selection_condition.WhereCondition{
+						Field:     "TextSourceID",
+						Condition: selection_condition.ConditionIn,
+						Value:     IDs,
+					},
+				},
+			})
+			if err != nil {
+				return values, err
+			}
+
+			for _, textValue := range textValues {
+				values[textValue.TextSourceID] = &textValue.Value
+			}
+		}
+	}
+	return values, err
+}
+
 func (r *TextValueRepository) First(ctx context.Context, entity *text_value.TextValue) (*text_value.TextValue, error) {
 	err := r.DB().Where(entity).First(entity).Error
 	if err != nil {

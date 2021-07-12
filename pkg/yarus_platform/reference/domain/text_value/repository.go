@@ -22,4 +22,5 @@ type Repository interface {
 	Update(ctx context.Context, entity *TextValue) error
 	Save(ctx context.Context, entity *TextValue) error
 	Delete(ctx context.Context, id uint) error
+	GetValuesTx(ctx context.Context, tx *gorm.DB, langID uint, sourceIDs ...*uint) ([]*string, error)
 }
