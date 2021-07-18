@@ -92,13 +92,9 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 		}
 		repo, err = NewPropertyType2PropertyViewTypeRepository(r)
 	case property_type.EntityName:
-		textValueRepo, err := GetRepository(logger, dbase, text_value.EntityName)
+		textSourceRepository, err := r.getTextSourceRepository(logger, dbase)
 		if err != nil {
-			return nil, errors.Wrapf(err, "Can not get db repository for entity %q, error happened: %v", text_value.EntityName, err)
-		}
-		textValueRepository, ok := textValueRepo.(text_value.Repository)
-		if !ok {
-			return nil, errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", text_value.EntityName, text_value.EntityName, textValueRepo)
+			return nil, err
 		}
 
 		r.model = property_type.New()
@@ -106,7 +102,7 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 		if r.db, err = dbase.SchemeInitWithContext(ctx, r.model); err != nil {
 			return nil, err
 		}
-		repo, err = NewPropertyTypeRepository(r, textValueRepository)
+		repo, err = NewPropertyTypeRepository(r, textSourceRepository)
 	case property_unit.EntityName:
 		r.model = property_unit.New()
 
@@ -122,12 +118,21 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 		}
 		repo, err = NewPropertyViewTypeRepository(r)
 	case text_source.EntityName:
+		textValueRepo, err := GetRepository(logger, dbase, text_value.EntityName)
+		if err != nil {
+			return nil, errors.Wrapf(err, "Can not get db repository for entity %q, error happened: %v", text_value.EntityName, err)
+		}
+		textValueRepository, ok := textValueRepo.(text_value.Repository)
+		if !ok {
+			return nil, errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", text_value.EntityName, text_value.EntityName, textValueRepo)
+		}
+
 		r.model = text_source.New()
 
 		if r.db, err = dbase.SchemeInitWithContext(ctx, r.model); err != nil {
 			return nil, err
 		}
-		repo, err = NewTextSourceRepository(r)
+		repo, err = NewTextSourceRepository(r, textValueRepository)
 	case text_value.EntityName:
 		r.model = text_value.New()
 
@@ -162,6 +167,19 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 		err = errors.Errorf("Repository for entity %q not found", entityName)
 	}
 	return repo, err
+}
+
+func (r *repository) getTextSourceRepository(logger log.ILogger, dbase minipkg_gorm.IDB) (text_source.Repository, error) {
+	textSourceRepo, err := GetRepository(logger, dbase, text_source.EntityName)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Can not get db repository for entity %q, error happened: %v", text_source.EntityName, err)
+	}
+	textSourceRepository, ok := textSourceRepo.(text_source.Repository)
+	if !ok {
+		return nil, errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", text_source.EntityName, text_source.EntityName, textSourceRepo)
+	}
+
+	return textSourceRepository, nil
 }
 
 func (r *repository) SetDefaultConditions(defaultConditions *selection_condition.SelectionCondition) {

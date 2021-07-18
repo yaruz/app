@@ -46,36 +46,44 @@ func (r *TextValueRepository) GetValuesTx(ctx context.Context, tx *gorm.DB, lang
 	var err error
 	values := make([]*string, len(sourceIDs))
 
-	if langID > 0 {
+	if langID == 0 || len(sourceIDs) == 0 {
+		return values, err
+	}
 
-		if len(sourceIDs) > 0 {
-			IDs := make([]interface{}, 0, 2)
-			for _, sourceID := range sourceIDs {
-				if sourceID != nil {
-					IDs = append(IDs, *sourceID)
-				}
-			}
+	IDs := make([]interface{}, 0, 2)
+	for _, sourceID := range sourceIDs {
+		if sourceID != nil {
+			IDs = append(IDs, *sourceID)
+		}
+	}
 
-			textValues, err := r.QueryTx(ctx, tx, &selection_condition.SelectionCondition{
-				Where: selection_condition.WhereConditions{
-					selection_condition.WhereCondition{
-						Field:     "TextLangID",
-						Condition: selection_condition.ConditionEq,
-						Value:     langID,
-					},
-					selection_condition.WhereCondition{
-						Field:     "TextSourceID",
-						Condition: selection_condition.ConditionIn,
-						Value:     IDs,
-					},
-				},
-			})
-			if err != nil {
-				return values, err
-			}
+	textValues, err := r.QueryTx(ctx, tx, &selection_condition.SelectionCondition{
+		Where: selection_condition.WhereConditions{
+			selection_condition.WhereCondition{
+				Field:     "TextLangID",
+				Condition: selection_condition.ConditionEq,
+				Value:     langID,
+			},
+			selection_condition.WhereCondition{
+				Field:     "TextSourceID",
+				Condition: selection_condition.ConditionIn,
+				Value:     IDs,
+			},
+		},
+	})
+	if err != nil {
+		return values, err
+	}
+	valuesBySourceID := make(map[uint]*string, len(textValues))
 
-			for _, textValue := range textValues {
-				values[textValue.TextSourceID] = &textValue.Value
+	for _, textValue := range textValues {
+		valuesBySourceID[textValue.TextSourceID] = &textValue.Value
+	}
+
+	for i, sourceID := range sourceIDs {
+		if sourceID != nil {
+			if val, ok := valuesBySourceID[*sourceID]; ok {
+				values[i] = val
 			}
 		}
 	}
@@ -83,7 +91,11 @@ func (r *TextValueRepository) GetValuesTx(ctx context.Context, tx *gorm.DB, lang
 }
 
 func (r *TextValueRepository) First(ctx context.Context, entity *text_value.TextValue) (*text_value.TextValue, error) {
-	err := r.DB().Where(entity).First(entity).Error
+	return r.FirstTx(ctx, r.DB(), entity)
+}
+
+func (r *TextValueRepository) FirstTx(ctx context.Context, tx *gorm.DB, entity *text_value.TextValue) (*text_value.TextValue, error) {
+	err := tx.Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound

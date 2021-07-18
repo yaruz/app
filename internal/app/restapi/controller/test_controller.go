@@ -416,7 +416,7 @@ func (c testController) propertyType(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"10. UnbindPropertyViewType err": err.Error()})
 	}
 
-	err = c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.Delete(cntx, entity.ID)
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.Delete(cntx, entity)
 	if err != nil {
 		res = append(res, map[string]interface{}{"11. errDelete": err.Error()})
 	}

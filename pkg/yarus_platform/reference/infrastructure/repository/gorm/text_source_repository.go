@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_value"
+
 	"github.com/yaruz/app/internal/pkg/apperror"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_source"
 
@@ -18,13 +20,17 @@ import (
 // TextSourceRepository is a repository for the model entity
 type TextSourceRepository struct {
 	repository
+	textValueRepository text_value.Repository
 }
 
 var _ text_source.Repository = (*TextSourceRepository)(nil)
 
 // New creates a new TextSourceRepository
-func NewTextSourceRepository(repository *repository) (*TextSourceRepository, error) {
-	return &TextSourceRepository{repository: *repository}, nil
+func NewTextSourceRepository(repository *repository, textValueRepository text_value.Repository) (*TextSourceRepository, error) {
+	return &TextSourceRepository{
+		repository:          *repository,
+		textValueRepository: textValueRepository,
+	}, nil
 }
 
 // Get reads the album with the specified ID from the database.
@@ -96,12 +102,16 @@ func (r *TextSourceRepository) Count(ctx context.Context, cond *selection_condit
 
 // Create saves a new record in the database.
 func (r *TextSourceRepository) Create(ctx context.Context, entity *text_source.TextSource) error {
+	return r.createTx(ctx, r.db.DB(), entity)
+}
+
+func (r *TextSourceRepository) createTx(ctx context.Context, tx *gorm.DB, entity *text_source.TextSource) error {
 
 	if entity.ID > 0 {
 		return errors.New("entity is not new")
 	}
 
-	return r.db.DB().Create(entity).Error
+	return tx.Create(entity).Error
 }
 
 // Update saves a changed Maintenance record in the database.
@@ -121,8 +131,12 @@ func (r *TextSourceRepository) Save(ctx context.Context, entity *text_source.Tex
 
 // Delete (soft) deletes a Maintenance record in the database.
 func (r *TextSourceRepository) Delete(ctx context.Context, id uint) error {
+	return r.DeleteTx(ctx, r.db.DB(), id)
+}
 
-	err := r.db.DB().Delete(r.model, id).Error
+func (r *TextSourceRepository) DeleteTx(ctx context.Context, tx *gorm.DB, id uint) error {
+
+	err := tx.Select("TextValues").Delete(r.model, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apperror.ErrNotFound
@@ -138,4 +152,56 @@ func (r *TextSourceRepository) joins(db *gorm.DB, langID uint) *gorm.DB {
 		return db.Preload("TextValue", "lang_id = ?", langID)
 	}
 	return db
+}
+
+func (r *TextSourceRepository) GetValuesTx(ctx context.Context, tx *gorm.DB, langID uint, sourceIDs ...*uint) ([]*string, error) {
+	return r.textValueRepository.GetValuesTx(ctx, tx, langID, sourceIDs...)
+}
+
+func (r *TextSourceRepository) CreateValueTx(ctx context.Context, tx *gorm.DB, value *string, langID uint) (sourceID *uint, err error) {
+	if value == nil || *value == "" || langID == 0 {
+		return sourceID, nil
+	}
+
+	source := text_source.New()
+	if err := r.createTx(ctx, tx, source); err != nil {
+		return sourceID, err
+	}
+	sourceID = &source.ID
+
+	textValue := text_value.New()
+	textValue.TextSourceID = *sourceID
+	textValue.TextLangID = langID
+	textValue.Value = *value
+
+	return sourceID, r.textValueRepository.Create(ctx, textValue)
+}
+
+func (r *TextSourceRepository) UpdateValueTx(ctx context.Context, tx *gorm.DB, sourceID *uint, value *string, langID uint) (resSourceID *uint, err error) {
+	if value == nil || *value == "" || langID == 0 {
+		return sourceID, nil
+	}
+
+	if sourceID == nil {
+		return r.CreateValueTx(ctx, tx, value, langID)
+	}
+
+	textValue, err := r.textValueRepository.FirstTx(ctx, tx, &text_value.TextValue{
+		TextSourceID: *sourceID,
+		TextLangID:   langID,
+	})
+	textValue.Value = *value
+
+	if err != nil {
+		if errors.Is(err, yaruzerror.ErrNotFound) {
+			return sourceID, r.textValueRepository.Create(ctx, textValue)
+		}
+		return sourceID, err
+	} else {
+		if err := r.textValueRepository.Update(ctx, textValue); err != nil {
+			return sourceID, err
+		}
+	}
+
+	return sourceID, nil
 }

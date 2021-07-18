@@ -20,8 +20,7 @@ type IService interface {
 	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error)
 	Create(ctx context.Context, entity *PropertyType) error
 	Update(ctx context.Context, entity *PropertyType) error
-	Save(ctx context.Context, entity *PropertyType) error
-	Delete(ctx context.Context, id uint) error
+	Delete(ctx context.Context, entity *PropertyType) error
 	InitPropertyViewTypes(ctx context.Context, entity *PropertyType) error
 	BindPropertyViewType(ctx context.Context, entity *PropertyType, viewTypeID uint) error
 	UnbindPropertyViewType(ctx context.Context, entity *PropertyType, viewTypeID uint) error
@@ -107,23 +106,10 @@ func (s *service) Update(ctx context.Context, entity *PropertyType) error {
 	return nil
 }
 
-func (s *service) Save(ctx context.Context, entity *PropertyType) error {
-	err := entity.Validate()
+func (s *service) Delete(ctx context.Context, entity *PropertyType) error {
+	err := s.repository.Delete(ctx, entity)
 	if err != nil {
-		return errors.Wrapf(err, "Validation error: %v", err)
-	}
-
-	err = s.repository.Save(ctx, entity)
-	if err != nil {
-		return errors.Wrapf(err, "Can not save an entity: %v", entity)
-	}
-	return nil
-}
-
-func (s *service) Delete(ctx context.Context, id uint) error {
-	err := s.repository.Delete(ctx, id)
-	if err != nil {
-		return errors.Wrapf(err, "Can not delete an entity by ID: %v", id)
+		return errors.Wrapf(err, "Can not delete an entity: %v", entity)
 	}
 	return nil
 }

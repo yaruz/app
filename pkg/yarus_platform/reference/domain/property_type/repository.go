@@ -17,8 +17,7 @@ type Repository interface {
 	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error)
 	Create(ctx context.Context, entity *PropertyType) error
 	Update(ctx context.Context, entity *PropertyType) error
-	Save(ctx context.Context, entity *PropertyType) error
-	Delete(ctx context.Context, id uint) error
+	Delete(ctx context.Context, entity *PropertyType) error
 	InitPropertyViewTypes(ctx context.Context, entity *PropertyType) error
 	BindPropertyViewType(ctx context.Context, entity *PropertyType, viewTypeID uint) error
 	UnbindPropertyViewType(ctx context.Context, entity *PropertyType, viewTypeID uint) error

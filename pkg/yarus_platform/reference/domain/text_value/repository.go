@@ -14,6 +14,7 @@ type Repository interface {
 	// Get returns the album with the specified album ID.
 	Get(ctx context.Context, id uint) (*TextValue, error)
 	First(ctx context.Context, entity *TextValue) (*TextValue, error)
+	FirstTx(ctx context.Context, tx *gorm.DB, entity *TextValue) (*TextValue, error)
 	// Query returns the list of albums with the given offset and limit.
 	Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]TextValue, error)
 	QueryTx(ctx context.Context, tx *gorm.DB, cond *selection_condition.SelectionCondition) ([]TextValue, error)
