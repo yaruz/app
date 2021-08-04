@@ -120,6 +120,7 @@ func (r *PropertyTypeRepository) TQuery(ctx context.Context, cond *selection_con
 	})
 	return items, err
 }
+
 func (r *PropertyTypeRepository) queryTx(ctx context.Context, tx *gorm.DB, cond *selection_condition.SelectionCondition) ([]property_type.PropertyType, error) {
 	items := []property_type.PropertyType{}
 	db := minipkg_gorm.Conditions(tx, cond)
@@ -159,6 +160,24 @@ func (r *PropertyTypeRepository) Create(ctx context.Context, entity *property_ty
 	return r.db.DB().Create(entity).Error
 }
 
+func (r *PropertyTypeRepository) TCreate(ctx context.Context, entity *property_type.PropertyType, langID uint) (err error) {
+
+	return r.db.DB().Transaction(func(tx *gorm.DB) error {
+		if entity.ID > 0 {
+			return errors.New("entity is not new")
+		}
+
+		if entity.NameSourceID, err = r.textSourceRepository.CreateValueTx(ctx, tx, entity.Name, langID); err != nil {
+			return err
+		}
+
+		if entity.DescriptionSourceID, err = r.textSourceRepository.CreateValueTx(ctx, tx, entity.Description, langID); err != nil {
+			return err
+		}
+		return tx.Create(entity).Error
+	})
+}
+
 // Update saves a changed record in the database.
 func (r *PropertyTypeRepository) Update(ctx context.Context, entity *property_type.PropertyType) error {
 
@@ -166,6 +185,24 @@ func (r *PropertyTypeRepository) Update(ctx context.Context, entity *property_ty
 		return errors.New("entity is new")
 	}
 	return r.saveTx(ctx, r.db.DB(), entity)
+}
+
+func (r *PropertyTypeRepository) TUpdate(ctx context.Context, entity *property_type.PropertyType, langID uint) (err error) {
+
+	return r.db.DB().Transaction(func(tx *gorm.DB) error {
+		if entity.ID > 0 {
+			return errors.New("entity is not new")
+		}
+
+		if entity.NameSourceID, err = r.textSourceRepository.UpdateValueTx(ctx, tx, entity.NameSourceID, entity.Name, langID); err != nil {
+			return err
+		}
+
+		if entity.DescriptionSourceID, err = r.textSourceRepository.UpdateValueTx(ctx, tx, entity.DescriptionSourceID, entity.Description, langID); err != nil {
+			return err
+		}
+		return r.saveTx(ctx, tx, entity)
+	})
 }
 
 // Save update value in database, if the value doesn't have primary key, will insert it

@@ -33,6 +33,7 @@ func RegisterTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platform.IP
 	r.Get("/property-group", c.propertyGroup)
 	r.Get("/property-view-type", c.propertyViewType)
 	r.Get("/property-type", c.propertyType)
+	r.Get("/property-type_with-text", c.propertyTypeWithText)
 	r.Get("/property", c.property)
 	r.Get("/relation", c.relation)
 	r.Get("/property-options-validation", c.propertyOptionsValidation)
@@ -414,6 +415,65 @@ func (c testController) propertyType(ctx *routing.Context) error {
 	err = c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.UnbindPropertyViewType(cntx, entity, viewType.ID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"10. UnbindPropertyViewType err": err.Error()})
+	}
+
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.Delete(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"11. errDelete": err.Error()})
+	}
+
+	return ctx.Write(res)
+}
+
+func (c testController) propertyTypeWithText(ctx *routing.Context) error {
+	res := make([]map[string]interface{}, 0, 10)
+	res = append(res, map[string]interface{}{"test": "property-type-with-text"})
+	cntx := ctx.Request.Context()
+	langID := uint(1)
+
+	entity := c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.NewEntity()
+	entity.Sysname = "property_type_" + strconv.Itoa(int(entity.ID))
+	name := "name1_" + strconv.Itoa(int(entity.ID))
+	entity.Name = &name
+
+	err := c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.TCreate(cntx, entity, langID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"2. errCreate1": err.Error()})
+	}
+
+	e, err := c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.TGet(cntx, entity.ID, langID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"4. errCreate1": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"4. entity1": fmt.Sprintf("%#v", e)})
+	}
+
+	desc := "desc_" + strconv.Itoa(int(entity.ID))
+	entity.Description = &desc
+	*entity.Name = "name_" + strconv.Itoa(int(entity.ID))
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.TUpdate(cntx, entity, langID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"5. errCreate": err.Error()})
+	}
+
+	e, err = c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.TGet(cntx, entity.ID, langID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"6. errGet": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"6. entity2": fmt.Sprintf("%#v", e)})
+	}
+
+	list, err := c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.TQuery(cntx, &selection_condition.SelectionCondition{
+		Where: selection_condition.WhereCondition{
+			Field:     "Sysname",
+			Condition: "eq",
+			Value:     entity.Sysname,
+		},
+	}, langID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"6. errGet": err.Error()})
+	} else {
+		res = append(res, map[string]interface{}{"6. list": fmt.Sprintf("%#v", list)})
 	}
 
 	err = c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.Delete(cntx, entity)
