@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_value"
+
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
 
 	routing "github.com/go-ozzo/ozzo-routing/v2"
@@ -131,7 +133,7 @@ func (c testController) textValue(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"6. list": fmt.Sprintf("%#v", list)})
 	}
 
-	err = c.yaruzPlatform.ReferenceSubsystem().TextValue.Service.Delete(cntx, entity.ID)
+	err = c.yaruzPlatform.ReferenceSubsystem().TextValue.Service.Delete(cntx, &text_value.TextValue{ID: entity.ID})
 	if err != nil {
 		res = append(res, map[string]interface{}{"7. errDelete": err.Error()})
 	}
@@ -432,8 +434,8 @@ func (c testController) propertyTypeWithText(ctx *routing.Context) error {
 	langID := uint(1)
 
 	entity := c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.NewEntity()
-	entity.Sysname = "property_type_" + strconv.Itoa(int(entity.ID))
-	name := "name1_" + strconv.Itoa(int(entity.ID))
+	entity.Sysname = "property_type_" + strconv.Itoa(int(time.Now().Unix()))
+	name := "name1_" + strconv.Itoa(int(time.Now().Unix()))
 	entity.Name = &name
 
 	err := c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.TCreate(cntx, entity, langID)
@@ -448,9 +450,9 @@ func (c testController) propertyTypeWithText(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"4. entity1": fmt.Sprintf("%#v", e)})
 	}
 
-	desc := "desc_" + strconv.Itoa(int(entity.ID))
+	desc := "desc_" + strconv.Itoa(int(time.Now().Unix()))
 	entity.Description = &desc
-	*entity.Name = "name_" + strconv.Itoa(int(entity.ID))
+	*entity.Name = "name_" + strconv.Itoa(int(time.Now().Unix()))
 	err = c.yaruzPlatform.ReferenceSubsystem().PropertyType.Service.TUpdate(cntx, entity, langID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"5. errCreate": err.Error()})

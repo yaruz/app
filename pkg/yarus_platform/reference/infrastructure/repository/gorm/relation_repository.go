@@ -93,7 +93,7 @@ func (r *RelationRepository) Query(ctx context.Context, cond *selection_conditio
 
 func (r *RelationRepository) PropertyAndRelationQuery(ctx context.Context, cond *selection_condition.SelectionCondition) ([]property.Property, []entity_type.Relation, error) {
 	items := []property.Property{}
-	db := minipkg_gorm.Conditions(r.DB(), cond)
+	db := minipkg_gorm.Conditions(r.db.DB(), cond)
 	if db.Error != nil {
 		return nil, nil, db.Error
 	}
@@ -305,7 +305,7 @@ func (r *RelationRepository) validateLinks(entity *entity_type.Relation) error {
 }
 
 func (r *RelationRepository) relationTypeDB() *gorm.DB {
-	return r.DB().Where(&property.Property{
+	return r.db.DB().Where(&property.Property{
 		PropertyTypeID: property_type.IDRelation,
 	})
 }

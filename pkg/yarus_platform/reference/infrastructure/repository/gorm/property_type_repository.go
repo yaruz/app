@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 
+	"github.com/yaruz/app/internal/pkg/apperror"
+
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_source"
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_view_type"
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
 
-	"github.com/yaruz/app/internal/pkg/apperror"
 	"gorm.io/gorm"
 
 	minipkg_gorm "github.com/minipkg/db/gorm"
@@ -37,7 +38,7 @@ func NewPropertyTypeRepository(repository *repository, textSourceRepository text
 
 // Get reads the album with the specified ID from the database.
 func (r *PropertyTypeRepository) Get(ctx context.Context, id uint) (*property_type.PropertyType, error) {
-	return r.getTx(ctx, r.DB(), id)
+	return r.getTx(ctx, r.db.DB(), id)
 }
 
 func (r *PropertyTypeRepository) TGet(ctx context.Context, id uint, langID uint) (*property_type.PropertyType, error) {
@@ -72,7 +73,7 @@ func (r *PropertyTypeRepository) getTx(ctx context.Context, tx *gorm.DB, id uint
 }
 
 func (r *PropertyTypeRepository) First(ctx context.Context, entity *property_type.PropertyType) (*property_type.PropertyType, error) {
-	return r.firstTx(ctx, r.DB(), entity)
+	return r.firstTx(ctx, r.db.DB(), entity)
 }
 
 func (r *PropertyTypeRepository) TFirst(ctx context.Context, entity *property_type.PropertyType, langID uint) (*property_type.PropertyType, error) {
@@ -98,7 +99,7 @@ func (r *PropertyTypeRepository) firstTx(ctx context.Context, tx *gorm.DB, entit
 
 // Query retrieves the album records with the specified offset and limit from the database.
 func (r *PropertyTypeRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]property_type.PropertyType, error) {
-	return r.queryTx(ctx, r.DB(), cond)
+	return r.queryTx(ctx, r.db.DB(), cond)
 }
 
 func (r *PropertyTypeRepository) TQuery(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) ([]property_type.PropertyType, error) {
@@ -110,8 +111,8 @@ func (r *PropertyTypeRepository) TQuery(ctx context.Context, cond *selection_con
 			return err
 		}
 
-		for _, item := range items {
-			err = r.entityNameAndDescriptionInitTx(ctx, tx, &item, langID)
+		for i := range items {
+			err = r.entityNameAndDescriptionInitTx(ctx, tx, &items[i], langID)
 			if err != nil {
 				return err
 			}
@@ -143,7 +144,7 @@ func (r *PropertyTypeRepository) Count(ctx context.Context, cond *selection_cond
 	c := cond
 	c.Limit = 0
 	c.Offset = 0
-	db := minipkg_gorm.Conditions(r.DB(), cond)
+	db := minipkg_gorm.Conditions(r.db.DB(), cond)
 	if db.Error != nil {
 		return 0, db.Error
 	}
@@ -190,8 +191,8 @@ func (r *PropertyTypeRepository) Update(ctx context.Context, entity *property_ty
 func (r *PropertyTypeRepository) TUpdate(ctx context.Context, entity *property_type.PropertyType, langID uint) (err error) {
 
 	return r.db.DB().Transaction(func(tx *gorm.DB) error {
-		if entity.ID > 0 {
-			return errors.New("entity is not new")
+		if entity.ID == 0 {
+			return errors.New("entity is new")
 		}
 
 		if entity.NameSourceID, err = r.textSourceRepository.UpdateValueTx(ctx, tx, entity.NameSourceID, entity.Name, langID); err != nil {
@@ -213,6 +214,17 @@ func (r *PropertyTypeRepository) saveTx(ctx context.Context, tx *gorm.DB, entity
 // Delete (soft) deletes a record in the database.
 func (r *PropertyTypeRepository) Delete(ctx context.Context, entity *property_type.PropertyType) error {
 	return r.db.DB().Transaction(func(tx *gorm.DB) error {
+		if err := r.unbindAllPropertyViewTypesTx(ctx, tx, entity); err != nil {
+			return err
+		}
+
+		if err := tx.Delete(r.model, entity.ID).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return apperror.ErrNotFound
+			}
+			return err
+		}
+
 		if entity.NameSourceID != nil {
 			if err := r.textSourceRepository.DeleteTx(ctx, tx, *entity.NameSourceID); err != nil {
 				return err
@@ -222,12 +234,6 @@ func (r *PropertyTypeRepository) Delete(ctx context.Context, entity *property_ty
 		if entity.DescriptionSourceID != nil {
 			if err := r.textSourceRepository.DeleteTx(ctx, tx, *entity.DescriptionSourceID); err != nil {
 				return err
-			}
-		}
-
-		if err := tx.Delete(r.model, entity.ID).Error; err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return apperror.ErrNotFound
 			}
 		}
 		return nil
@@ -244,4 +250,8 @@ func (r *PropertyTypeRepository) BindPropertyViewType(ctx context.Context, entit
 
 func (r *PropertyTypeRepository) UnbindPropertyViewType(ctx context.Context, entity *property_type.PropertyType, viewTypeID uint) error {
 	return r.db.DB().Model(entity).Association("PropertyViewTypes").Delete(&property_view_type.PropertyViewType{ID: viewTypeID})
+}
+
+func (r *PropertyTypeRepository) unbindAllPropertyViewTypesTx(ctx context.Context, tx *gorm.DB, entity *property_type.PropertyType) error {
+	return tx.Model(entity).Association("PropertyViewTypes").Clear()
 }

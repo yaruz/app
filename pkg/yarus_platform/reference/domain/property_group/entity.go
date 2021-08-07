@@ -3,9 +3,9 @@ package property_group
 import (
 	"time"
 
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/sysname"
-
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/sysname"
+	"gorm.io/gorm"
 )
 
 const (
@@ -15,16 +15,16 @@ const (
 
 // PropertyGroup ...
 type PropertyGroup struct {
-	ID                  uint       `gorm:"type:bigserial;primaryKey" json:"id"`
-	Sysname             string     `gorm:"type:varchar(100) not null;unique;index" json:"sysname"`
-	NameSourceID        *uint      `gorm:"type:bigint null REFERENCES \"text_source\"(id);index" json:"-"`
-	DescriptionSourceID *uint      `gorm:"type:bigint null REFERENCES \"text_source\"(id);index" json:"-"`
-	SortOrder           uint       `gorm:"type:smallint;not null;default:9999" json:"sortOrder"`
-	Name                *string    `gorm:"-" json:"name"`
-	Description         *string    `gorm:"-" json:"description"`
-	CreatedAt           time.Time  `json:"createdAt"`
-	UpdatedAt           time.Time  `json:"updatedAt"`
-	DeletedAt           *time.Time `gorm:"index" json:"deletedAt,omitempty"`
+	ID                  uint           `gorm:"type:bigserial;primaryKey" json:"id"`
+	Sysname             string         `gorm:"type:varchar(100) not null;unique;index" json:"sysname"`
+	NameSourceID        *uint          `gorm:"type:bigint null REFERENCES \"text_source\"(id);index" json:"-"`
+	DescriptionSourceID *uint          `gorm:"type:bigint null REFERENCES \"text_source\"(id);index" json:"-"`
+	SortOrder           uint           `gorm:"type:smallint;not null;default:9999" json:"sortOrder"`
+	Name                *string        `gorm:"-" json:"name"`
+	Description         *string        `gorm:"-" json:"description"`
+	CreatedAt           time.Time      `json:"createdAt"`
+	UpdatedAt           time.Time      `json:"updatedAt"`
+	DeletedAt           gorm.DeletedAt `gorm:"index" json:"deletedAt,omitempty"`
 }
 
 func (e *PropertyGroup) TableName() string {

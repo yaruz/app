@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
+	"gorm.io/gorm"
 )
 
 const (
@@ -19,7 +20,7 @@ type EntityType2Property struct {
 	EntityType   *entity_type.EntityType `json:"entityType"`
 	CreatedAt    time.Time               `json:"createdAt"`
 	UpdatedAt    time.Time               `json:"updatedAt"`
-	DeletedAt    *time.Time              `gorm:"index" json:"deletedAt,omitempty"`
+	DeletedAt    gorm.DeletedAt          `gorm:"index" json:"deletedAt,omitempty"`
 }
 
 func (e *EntityType2Property) TableName() string {

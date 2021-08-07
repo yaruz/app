@@ -19,7 +19,7 @@ type IService interface {
 	Create(ctx context.Context, entity *TextValue) error
 	Update(ctx context.Context, entity *TextValue) error
 	Save(ctx context.Context, entity *TextValue) error
-	Delete(ctx context.Context, id uint) error
+	Delete(ctx context.Context, entity *TextValue) error
 }
 
 type service struct {
@@ -98,10 +98,10 @@ func (s *service) Save(ctx context.Context, entity *TextValue) error {
 	return nil
 }
 
-func (s *service) Delete(ctx context.Context, id uint) error {
-	err := s.repository.Delete(ctx, id)
+func (s *service) Delete(ctx context.Context, entity *TextValue) error {
+	err := s.repository.Delete(ctx, entity)
 	if err != nil {
-		return errors.Wrapf(err, "Can not delete an entity by ID: %v", id)
+		return errors.Wrapf(err, "Can not delete an entity: %v", entity)
 	}
 	return nil
 }

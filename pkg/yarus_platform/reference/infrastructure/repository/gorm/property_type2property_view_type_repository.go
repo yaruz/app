@@ -31,7 +31,7 @@ func NewPropertyType2PropertyViewTypeRepository(repository *repository) (*Proper
 func (r *PropertyType2PropertyViewTypeRepository) Get(ctx context.Context, id uint) (*property_type2property_view_type.PropertyType2PropertyViewType, error) {
 	entity := &property_type2property_view_type.PropertyType2PropertyViewType{}
 
-	err := r.DB().First(entity, id).Error
+	err := r.db.DB().First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -42,7 +42,7 @@ func (r *PropertyType2PropertyViewTypeRepository) Get(ctx context.Context, id ui
 }
 
 func (r *PropertyType2PropertyViewTypeRepository) First(ctx context.Context, entity *property_type2property_view_type.PropertyType2PropertyViewType) (*property_type2property_view_type.PropertyType2PropertyViewType, error) {
-	err := r.DB().Where(entity).First(entity).Error
+	err := r.db.DB().Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -55,7 +55,7 @@ func (r *PropertyType2PropertyViewTypeRepository) First(ctx context.Context, ent
 // Query retrieves the album records with the specified offset and limit from the database.
 func (r *PropertyType2PropertyViewTypeRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]property_type2property_view_type.PropertyType2PropertyViewType, error) {
 	items := []property_type2property_view_type.PropertyType2PropertyViewType{}
-	db := minipkg_gorm.Conditions(r.DB(), cond)
+	db := minipkg_gorm.Conditions(r.db.DB(), cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -75,7 +75,7 @@ func (r *PropertyType2PropertyViewTypeRepository) Count(ctx context.Context, con
 	c := cond
 	c.Limit = 0
 	c.Offset = 0
-	db := minipkg_gorm.Conditions(r.DB(), cond)
+	db := minipkg_gorm.Conditions(r.db.DB(), cond)
 	if db.Error != nil {
 		return 0, db.Error
 	}
@@ -100,12 +100,9 @@ func (r *PropertyType2PropertyViewTypeRepository) Save(ctx context.Context, enti
 }
 
 // Delete (soft) deletes a Maintenance record in the database.
-func (r *PropertyType2PropertyViewTypeRepository) Delete(ctx context.Context, propertyTypeID uint, propertyViewTypeID uint) error {
+func (r *PropertyType2PropertyViewTypeRepository) Delete(ctx context.Context, entity *property_type2property_view_type.PropertyType2PropertyViewType) error {
 
-	err := r.db.DB().Delete(r.model, &property_type2property_view_type.PropertyType2PropertyViewType{
-		PropertyTypeID:     propertyTypeID,
-		PropertyViewTypeID: propertyViewTypeID,
-	}).Error
+	err := r.db.DB().Delete(r.model, entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apperror.ErrNotFound

@@ -8,7 +8,7 @@ require (
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/go-redis/redis/v8 v8.8.0
 	github.com/golang/protobuf v1.4.3
-	github.com/minipkg/db v0.0.13
+	github.com/minipkg/db v0.0.14
 	github.com/minipkg/log v0.0.1
 	github.com/minipkg/ozzo_routing v0.0.1
 	github.com/minipkg/pagination v0.0.0-20210401162640-c2a831d2cca4

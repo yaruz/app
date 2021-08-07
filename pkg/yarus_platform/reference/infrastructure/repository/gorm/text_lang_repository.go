@@ -31,7 +31,7 @@ func NewTextLangRepository(repository *repository) (*TextLangRepository, error) 
 func (r *TextLangRepository) Get(ctx context.Context, id uint) (*text_lang.TextLang, error) {
 	entity := &text_lang.TextLang{}
 
-	err := r.DB().First(entity, id).Error
+	err := r.db.DB().First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -42,7 +42,7 @@ func (r *TextLangRepository) Get(ctx context.Context, id uint) (*text_lang.TextL
 }
 
 func (r *TextLangRepository) First(ctx context.Context, entity *text_lang.TextLang) (*text_lang.TextLang, error) {
-	err := r.DB().Where(entity).First(entity).Error
+	err := r.db.DB().Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -55,7 +55,7 @@ func (r *TextLangRepository) First(ctx context.Context, entity *text_lang.TextLa
 // Query retrieves the album records with the specified offset and limit from the database.
 func (r *TextLangRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]text_lang.TextLang, error) {
 	items := []text_lang.TextLang{}
-	db := minipkg_gorm.Conditions(r.DB(), cond)
+	db := minipkg_gorm.Conditions(r.db.DB(), cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -75,7 +75,7 @@ func (r *TextLangRepository) Count(ctx context.Context, cond *selection_conditio
 	c := cond
 	c.Limit = 0
 	c.Offset = 0
-	db := minipkg_gorm.Conditions(r.DB(), cond)
+	db := minipkg_gorm.Conditions(r.db.DB(), cond)
 	if db.Error != nil {
 		return 0, db.Error
 	}

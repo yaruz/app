@@ -20,8 +20,11 @@ type Repository interface {
 	QueryTx(ctx context.Context, tx *gorm.DB, cond *selection_condition.SelectionCondition) ([]TextValue, error)
 	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error)
 	Create(ctx context.Context, entity *TextValue) error
+	CreateTx(ctx context.Context, tx *gorm.DB, entity *TextValue) error
 	Update(ctx context.Context, entity *TextValue) error
+	UpdateTx(ctx context.Context, tx *gorm.DB, entity *TextValue) error
 	Save(ctx context.Context, entity *TextValue) error
-	Delete(ctx context.Context, id uint) error
+	Delete(ctx context.Context, entity *TextValue) error
+	DeleteTx(ctx context.Context, tx *gorm.DB, entity *TextValue) error
 	GetValuesTx(ctx context.Context, tx *gorm.DB, langID uint, sourceIDs ...*uint) ([]*string, error)
 }

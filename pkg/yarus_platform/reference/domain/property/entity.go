@@ -5,18 +5,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/sysname"
-
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/pkg/errors"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_group"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_unit"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_view_type"
-
-	"github.com/pkg/errors"
-
-	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
-
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/sysname"
 	"gorm.io/datatypes"
+	"gorm.io/gorm"
 )
 
 const (
@@ -48,9 +45,9 @@ type Property struct {
 	PropertyUnit        *property_unit.PropertyUnit          `json:"propertyUnit"`
 	PropertyGroup       *property_group.PropertyGroup        `json:"propertyGroup"`
 
-	CreatedAt time.Time  `json:"createdAt"`
-	UpdatedAt time.Time  `json:"updatedAt"`
-	DeletedAt *time.Time `gorm:"index" json:"deletedAt,omitempty"`
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deletedAt,omitempty"`
 }
 
 func (e *Property) TableName() string {

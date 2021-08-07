@@ -3,11 +3,10 @@ package property_type
 import (
 	"time"
 
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/sysname"
-
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_view_type"
-
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_view_type"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/sysname"
+	"gorm.io/gorm"
 )
 
 const (
@@ -55,7 +54,7 @@ type PropertyType struct {
 	PropertyViewTypes   []property_view_type.PropertyViewType `gorm:"many2many:property_type2property_view_type;"`
 	CreatedAt           time.Time                             `json:"createdAt"`
 	UpdatedAt           time.Time                             `json:"updatedAt"`
-	DeletedAt           *time.Time                            `gorm:"index" json:"deletedAt,omitempty"`
+	DeletedAt           gorm.DeletedAt                        `gorm:"index" json:"deletedAt,omitempty"`
 }
 
 func (e *PropertyType) TableName() string {

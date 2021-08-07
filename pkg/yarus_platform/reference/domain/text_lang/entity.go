@@ -3,9 +3,9 @@ package text_lang
 import (
 	"time"
 
-	"github.com/go-ozzo/ozzo-validation/v4/is"
-
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
+	"gorm.io/gorm"
 )
 
 const (
@@ -15,12 +15,12 @@ const (
 
 // TextLang ...
 type TextLang struct {
-	ID        uint       `gorm:"type:smallserial;primaryKey" json:"id"`
-	Code      string     `gorm:"type:varchar(100) not null;unique;index" json:"code"`
-	Name      string     `gorm:"type:varchar(100) not null" json:"name"`
-	CreatedAt time.Time  `json:"createdAt"`
-	UpdatedAt time.Time  `json:"updatedAt"`
-	DeletedAt *time.Time `gorm:"index" json:"deletedAt,omitempty"`
+	ID        uint           `gorm:"type:smallserial;primaryKey" json:"id"`
+	Code      string         `gorm:"type:varchar(100) not null;unique;index" json:"code"`
+	Name      string         `gorm:"type:varchar(100) not null" json:"name"`
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deletedAt,omitempty"`
 }
 
 func (e *TextLang) TableName() string {

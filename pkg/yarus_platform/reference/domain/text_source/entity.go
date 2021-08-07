@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_value"
+	"gorm.io/gorm"
 )
 
 const (
@@ -17,9 +18,9 @@ type TextSource struct {
 	TextValue  *text_value.TextValue  `json:"textValue"`
 	TextValues []text_value.TextValue `json:"textValues"`
 
-	CreatedAt time.Time  `json:"createdAt"`
-	UpdatedAt time.Time  `json:"updatedAt"`
-	DeletedAt *time.Time `gorm:"index" json:"deletedAt,omitempty"`
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deletedAt,omitempty"`
 }
 
 func (e *TextSource) TableName() string {

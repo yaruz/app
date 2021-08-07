@@ -31,7 +31,7 @@ func NewPropertyViewTypeRepository(repository *repository) (*PropertyViewTypeRep
 func (r *PropertyViewTypeRepository) Get(ctx context.Context, id uint) (*property_view_type.PropertyViewType, error) {
 	entity := &property_view_type.PropertyViewType{}
 
-	err := r.DB().First(entity, id).Error
+	err := r.db.DB().First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -42,7 +42,7 @@ func (r *PropertyViewTypeRepository) Get(ctx context.Context, id uint) (*propert
 }
 
 func (r *PropertyViewTypeRepository) First(ctx context.Context, entity *property_view_type.PropertyViewType) (*property_view_type.PropertyViewType, error) {
-	err := r.DB().Where(entity).First(entity).Error
+	err := r.db.DB().Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -55,7 +55,7 @@ func (r *PropertyViewTypeRepository) First(ctx context.Context, entity *property
 // Query retrieves the album records with the specified offset and limit from the database.
 func (r *PropertyViewTypeRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]property_view_type.PropertyViewType, error) {
 	items := []property_view_type.PropertyViewType{}
-	db := minipkg_gorm.Conditions(r.DB(), cond)
+	db := minipkg_gorm.Conditions(r.db.DB(), cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -75,7 +75,7 @@ func (r *PropertyViewTypeRepository) Count(ctx context.Context, cond *selection_
 	c := cond
 	c.Limit = 0
 	c.Offset = 0
-	db := minipkg_gorm.Conditions(r.DB(), cond)
+	db := minipkg_gorm.Conditions(r.db.DB(), cond)
 	if db.Error != nil {
 		return 0, db.Error
 	}

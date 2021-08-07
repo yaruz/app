@@ -34,7 +34,7 @@ func NewEntityTypeRepository(repository *repository, entityType2PropertyReposito
 func (r *EntityTypeRepository) Get(ctx context.Context, id uint) (*entity_type.EntityType, error) {
 	entity := &entity_type.EntityType{}
 
-	err := r.DB().First(entity, id).Error
+	err := r.db.DB().First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -45,7 +45,7 @@ func (r *EntityTypeRepository) Get(ctx context.Context, id uint) (*entity_type.E
 }
 
 func (r *EntityTypeRepository) First(ctx context.Context, entity *entity_type.EntityType) (*entity_type.EntityType, error) {
-	err := r.DB().Where(entity).First(entity).Error
+	err := r.db.DB().Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -58,7 +58,7 @@ func (r *EntityTypeRepository) First(ctx context.Context, entity *entity_type.En
 // Query retrieves the album records with the specified offset and limit from the database.
 func (r *EntityTypeRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]entity_type.EntityType, error) {
 	items := []entity_type.EntityType{}
-	db := minipkg_gorm.Conditions(r.DB(), cond)
+	db := minipkg_gorm.Conditions(r.db.DB(), cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -78,7 +78,7 @@ func (r *EntityTypeRepository) Count(ctx context.Context, cond *selection_condit
 	c := cond
 	c.Limit = 0
 	c.Offset = 0
-	db := minipkg_gorm.Conditions(r.DB(), cond)
+	db := minipkg_gorm.Conditions(r.db.DB(), cond)
 	if db.Error != nil {
 		return 0, db.Error
 	}
