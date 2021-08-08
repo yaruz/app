@@ -4,20 +4,14 @@ import (
 	"context"
 	"errors"
 
-	"github.com/yaruz/app/internal/pkg/apperror"
-
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_source"
-
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_view_type"
-
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
-
-	"gorm.io/gorm"
-
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/selection_condition"
-
+	"github.com/yaruz/app/internal/pkg/apperror"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_view_type"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_source"
 	"github.com/yaruz/app/pkg/yarus_platform/yaruzerror"
+	"gorm.io/gorm"
 )
 
 // PropertyTypeRepository is a repository for the model entity
