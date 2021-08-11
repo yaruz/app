@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_source"
+
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type2property"
@@ -21,20 +23,29 @@ import (
 type EntityTypeRepository struct {
 	repository
 	entityType2PropertyRepository entity_type2property.Repository
+	textSourceRepository          text_source.Repository
 }
 
 var _ entity_type.Repository = (*EntityTypeRepository)(nil)
 
 // New creates a new EntityTypeRepository
-func NewEntityTypeRepository(repository *repository, entityType2PropertyRepository *entity_type2property.Repository) (*EntityTypeRepository, error) {
-	return &EntityTypeRepository{repository: *repository, entityType2PropertyRepository: *entityType2PropertyRepository}, nil
+func NewEntityTypeRepository(repository *repository, entityType2PropertyRepository *entity_type2property.Repository, textSourceRepository text_source.Repository) (*EntityTypeRepository, error) {
+	return &EntityTypeRepository{
+		repository:                    *repository,
+		entityType2PropertyRepository: *entityType2PropertyRepository,
+		textSourceRepository:          textSourceRepository,
+	}, nil
 }
 
 // Get reads the album with the specified ID from the database.
 func (r *EntityTypeRepository) Get(ctx context.Context, id uint) (*entity_type.EntityType, error) {
+	return r.getTx(ctx, r.db.DB(), id)
+}
+
+func (r *EntityTypeRepository) getTx(ctx context.Context, tx *gorm.DB, id uint) (*entity_type.EntityType, error) {
 	entity := &entity_type.EntityType{}
 
-	err := r.db.DB().First(entity, id).Error
+	err := tx.First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -45,7 +56,11 @@ func (r *EntityTypeRepository) Get(ctx context.Context, id uint) (*entity_type.E
 }
 
 func (r *EntityTypeRepository) First(ctx context.Context, entity *entity_type.EntityType) (*entity_type.EntityType, error) {
-	err := r.db.DB().Where(entity).First(entity).Error
+	return r.firstTx(ctx, r.db.DB(), entity)
+}
+
+func (r *EntityTypeRepository) firstTx(ctx context.Context, tx *gorm.DB, entity *entity_type.EntityType) (*entity_type.EntityType, error) {
+	err := tx.Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -71,6 +86,13 @@ func (r *EntityTypeRepository) Query(ctx context.Context, cond *selection_condit
 		return nil, err
 	}
 	return items, err
+}
+
+func (r *EntityTypeRepository) entityNameAndDescriptionInitTx(ctx context.Context, tx *gorm.DB, entity *entity_type.EntityType, langID uint) error {
+	s, err := r.textSourceRepository.GetValuesTx(ctx, tx, langID, entity.NameSourceID, entity.DescriptionSourceID)
+	entity.Name = s[0]
+	entity.Description = s[1]
+	return err
 }
 
 func (r *EntityTypeRepository) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error) {

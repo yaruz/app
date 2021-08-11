@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_source"
+
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
 
 	"github.com/yaruz/app/internal/pkg/apperror"
@@ -18,20 +20,28 @@ import (
 // PropertyRepository is a repository for the model entity
 type PropertyRepository struct {
 	repository
+	textSourceRepository text_source.Repository
 }
 
 var _ property.Repository = (*PropertyRepository)(nil)
 
 // New creates a new PropertyRepository
-func NewPropertyRepository(repository *repository) (*PropertyRepository, error) {
-	return &PropertyRepository{repository: *repository}, nil
+func NewPropertyRepository(repository *repository, textSourceRepository text_source.Repository) (*PropertyRepository, error) {
+	return &PropertyRepository{
+		repository:           *repository,
+		textSourceRepository: textSourceRepository,
+	}, nil
 }
 
 // Get reads the album with the specified ID from the database.
 func (r *PropertyRepository) Get(ctx context.Context, id uint) (*property.Property, error) {
+	return r.getTx(ctx, r.db.DB(), id)
+}
+
+func (r *PropertyRepository) getTx(ctx context.Context, tx *gorm.DB, id uint) (*property.Property, error) {
 	entity := &property.Property{}
 
-	err := r.joins(r.db.DB()).First(entity, id).Error
+	err := r.joins(tx).First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -47,7 +57,11 @@ func (r *PropertyRepository) Get(ctx context.Context, id uint) (*property.Proper
 }
 
 func (r *PropertyRepository) First(ctx context.Context, entity *property.Property) (*property.Property, error) {
-	err := r.joins(r.db.DB()).Where(entity).First(entity).Error
+	return r.firstTx(ctx, r.db.DB(), entity)
+}
+
+func (r *PropertyRepository) firstTx(ctx context.Context, tx *gorm.DB, entity *property.Property) (*property.Property, error) {
+	err := r.joins(tx).Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -85,6 +99,13 @@ func (r *PropertyRepository) Query(ctx context.Context, cond *selection_conditio
 	}
 
 	return items, err
+}
+
+func (r *PropertyRepository) entityNameAndDescriptionInitTx(ctx context.Context, tx *gorm.DB, entity *property.Property, langID uint) error {
+	s, err := r.textSourceRepository.GetValuesTx(ctx, tx, langID, entity.NameSourceID, entity.DescriptionSourceID)
+	entity.Name = s[0]
+	entity.Description = s[1]
+	return err
 }
 
 func (r *PropertyRepository) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error) {

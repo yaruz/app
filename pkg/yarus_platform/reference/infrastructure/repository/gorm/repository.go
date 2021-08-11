@@ -45,6 +45,14 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 		logger: logger,
 	}
 	ctx := context.Background()
+	var textSourceRepository text_source.Repository
+
+	switch entityName {
+	case entity_type.EntityName, property.EntityName, property_type.EntityName, property_view_type.EntityName, property_unit.EntityName, property_group.EntityName:
+		if textSourceRepository, err = r.getTextSourceRepository(logger, dbase); err != nil {
+			return nil, err
+		}
+	}
 
 	switch entityName {
 	case entity_type2property.EntityName:
@@ -69,21 +77,21 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 		if r.db, err = dbase.SchemeInitWithContext(ctx, r.model); err != nil {
 			return nil, err
 		}
-		repo, err = NewEntityTypeRepository(r, &entityType2PropertyRepository)
+		repo, err = NewEntityTypeRepository(r, &entityType2PropertyRepository, textSourceRepository)
 	case property_group.EntityName:
 		r.model = property_group.New()
 
 		if r.db, err = dbase.SchemeInitWithContext(ctx, r.model); err != nil {
 			return nil, err
 		}
-		repo, err = NewPropertyGroupRepository(r)
+		repo, err = NewPropertyGroupRepository(r, textSourceRepository)
 	case property.EntityName:
 		r.model = property.New()
 
 		if r.db, err = dbase.SchemeInitWithContext(ctx, r.model); err != nil {
 			return nil, err
 		}
-		repo, err = NewPropertyRepository(r)
+		repo, err = NewPropertyRepository(r, textSourceRepository)
 	case property_type2property_view_type.EntityName:
 		r.model = property_type2property_view_type.New()
 
@@ -92,11 +100,6 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 		}
 		repo, err = NewPropertyType2PropertyViewTypeRepository(r)
 	case property_type.EntityName:
-		textSourceRepository, err := r.getTextSourceRepository(logger, dbase)
-		if err != nil {
-			return nil, err
-		}
-
 		r.model = property_type.New()
 
 		if r.db, err = dbase.SchemeInitWithContext(ctx, r.model); err != nil {
@@ -109,14 +112,14 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 		if r.db, err = dbase.SchemeInitWithContext(ctx, r.model); err != nil {
 			return nil, err
 		}
-		repo, err = NewPropertyUnitRepository(r)
+		repo, err = NewPropertyUnitRepository(r, textSourceRepository)
 	case property_view_type.EntityName:
 		r.model = property_view_type.New()
 
 		if r.db, err = dbase.SchemeInitWithContext(ctx, r.model); err != nil {
 			return nil, err
 		}
-		repo, err = NewPropertyViewTypeRepository(r)
+		repo, err = NewPropertyViewTypeRepository(r, textSourceRepository)
 	case text_source.EntityName:
 		textValueRepo, err := GetRepository(logger, dbase, text_value.EntityName)
 		if err != nil {
@@ -162,7 +165,7 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 		if r.db, err = dbase.SchemeInitWithContext(ctx, r.model); err != nil {
 			return nil, err
 		}
-		repo, err = NewRelationRepository(r, &entityType2PropertyRepository)
+		repo, err = NewRelationRepository(r, &entityType2PropertyRepository, textSourceRepository)
 	default:
 		err = errors.Errorf("Repository for entity %q not found", entityName)
 	}

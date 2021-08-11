@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_source"
+
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_view_type"
 
 	"github.com/yaruz/app/internal/pkg/apperror"
@@ -18,20 +20,28 @@ import (
 // PropertyViewTypeRepository is a repository for the model entity
 type PropertyViewTypeRepository struct {
 	repository
+	textSourceRepository text_source.Repository
 }
 
 var _ property_view_type.Repository = (*PropertyViewTypeRepository)(nil)
 
 // New creates a new PropertyViewTypeRepository
-func NewPropertyViewTypeRepository(repository *repository) (*PropertyViewTypeRepository, error) {
-	return &PropertyViewTypeRepository{repository: *repository}, nil
+func NewPropertyViewTypeRepository(repository *repository, textSourceRepository text_source.Repository) (*PropertyViewTypeRepository, error) {
+	return &PropertyViewTypeRepository{
+		repository:           *repository,
+		textSourceRepository: textSourceRepository,
+	}, nil
 }
 
 // Get reads the album with the specified ID from the database.
 func (r *PropertyViewTypeRepository) Get(ctx context.Context, id uint) (*property_view_type.PropertyViewType, error) {
+	return r.getTx(ctx, r.db.DB(), id)
+}
+
+func (r *PropertyViewTypeRepository) getTx(ctx context.Context, tx *gorm.DB, id uint) (*property_view_type.PropertyViewType, error) {
 	entity := &property_view_type.PropertyViewType{}
 
-	err := r.db.DB().First(entity, id).Error
+	err := tx.First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -42,7 +52,11 @@ func (r *PropertyViewTypeRepository) Get(ctx context.Context, id uint) (*propert
 }
 
 func (r *PropertyViewTypeRepository) First(ctx context.Context, entity *property_view_type.PropertyViewType) (*property_view_type.PropertyViewType, error) {
-	err := r.db.DB().Where(entity).First(entity).Error
+	return r.firstTx(ctx, r.db.DB(), entity)
+}
+
+func (r *PropertyViewTypeRepository) firstTx(ctx context.Context, tx *gorm.DB, entity *property_view_type.PropertyViewType) (*property_view_type.PropertyViewType, error) {
+	err := tx.Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -68,6 +82,13 @@ func (r *PropertyViewTypeRepository) Query(ctx context.Context, cond *selection_
 		return nil, err
 	}
 	return items, err
+}
+
+func (r *PropertyViewTypeRepository) entityNameAndDescriptionInitTx(ctx context.Context, tx *gorm.DB, entity *property_view_type.PropertyViewType, langID uint) error {
+	s, err := r.textSourceRepository.GetValuesTx(ctx, tx, langID, entity.NameSourceID, entity.DescriptionSourceID)
+	entity.Name = s[0]
+	entity.Description = s[1]
+	return err
 }
 
 func (r *PropertyViewTypeRepository) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error) {

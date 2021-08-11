@@ -3,6 +3,8 @@ package gorm
 import (
 	"context"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_source"
+
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
 
 	"github.com/yaruz/app/internal/pkg/apperror"
@@ -22,20 +24,29 @@ import (
 type RelationRepository struct {
 	repository
 	entityType2PropertyRepository entity_type2property.Repository
+	textSourceRepository          text_source.Repository
 }
 
 var _ entity_type.RelationRepository = (*RelationRepository)(nil)
 
 // New creates a new RelationRepository
-func NewRelationRepository(repository *repository, entityType2PropertyRepository *entity_type2property.Repository) (*RelationRepository, error) {
-	return &RelationRepository{repository: *repository, entityType2PropertyRepository: *entityType2PropertyRepository}, nil
+func NewRelationRepository(repository *repository, entityType2PropertyRepository *entity_type2property.Repository, textSourceRepository text_source.Repository) (*RelationRepository, error) {
+	return &RelationRepository{
+		repository:                    *repository,
+		entityType2PropertyRepository: *entityType2PropertyRepository,
+		textSourceRepository:          textSourceRepository,
+	}, nil
 }
 
 // Get reads the album with the specified ID from the database.
 func (r *RelationRepository) Get(ctx context.Context, id uint) (*entity_type.Relation, error) {
+	return r.getTx(ctx, r.db.DB(), id)
+}
+
+func (r *RelationRepository) getTx(ctx context.Context, tx *gorm.DB, id uint) (*entity_type.Relation, error) {
 	entity := &entity_type.Relation{}
 
-	err := r.joins(r.relationTypeDB()).First(entity, id).Error
+	err := r.joins(r.propertyTypeRelationTx(tx)).First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -51,7 +62,11 @@ func (r *RelationRepository) Get(ctx context.Context, id uint) (*entity_type.Rel
 }
 
 func (r *RelationRepository) First(ctx context.Context, entity *entity_type.Relation) (*entity_type.Relation, error) {
-	err := r.joins(r.relationTypeDB()).Where(entity).First(entity).Error
+	return r.firstTx(ctx, r.db.DB(), entity)
+}
+
+func (r *RelationRepository) firstTx(ctx context.Context, tx *gorm.DB, entity *entity_type.Relation) (*entity_type.Relation, error) {
+	err := r.joins(r.propertyTypeRelationTx(tx)).Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -69,7 +84,7 @@ func (r *RelationRepository) First(ctx context.Context, entity *entity_type.Rela
 // Query retrieves the album records with the specified offset and limit from the database.
 func (r *RelationRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]entity_type.Relation, error) {
 	items := []entity_type.Relation{}
-	db := minipkg_gorm.Conditions(r.relationTypeDB(), cond)
+	db := minipkg_gorm.Conditions(r.propertyTypeRelationTx(r.db.DB()), cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -159,7 +174,7 @@ func (r *RelationRepository) Count(ctx context.Context, cond *selection_conditio
 	c := cond
 	c.Limit = 0
 	c.Offset = 0
-	db := minipkg_gorm.Conditions(r.relationTypeDB(), cond)
+	db := minipkg_gorm.Conditions(r.propertyTypeRelationTx(r.db.DB()), cond)
 	if db.Error != nil {
 		return 0, db.Error
 	}
@@ -178,6 +193,13 @@ func (r *RelationRepository) AfterFind(ctx context.Context, entity *entity_type.
 		return err
 	}
 	return nil
+}
+
+func (r *RelationRepository) entityNameAndDescriptionInitTx(ctx context.Context, tx *gorm.DB, entity *entity_type.Relation, langID uint) error {
+	s, err := r.textSourceRepository.GetValuesTx(ctx, tx, langID, entity.NameSourceID, entity.DescriptionSourceID)
+	entity.Name = s[0]
+	entity.Description = s[1]
+	return err
 }
 
 func (r *RelationRepository) InitRelatedEntityTypes(ctx context.Context, entity *entity_type.Relation) error {
@@ -304,8 +326,8 @@ func (r *RelationRepository) validateLinks(entity *entity_type.Relation) error {
 	return nil
 }
 
-func (r *RelationRepository) relationTypeDB() *gorm.DB {
-	return r.db.DB().Where(&property.Property{
+func (r *RelationRepository) propertyTypeRelationTx(tx *gorm.DB) *gorm.DB {
+	return tx.Where(&property.Property{
 		PropertyTypeID: property_type.IDRelation,
 	})
 }

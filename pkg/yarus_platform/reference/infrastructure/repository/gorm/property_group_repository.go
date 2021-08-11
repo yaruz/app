@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_source"
+
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_group"
 
 	"github.com/yaruz/app/internal/pkg/apperror"
@@ -18,20 +20,28 @@ import (
 // PropertyGroupRepository is a repository for the model entity
 type PropertyGroupRepository struct {
 	repository
+	textSourceRepository text_source.Repository
 }
 
 var _ property_group.Repository = (*PropertyGroupRepository)(nil)
 
 // New creates a new PropertyGroupRepository
-func NewPropertyGroupRepository(repository *repository) (*PropertyGroupRepository, error) {
-	return &PropertyGroupRepository{repository: *repository}, nil
+func NewPropertyGroupRepository(repository *repository, textSourceRepository text_source.Repository) (*PropertyGroupRepository, error) {
+	return &PropertyGroupRepository{
+		repository:           *repository,
+		textSourceRepository: textSourceRepository,
+	}, nil
 }
 
 // Get reads the album with the specified ID from the database.
 func (r *PropertyGroupRepository) Get(ctx context.Context, id uint) (*property_group.PropertyGroup, error) {
+	return r.getTx(ctx, r.db.DB(), id)
+}
+
+func (r *PropertyGroupRepository) getTx(ctx context.Context, tx *gorm.DB, id uint) (*property_group.PropertyGroup, error) {
 	entity := &property_group.PropertyGroup{}
 
-	err := r.db.DB().First(entity, id).Error
+	err := tx.First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -42,7 +52,11 @@ func (r *PropertyGroupRepository) Get(ctx context.Context, id uint) (*property_g
 }
 
 func (r *PropertyGroupRepository) First(ctx context.Context, entity *property_group.PropertyGroup) (*property_group.PropertyGroup, error) {
-	err := r.db.DB().Where(entity).First(entity).Error
+	return r.firstTx(ctx, r.db.DB(), entity)
+}
+
+func (r *PropertyGroupRepository) firstTx(ctx context.Context, tx *gorm.DB, entity *property_group.PropertyGroup) (*property_group.PropertyGroup, error) {
+	err := tx.Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -68,6 +82,13 @@ func (r *PropertyGroupRepository) Query(ctx context.Context, cond *selection_con
 		return nil, err
 	}
 	return items, err
+}
+
+func (r *PropertyGroupRepository) entityNameAndDescriptionInitTx(ctx context.Context, tx *gorm.DB, entity *property_group.PropertyGroup, langID uint) error {
+	s, err := r.textSourceRepository.GetValuesTx(ctx, tx, langID, entity.NameSourceID, entity.DescriptionSourceID)
+	entity.Name = s[0]
+	entity.Description = s[1]
+	return err
 }
 
 func (r *PropertyGroupRepository) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error) {
