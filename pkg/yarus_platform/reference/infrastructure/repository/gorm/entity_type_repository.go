@@ -42,6 +42,17 @@ func (r *EntityTypeRepository) Get(ctx context.Context, id uint) (*entity_type.E
 	return r.getTx(ctx, r.db.DB(), id)
 }
 
+func (r *EntityTypeRepository) TGet(ctx context.Context, id uint, langID uint) (*entity_type.EntityType, error) {
+	var entity *entity_type.EntityType
+	err := r.db.DB().Transaction(func(tx *gorm.DB) error {
+		var err error
+		entity, err = r.getTx(ctx, tx, id)
+		r.entityNameAndDescriptionInitTx(ctx, tx, entity, langID)
+		return err
+	})
+	return entity, err
+}
+
 func (r *EntityTypeRepository) getTx(ctx context.Context, tx *gorm.DB, id uint) (*entity_type.EntityType, error) {
 	entity := &entity_type.EntityType{}
 
@@ -59,6 +70,16 @@ func (r *EntityTypeRepository) First(ctx context.Context, entity *entity_type.En
 	return r.firstTx(ctx, r.db.DB(), entity)
 }
 
+func (r *EntityTypeRepository) TFirst(ctx context.Context, entity *entity_type.EntityType, langID uint) (*entity_type.EntityType, error) {
+	err := r.db.DB().Transaction(func(tx *gorm.DB) error {
+		var err error
+		entity, err = r.firstTx(ctx, tx, entity)
+		r.entityNameAndDescriptionInitTx(ctx, tx, entity, langID)
+		return err
+	})
+	return entity, err
+}
+
 func (r *EntityTypeRepository) firstTx(ctx context.Context, tx *gorm.DB, entity *entity_type.EntityType) (*entity_type.EntityType, error) {
 	err := tx.Where(entity).First(entity).Error
 	if err != nil {
@@ -72,8 +93,32 @@ func (r *EntityTypeRepository) firstTx(ctx context.Context, tx *gorm.DB, entity 
 
 // Query retrieves the album records with the specified offset and limit from the database.
 func (r *EntityTypeRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]entity_type.EntityType, error) {
+	return r.queryTx(ctx, r.db.DB(), cond)
+}
+
+func (r *EntityTypeRepository) TQuery(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) ([]entity_type.EntityType, error) {
+	var items []entity_type.EntityType
+	err := r.db.DB().Transaction(func(tx *gorm.DB) error {
+		var err error
+		items, err = r.queryTx(ctx, tx, cond)
+		if err != nil {
+			return err
+		}
+
+		for i := range items {
+			err = r.entityNameAndDescriptionInitTx(ctx, tx, &items[i], langID)
+			if err != nil {
+				return err
+			}
+		}
+		return err
+	})
+	return items, err
+}
+
+func (r *EntityTypeRepository) queryTx(ctx context.Context, tx *gorm.DB, cond *selection_condition.SelectionCondition) ([]entity_type.EntityType, error) {
 	items := []entity_type.EntityType{}
-	db := minipkg_gorm.Conditions(r.db.DB(), cond)
+	db := minipkg_gorm.Conditions(tx, cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -116,6 +161,24 @@ func (r *EntityTypeRepository) Create(ctx context.Context, entity *entity_type.E
 		return errors.New("entity is not new")
 	}
 	return r.db.DB().Create(entity).Error
+}
+
+func (r *EntityTypeRepository) TCreate(ctx context.Context, entity *entity_type.EntityType, langID uint) (err error) {
+
+	return r.db.DB().Transaction(func(tx *gorm.DB) error {
+		if entity.ID > 0 {
+			return errors.New("entity is not new")
+		}
+
+		if entity.NameSourceID, err = r.textSourceRepository.CreateValueTx(ctx, tx, entity.Name, langID); err != nil {
+			return err
+		}
+
+		if entity.DescriptionSourceID, err = r.textSourceRepository.CreateValueTx(ctx, tx, entity.Description, langID); err != nil {
+			return err
+		}
+		return tx.Create(entity).Error
+	})
 }
 
 // Update saves a changed Maintenance record in the database.
