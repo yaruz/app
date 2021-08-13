@@ -17,6 +17,10 @@ type Repository interface {
 	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error)
 	Create(ctx context.Context, entity *Property) error
 	Update(ctx context.Context, entity *Property) error
-	Save(ctx context.Context, entity *Property) error
-	Delete(ctx context.Context, id uint) error
+	Delete(ctx context.Context, entity *Property) error
+	TGet(ctx context.Context, id uint, langID uint) (*Property, error)
+	TFirst(ctx context.Context, entity *Property, langID uint) (*Property, error)
+	TQuery(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) ([]Property, error)
+	TCreate(ctx context.Context, entity *Property, langID uint) (err error)
+	TUpdate(ctx context.Context, entity *Property, langID uint) (err error)
 }

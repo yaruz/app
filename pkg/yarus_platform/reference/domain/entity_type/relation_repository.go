@@ -19,8 +19,12 @@ type RelationRepository interface {
 	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error)
 	Create(ctx context.Context, entity *Relation) error
 	Update(ctx context.Context, entity *Relation) error
-	Save(ctx context.Context, entity *Relation) error
-	Delete(ctx context.Context, id uint) error
+	Delete(ctx context.Context, entity *Relation) error
+	TGet(ctx context.Context, id uint, langID uint) (*Relation, error)
+	TFirst(ctx context.Context, entity *Relation, langID uint) (*Relation, error)
+	TQuery(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) ([]Relation, error)
+	TCreate(ctx context.Context, entity *Relation, langID uint) (err error)
+	TUpdate(ctx context.Context, entity *Relation, langID uint) (err error)
 	PropertyAndRelationQuery(ctx context.Context, cond *selection_condition.SelectionCondition) ([]property.Property, []Relation, error)
 	GetPropertiesAndRelationsByEntityTypeID(ctx context.Context, entityTypeID uint) ([]property.Property, []Relation, error)
 }

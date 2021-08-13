@@ -200,7 +200,7 @@ func (r *PropertyTypeRepository) TUpdate(ctx context.Context, entity *property_t
 	})
 }
 
-// Save update value in database, if the value doesn't have primary key, will insert it
+// saveTx update value in database, if the value doesn't have primary key, will insert it
 func (r *PropertyTypeRepository) saveTx(ctx context.Context, tx *gorm.DB, entity *property_type.PropertyType) error {
 	return tx.Save(entity).Error
 }
@@ -230,6 +230,7 @@ func (r *PropertyTypeRepository) Delete(ctx context.Context, entity *property_ty
 				return err
 			}
 		}
+
 		return nil
 	})
 }

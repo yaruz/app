@@ -187,29 +187,59 @@ func (r *EntityTypeRepository) Update(ctx context.Context, entity *entity_type.E
 	if entity.ID == 0 {
 		return errors.New("entity is new")
 	}
-	return r.Save(ctx, entity)
+	return r.saveTx(ctx, r.db.DB(), entity)
 }
 
-// Save update value in database, if the value doesn't have primary key, will insert it
-func (r *EntityTypeRepository) Save(ctx context.Context, entity *entity_type.EntityType) error {
-	return r.db.DB().Save(entity).Error
-}
+func (r *EntityTypeRepository) TUpdate(ctx context.Context, entity *entity_type.EntityType, langID uint) (err error) {
 
-// Delete (soft) deletes a Maintenance record in the database.
-func (r *EntityTypeRepository) Delete(ctx context.Context, id uint) error {
 	return r.db.DB().Transaction(func(tx *gorm.DB) error {
-		if err := r.unbindAllPropertyTx(ctx, tx, id); err != nil {
+		if entity.ID == 0 {
+			return errors.New("entity is new")
+		}
+
+		if entity.NameSourceID, err = r.textSourceRepository.UpdateValueTx(ctx, tx, entity.NameSourceID, entity.Name, langID); err != nil {
 			return err
 		}
 
-		err := tx.Delete(r.model, id).Error
-		if err != nil {
+		if entity.DescriptionSourceID, err = r.textSourceRepository.UpdateValueTx(ctx, tx, entity.DescriptionSourceID, entity.Description, langID); err != nil {
+			return err
+		}
+		return r.saveTx(ctx, tx, entity)
+	})
+}
+
+// saveTx update value in database, if the value doesn't have primary key, will insert it
+func (r *EntityTypeRepository) saveTx(ctx context.Context, tx *gorm.DB, entity *entity_type.EntityType) error {
+	return tx.Save(entity).Error
+}
+
+// Delete (soft) deletes a Maintenance record in the database.
+func (r *EntityTypeRepository) Delete(ctx context.Context, entity *entity_type.EntityType) error {
+	return r.db.DB().Transaction(func(tx *gorm.DB) error {
+		if err := r.unbindAllPropertyTx(ctx, tx, entity.ID); err != nil {
+			return err
+		}
+
+		if err := tx.Delete(r.model, entity.ID).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return apperror.ErrNotFound
 			}
+			return err
 		}
 
-		return err
+		if entity.NameSourceID != nil {
+			if err := r.textSourceRepository.DeleteTx(ctx, tx, *entity.NameSourceID); err != nil {
+				return err
+			}
+		}
+
+		if entity.DescriptionSourceID != nil {
+			if err := r.textSourceRepository.DeleteTx(ctx, tx, *entity.DescriptionSourceID); err != nil {
+				return err
+			}
+		}
+
+		return nil
 	})
 }
 

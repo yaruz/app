@@ -206,29 +206,63 @@ func (r *PropertyRepository) Update(ctx context.Context, entity *property.Proper
 		return errors.New("entity is new")
 	}
 
-	return r.Save(ctx, entity)
+	return r.saveTx(ctx, r.db.DB(), entity)
 }
 
-// Save update value in database, if the value doesn't have primary key, will insert it
-func (r *PropertyRepository) Save(ctx context.Context, entity *property.Property) error {
+func (r *PropertyRepository) TUpdate(ctx context.Context, entity *property.Property, langID uint) (err error) {
+
+	return r.db.DB().Transaction(func(tx *gorm.DB) error {
+		if entity.ID == 0 {
+			return errors.New("entity is new")
+		}
+
+		if entity.NameSourceID, err = r.textSourceRepository.UpdateValueTx(ctx, tx, entity.NameSourceID, entity.Name, langID); err != nil {
+			return err
+		}
+
+		if entity.DescriptionSourceID, err = r.textSourceRepository.UpdateValueTx(ctx, tx, entity.DescriptionSourceID, entity.Description, langID); err != nil {
+			return err
+		}
+		return r.saveTx(ctx, tx, entity)
+	})
+}
+
+// saveTx update value in database, if the value doesn't have primary key, will insert it
+func (r *PropertyRepository) saveTx(ctx context.Context, tx *gorm.DB, entity *property.Property) error {
 
 	if err := entity.BeforeSave(); err != nil {
 		return err
 	}
 
-	return r.db.DB().Save(entity).Error
+	return tx.Save(entity).Error
 }
 
 // Delete (soft) deletes a Maintenance record in the database.
-func (r *PropertyRepository) Delete(ctx context.Context, id uint) error {
+func (r *PropertyRepository) Delete(ctx context.Context, entity *property.Property) error {
 
-	err := r.db.DB().Delete(r.model, id).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return apperror.ErrNotFound
+	return r.db.DB().Transaction(func(tx *gorm.DB) error {
+
+		if err := tx.Delete(r.model, entity.ID).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return apperror.ErrNotFound
+			}
+			return err
 		}
-	}
-	return err
+
+		if entity.NameSourceID != nil {
+			if err := r.textSourceRepository.DeleteTx(ctx, tx, *entity.NameSourceID); err != nil {
+				return err
+			}
+		}
+
+		if entity.DescriptionSourceID != nil {
+			if err := r.textSourceRepository.DeleteTx(ctx, tx, *entity.DescriptionSourceID); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
 
 func (r *PropertyRepository) joins(db *gorm.DB) *gorm.DB {

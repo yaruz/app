@@ -18,8 +18,11 @@ type IService interface {
 	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error)
 	Create(ctx context.Context, entity *PropertyViewType) error
 	Update(ctx context.Context, entity *PropertyViewType) error
-	Save(ctx context.Context, entity *PropertyViewType) error
-	Delete(ctx context.Context, id uint) error
+	Delete(ctx context.Context, entity *PropertyViewType) error
+	TGet(ctx context.Context, id uint, langID uint) (*PropertyViewType, error)
+	TQuery(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) ([]PropertyViewType, error)
+	TCreate(ctx context.Context, entity *PropertyViewType, langID uint) (err error)
+	TUpdate(ctx context.Context, entity *PropertyViewType, langID uint) (err error)
 }
 
 type service struct {
@@ -57,9 +60,25 @@ func (s *service) Get(ctx context.Context, id uint) (*PropertyViewType, error) {
 	return entity, nil
 }
 
+func (s *service) TGet(ctx context.Context, id uint, langID uint) (*PropertyViewType, error) {
+	entity, err := s.repository.TGet(ctx, id, langID)
+	if err != nil {
+		return nil, err
+	}
+	return entity, nil
+}
+
 // Query returns the items with the specified selection condition.
 func (s *service) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]PropertyViewType, error) {
 	items, err := s.repository.Query(ctx, cond)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Can not find a list of items by query: %v", cond)
+	}
+	return items, nil
+}
+
+func (s *service) TQuery(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) ([]PropertyViewType, error) {
+	items, err := s.repository.TQuery(ctx, cond, langID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Can not find a list of items by query: %v", cond)
 	}
@@ -87,6 +106,19 @@ func (s *service) Create(ctx context.Context, entity *PropertyViewType) error {
 	return nil
 }
 
+func (s *service) TCreate(ctx context.Context, entity *PropertyViewType, langID uint) error {
+	err := entity.Validate()
+	if err != nil {
+		return errors.Wrapf(err, "Validation error: %v", err)
+	}
+
+	err = s.repository.TCreate(ctx, entity, langID)
+	if err != nil {
+		return errors.Wrapf(err, "Can not create an entity: %v", entity)
+	}
+	return nil
+}
+
 func (s *service) Update(ctx context.Context, entity *PropertyViewType) error {
 	err := entity.Validate()
 	if err != nil {
@@ -100,23 +132,23 @@ func (s *service) Update(ctx context.Context, entity *PropertyViewType) error {
 	return nil
 }
 
-func (s *service) Save(ctx context.Context, entity *PropertyViewType) error {
+func (s *service) TUpdate(ctx context.Context, entity *PropertyViewType, langID uint) error {
 	err := entity.Validate()
 	if err != nil {
 		return errors.Wrapf(err, "Validation error: %v", err)
 	}
 
-	err = s.repository.Save(ctx, entity)
+	err = s.repository.TUpdate(ctx, entity, langID)
 	if err != nil {
-		return errors.Wrapf(err, "Can not save an entity: %v", entity)
+		return errors.Wrapf(err, "Can not update an entity: %v", entity)
 	}
 	return nil
 }
 
-func (s *service) Delete(ctx context.Context, id uint) error {
-	err := s.repository.Delete(ctx, id)
+func (s *service) Delete(ctx context.Context, entity *PropertyViewType) error {
+	err := s.repository.Delete(ctx, entity)
 	if err != nil {
-		return errors.Wrapf(err, "Can not delete an entity by ID: %v", id)
+		return errors.Wrapf(err, "Can not delete an entity: %v", entity)
 	}
 	return nil
 }

@@ -101,7 +101,7 @@ func (s *service) Save(ctx context.Context, entity *PropertyType2PropertyViewTyp
 func (s *service) Delete(ctx context.Context, entity *PropertyType2PropertyViewType) error {
 	err := s.repository.Delete(ctx, entity)
 	if err != nil {
-		return errors.Wrapf(err, "Can not delete an entity propertyTypeID = %v, propertyViewTypeID = %v", propertyTypeID, propertyViewTypeID)
+		return errors.Wrapf(err, "Can not delete an entity: %v", entity)
 	}
 	return nil
 }

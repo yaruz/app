@@ -198,7 +198,7 @@ func (c testController) propertyUnit(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"6. list": fmt.Sprintf("%#v", list)})
 	}
 
-	err = c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Service.Delete(cntx, entity.ID)
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Service.Delete(cntx, entity)
 	if err != nil {
 		res = append(res, map[string]interface{}{"7. errDelete": err.Error()})
 	}
@@ -263,7 +263,7 @@ func (c testController) propertyGroup(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"6. list": fmt.Sprintf("%#v", list)})
 	}
 
-	err = c.yaruzPlatform.ReferenceSubsystem().PropertyGroup.Service.Delete(cntx, entity.ID)
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyGroup.Service.Delete(cntx, entity)
 	if err != nil {
 		res = append(res, map[string]interface{}{"7. errDelete": err.Error()})
 	}
@@ -328,7 +328,7 @@ func (c testController) propertyViewType(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"6. list": fmt.Sprintf("%#v", list)})
 	}
 
-	err = c.yaruzPlatform.ReferenceSubsystem().PropertyViewType.Service.Delete(cntx, entity.ID)
+	err = c.yaruzPlatform.ReferenceSubsystem().PropertyViewType.Service.Delete(cntx, entity)
 	if err != nil {
 		res = append(res, map[string]interface{}{"7. errDelete": err.Error()})
 	}
@@ -563,7 +563,7 @@ func (c testController) property(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"6. list": fmt.Sprintf("%#v", list)})
 	}
 
-	err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.Delete(cntx, entity.ID)
+	err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.Delete(cntx, entity)
 	if err != nil {
 		res = append(res, map[string]interface{}{"7. errDelete": err.Error()})
 	}
@@ -763,7 +763,7 @@ func (c testController) entityType(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"7. list": fmt.Sprintf("%#v", list)})
 	}
 
-	err = c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Delete(cntx, entity.ID)
+	err = c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.Delete(cntx, entity)
 	if err != nil {
 		res = append(res, map[string]interface{}{"8. EntityType Deleting error: ": err.Error()})
 	}

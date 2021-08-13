@@ -19,8 +19,11 @@ type RelationService interface {
 	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error)
 	Create(ctx context.Context, entity *Relation) error
 	Update(ctx context.Context, entity *Relation) error
-	Save(ctx context.Context, entity *Relation) error
-	Delete(ctx context.Context, id uint) error
+	Delete(ctx context.Context, entity *Relation) error
+	TGet(ctx context.Context, id uint, langID uint) (*Relation, error)
+	TQuery(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) ([]Relation, error)
+	TCreate(ctx context.Context, entity *Relation, langID uint) (err error)
+	TUpdate(ctx context.Context, entity *Relation, langID uint) (err error)
 	PropertyAndRelationQuery(ctx context.Context, cond *selection_condition.SelectionCondition) ([]property.Property, []Relation, error)
 	GetPropertiesAndRelationsByEntityTypeID(ctx context.Context, entityTypeID uint) ([]property.Property, []Relation, error)
 }
@@ -60,9 +63,25 @@ func (s *relationService) Get(ctx context.Context, id uint) (*Relation, error) {
 	return entity, nil
 }
 
+func (s *relationService) TGet(ctx context.Context, id uint, langID uint) (*Relation, error) {
+	entity, err := s.repository.TGet(ctx, id, langID)
+	if err != nil {
+		return nil, err
+	}
+	return entity, nil
+}
+
 // Query returns the items with the specified selection condition.
 func (s *relationService) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]Relation, error) {
 	items, err := s.repository.Query(ctx, cond)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Can not find a list of items by query: %v", cond)
+	}
+	return items, nil
+}
+
+func (s *relationService) TQuery(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) ([]Relation, error) {
+	items, err := s.repository.TQuery(ctx, cond, langID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Can not find a list of items by query: %v", cond)
 	}
@@ -90,6 +109,19 @@ func (s *relationService) Create(ctx context.Context, entity *Relation) error {
 	return nil
 }
 
+func (s *relationService) TCreate(ctx context.Context, entity *Relation, langID uint) error {
+	err := entity.Validate()
+	if err != nil {
+		return errors.Wrapf(err, "Validation error: %v", err)
+	}
+
+	err = s.repository.TCreate(ctx, entity, langID)
+	if err != nil {
+		return errors.Wrapf(err, "Can not create an entity: %v", entity)
+	}
+	return nil
+}
+
 func (s *relationService) Update(ctx context.Context, entity *Relation) error {
 	err := entity.Validate()
 	if err != nil {
@@ -103,23 +135,23 @@ func (s *relationService) Update(ctx context.Context, entity *Relation) error {
 	return nil
 }
 
-func (s *relationService) Save(ctx context.Context, entity *Relation) error {
+func (s *relationService) TUpdate(ctx context.Context, entity *Relation, langID uint) error {
 	err := entity.Validate()
 	if err != nil {
 		return errors.Wrapf(err, "Validation error: %v", err)
 	}
 
-	err = s.repository.Save(ctx, entity)
+	err = s.repository.TUpdate(ctx, entity, langID)
 	if err != nil {
-		return errors.Wrapf(err, "Can not save an entity: %v", entity)
+		return errors.Wrapf(err, "Can not update an entity: %v", entity)
 	}
 	return nil
 }
 
-func (s *relationService) Delete(ctx context.Context, id uint) error {
-	err := s.repository.Delete(ctx, id)
+func (s *relationService) Delete(ctx context.Context, entity *Relation) error {
+	err := s.repository.Delete(ctx, entity)
 	if err != nil {
-		return errors.Wrapf(err, "Can not delete an entity by ID: %v", id)
+		return errors.Wrapf(err, "Can not delete an entity: %v", entity)
 	}
 	return nil
 }
