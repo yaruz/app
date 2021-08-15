@@ -25,7 +25,9 @@ type RelationService interface {
 	TCreate(ctx context.Context, entity *Relation, langID uint) (err error)
 	TUpdate(ctx context.Context, entity *Relation, langID uint) (err error)
 	PropertyAndRelationQuery(ctx context.Context, cond *selection_condition.SelectionCondition) ([]property.Property, []Relation, error)
+	TPropertyAndRelationQuery(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) ([]property.Property, []Relation, error)
 	GetPropertiesAndRelationsByEntityTypeID(ctx context.Context, entityTypeID uint) ([]property.Property, []Relation, error)
+	TGetPropertiesAndRelationsByEntityTypeID(ctx context.Context, entityTypeID uint, langID uint) ([]property.Property, []Relation, error)
 }
 
 type relationService struct {
@@ -164,8 +166,24 @@ func (s *relationService) PropertyAndRelationQuery(ctx context.Context, cond *se
 	return props, rels, nil
 }
 
+func (s *relationService) TPropertyAndRelationQuery(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) ([]property.Property, []Relation, error) {
+	props, rels, err := s.repository.TPropertyAndRelationQuery(ctx, cond, langID)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "Can not get properties and relations by query: %v", cond)
+	}
+	return props, rels, nil
+}
+
 func (s *relationService) GetPropertiesAndRelationsByEntityTypeID(ctx context.Context, entityTypeID uint) ([]property.Property, []Relation, error) {
 	props, rels, err := s.repository.GetPropertiesAndRelationsByEntityTypeID(ctx, entityTypeID)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "Can not get properties and relations by entityTypeID: %v", entityTypeID)
+	}
+	return props, rels, nil
+}
+
+func (s *relationService) TGetPropertiesAndRelationsByEntityTypeID(ctx context.Context, entityTypeID uint, langID uint) ([]property.Property, []Relation, error) {
+	props, rels, err := s.repository.TGetPropertiesAndRelationsByEntityTypeID(ctx, entityTypeID, langID)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "Can not get properties and relations by entityTypeID: %v", entityTypeID)
 	}

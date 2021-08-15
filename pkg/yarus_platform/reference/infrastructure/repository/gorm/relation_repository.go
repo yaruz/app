@@ -23,6 +23,7 @@ import (
 // RelationRepository is a repository for the model entity
 type RelationRepository struct {
 	repository
+	propertyRepository            property.Repository
 	entityType2PropertyRepository entity_type2property.Repository
 	textSourceRepository          text_source.Repository
 }
@@ -30,10 +31,11 @@ type RelationRepository struct {
 var _ entity_type.RelationRepository = (*RelationRepository)(nil)
 
 // New creates a new RelationRepository
-func NewRelationRepository(repository *repository, entityType2PropertyRepository *entity_type2property.Repository, textSourceRepository text_source.Repository) (*RelationRepository, error) {
+func NewRelationRepository(repository *repository, propertyRepository property.Repository, entityType2PropertyRepository entity_type2property.Repository, textSourceRepository text_source.Repository) (*RelationRepository, error) {
 	return &RelationRepository{
 		repository:                    *repository,
-		entityType2PropertyRepository: *entityType2PropertyRepository,
+		propertyRepository:            propertyRepository,
+		entityType2PropertyRepository: entityType2PropertyRepository,
 		textSourceRepository:          textSourceRepository,
 	}, nil
 }
@@ -152,8 +154,44 @@ func (r *RelationRepository) queryTx(ctx context.Context, tx *gorm.DB, cond *sel
 }
 
 func (r *RelationRepository) PropertyAndRelationQuery(ctx context.Context, cond *selection_condition.SelectionCondition) ([]property.Property, []entity_type.Relation, error) {
+	return r.propertyAndRelationQueryTx(ctx, r.db.DB(), cond)
+}
+
+func (r *RelationRepository) TPropertyAndRelationQuery(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) ([]property.Property, []entity_type.Relation, error) {
+	return r.tPropertyAndRelationQueryTx(ctx, r.db.DB(), cond, langID)
+}
+
+func (r *RelationRepository) tPropertyAndRelationQueryTx(ctx context.Context, tx *gorm.DB, cond *selection_condition.SelectionCondition, langID uint) ([]property.Property, []entity_type.Relation, error) {
+	var rels []entity_type.Relation
+	var props []property.Property
+	err := tx.Transaction(func(tx *gorm.DB) error {
+		var err error
+		props, rels, err = r.propertyAndRelationQueryTx(ctx, tx, cond)
+		if err != nil {
+			return err
+		}
+
+		for i := range rels {
+			err = r.entityNameAndDescriptionInitTx(ctx, tx, &rels[i], langID)
+			if err != nil {
+				return err
+			}
+		}
+
+		for p := range props {
+			err = r.propertyRepository.EntityNameAndDescriptionInitTx(ctx, tx, &props[p], langID)
+			if err != nil {
+				return err
+			}
+		}
+		return err
+	})
+	return props, rels, err
+}
+
+func (r *RelationRepository) propertyAndRelationQueryTx(ctx context.Context, tx *gorm.DB, cond *selection_condition.SelectionCondition) ([]property.Property, []entity_type.Relation, error) {
 	items := []property.Property{}
-	db := minipkg_gorm.Conditions(r.db.DB(), cond)
+	db := minipkg_gorm.Conditions(tx, cond)
 	if db.Error != nil {
 		return nil, nil, db.Error
 	}
@@ -190,28 +228,65 @@ func (r *RelationRepository) PropertyAndRelationQuery(ctx context.Context, cond 
 	return props, rels, err
 }
 
-func (r *RelationRepository) GetPropertiesAndRelationsByEntityTypeID(ctx context.Context, entityTypeID uint) ([]property.Property, []entity_type.Relation, error) {
-	rels, err := r.entityType2PropertyRepository.Query(ctx, &selection_condition.SelectionCondition{
+func (r *RelationRepository) getPropertiesIDsByEntityTypeIDTx(ctx context.Context, tx *gorm.DB, entityTypeID uint) ([]interface{}, error) {
+	rs, err := r.entityType2PropertyRepository.QueryTx(ctx, tx, &selection_condition.SelectionCondition{
 		Where: &entity_type2property.EntityType2Property{
 			EntityTypeID: entityTypeID,
 		},
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	IDs := make([]interface{}, 0, len(rels))
-	for _, rel := range rels {
+	IDs := make([]interface{}, 0, len(rs))
+	for _, rel := range rs {
 		IDs = append(IDs, rel.PropertyID)
 	}
+	return IDs, nil
+}
 
-	return r.PropertyAndRelationQuery(ctx, &selection_condition.SelectionCondition{
-		Where: selection_condition.WhereCondition{
-			Field:     "ID",
-			Condition: selection_condition.ConditionIn,
-			Value:     IDs,
-		},
+func (r *RelationRepository) GetPropertiesAndRelationsByEntityTypeID(ctx context.Context, entityTypeID uint) ([]property.Property, []entity_type.Relation, error) {
+
+	var rels []entity_type.Relation
+	var props []property.Property
+	err := r.db.DB().Transaction(func(tx *gorm.DB) error {
+		IDs, err := r.getPropertiesIDsByEntityTypeIDTx(ctx, tx, entityTypeID)
+		if err != nil {
+			return err
+		}
+
+		props, rels, err = r.propertyAndRelationQueryTx(ctx, tx, &selection_condition.SelectionCondition{
+			Where: selection_condition.WhereCondition{
+				Field:     "ID",
+				Condition: selection_condition.ConditionIn,
+				Value:     IDs,
+			},
+		})
+		return err
 	})
+	return props, rels, err
+}
+
+func (r *RelationRepository) TGetPropertiesAndRelationsByEntityTypeID(ctx context.Context, entityTypeID uint, langID uint) ([]property.Property, []entity_type.Relation, error) {
+
+	var rels []entity_type.Relation
+	var props []property.Property
+	err := r.db.DB().Transaction(func(tx *gorm.DB) error {
+		IDs, err := r.getPropertiesIDsByEntityTypeIDTx(ctx, tx, entityTypeID)
+		if err != nil {
+			return err
+		}
+
+		props, rels, err = r.tPropertyAndRelationQueryTx(ctx, tx, &selection_condition.SelectionCondition{
+			Where: selection_condition.WhereCondition{
+				Field:     "ID",
+				Condition: selection_condition.ConditionIn,
+				Value:     IDs,
+			},
+		}, langID)
+		return err
+	})
+	return props, rels, err
 }
 
 func (r *RelationRepository) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error) {

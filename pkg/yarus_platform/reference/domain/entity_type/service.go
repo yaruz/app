@@ -61,6 +61,11 @@ func (s *service) initPropertiesAndRelations(ctx context.Context, entity *Entity
 	return err
 }
 
+func (s *service) tInitPropertiesAndRelations(ctx context.Context, entity *EntityType, langID uint) (err error) {
+	(*entity).Properties, (*entity).Relations, err = s.relationService.TGetPropertiesAndRelationsByEntityTypeID(ctx, (*entity).ID, langID)
+	return err
+}
+
 // Get returns the entity with the specified ID.
 func (s *service) Get(ctx context.Context, id uint) (*EntityType, error) {
 	entity, err := s.repository.Get(ctx, id)
@@ -75,7 +80,7 @@ func (s *service) TGet(ctx context.Context, id uint, langID uint) (*EntityType, 
 	if err != nil {
 		return nil, err
 	}
-	return entity, s.initPropertiesAndRelations(ctx, entity)
+	return entity, s.tInitPropertiesAndRelations(ctx, entity, langID)
 }
 
 // Query returns the items with the specified selection condition.
@@ -84,6 +89,12 @@ func (s *service) Query(ctx context.Context, cond *selection_condition.Selection
 	if err != nil {
 		return nil, errors.Wrapf(err, "Can not find a list of items by query: %v", cond)
 	}
+
+	for i := range items {
+		if err = s.initPropertiesAndRelations(ctx, &items[i]); err != nil {
+			return nil, err
+		}
+	}
 	return items, nil
 }
 
@@ -91,6 +102,12 @@ func (s *service) TQuery(ctx context.Context, cond *selection_condition.Selectio
 	items, err := s.repository.TQuery(ctx, cond, langID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Can not find a list of items by query: %v", cond)
+	}
+
+	for i := range items {
+		if err = s.tInitPropertiesAndRelations(ctx, &items[i], langID); err != nil {
+			return nil, err
+		}
 	}
 	return items, nil
 }

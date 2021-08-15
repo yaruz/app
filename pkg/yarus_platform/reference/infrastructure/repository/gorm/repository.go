@@ -151,6 +151,15 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 		}
 		repo, err = NewTextLangRepository(r)
 	case entity_type.RelationEntityName:
+		propertyRepo, err := GetRepository(logger, dbase, property.EntityName)
+		if err != nil {
+			return nil, errors.Wrapf(err, "Can not get db repository for entity %q, error happened: %v", property.EntityName, err)
+		}
+		propertyRepository, ok := propertyRepo.(property.Repository)
+		if !ok {
+			return nil, errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", property.EntityName, property.EntityName, propertyRepo)
+		}
+
 		entityType2PropertyRepo, err := GetRepository(logger, dbase, entity_type2property.EntityName)
 		if err != nil {
 			return nil, errors.Wrapf(err, "Can not get db repository for entity %q, error happened: %v", entity_type2property.EntityName, err)
@@ -165,7 +174,7 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 		if r.db, err = dbase.SchemeInitWithContext(ctx, r.model); err != nil {
 			return nil, err
 		}
-		repo, err = NewRelationRepository(r, &entityType2PropertyRepository, textSourceRepository)
+		repo, err = NewRelationRepository(r, propertyRepository, entityType2PropertyRepository, textSourceRepository)
 	default:
 		err = errors.Errorf("Repository for entity %q not found", entityName)
 	}

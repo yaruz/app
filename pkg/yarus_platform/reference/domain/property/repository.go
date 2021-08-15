@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/minipkg/selection_condition"
+	"gorm.io/gorm"
 )
 
 // Repository encapsulates the logic to access albums from the data source.
@@ -23,4 +24,5 @@ type Repository interface {
 	TQuery(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) ([]Property, error)
 	TCreate(ctx context.Context, entity *Property, langID uint) (err error)
 	TUpdate(ctx context.Context, entity *Property, langID uint) (err error)
+	EntityNameAndDescriptionInitTx(ctx context.Context, tx *gorm.DB, entity *Property, langID uint) error
 }

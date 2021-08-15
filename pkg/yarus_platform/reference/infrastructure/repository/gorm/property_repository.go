@@ -43,7 +43,7 @@ func (r *PropertyRepository) TGet(ctx context.Context, id uint, langID uint) (*p
 	err := r.db.DB().Transaction(func(tx *gorm.DB) error {
 		var err error
 		entity, err = r.getTx(ctx, tx, id)
-		r.entityNameAndDescriptionInitTx(ctx, tx, entity, langID)
+		r.EntityNameAndDescriptionInitTx(ctx, tx, entity, langID)
 		return err
 	})
 	return entity, err
@@ -75,7 +75,7 @@ func (r *PropertyRepository) TFirst(ctx context.Context, entity *property.Proper
 	err := r.db.DB().Transaction(func(tx *gorm.DB) error {
 		var err error
 		entity, err = r.firstTx(ctx, tx, entity)
-		r.entityNameAndDescriptionInitTx(ctx, tx, entity, langID)
+		r.EntityNameAndDescriptionInitTx(ctx, tx, entity, langID)
 		return err
 	})
 	return entity, err
@@ -112,7 +112,7 @@ func (r *PropertyRepository) TQuery(ctx context.Context, cond *selection_conditi
 		}
 
 		for i := range items {
-			err = r.entityNameAndDescriptionInitTx(ctx, tx, &items[i], langID)
+			err = r.EntityNameAndDescriptionInitTx(ctx, tx, &items[i], langID)
 			if err != nil {
 				return err
 			}
@@ -146,7 +146,7 @@ func (r *PropertyRepository) queryTx(ctx context.Context, tx *gorm.DB, cond *sel
 	return items, err
 }
 
-func (r *PropertyRepository) entityNameAndDescriptionInitTx(ctx context.Context, tx *gorm.DB, entity *property.Property, langID uint) error {
+func (r *PropertyRepository) EntityNameAndDescriptionInitTx(ctx context.Context, tx *gorm.DB, entity *property.Property, langID uint) error {
 	s, err := r.textSourceRepository.GetValuesTx(ctx, tx, langID, entity.NameSourceID, entity.DescriptionSourceID)
 	entity.Name = s[0]
 	entity.Description = s[1]

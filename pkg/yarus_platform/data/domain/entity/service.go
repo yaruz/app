@@ -9,6 +9,9 @@ import (
 	"github.com/minipkg/selection_condition"
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
+	"github.com/yaruz/app/pkg/yarus_platform/search"
 )
 
 // IService encapsulates usecase logic.
@@ -26,16 +29,19 @@ type IService interface {
 type service struct {
 	logger     log.ILogger
 	repository Repository
-	reference  reference.ReferenceSubsystem
+	reference  *reference.ReferenceSubsystem
+	search     *search.SearchSubsystem
 }
 
 var _ IService = (*service)(nil)
 
 // NewService creates a new service.
-func NewService(logger log.ILogger, repo Repository) IService {
+func NewService(logger log.ILogger, repo Repository, reference *reference.ReferenceSubsystem, search *search.SearchSubsystem) IService {
 	s := &service{
 		logger:     logger,
 		repository: repo,
+		reference:  reference,
+		search:     search,
 	}
 	repo.SetDefaultConditions(s.defaultConditions())
 	return s
@@ -108,10 +114,50 @@ func (s *service) Delete(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (s *service) propertiesInit(entity *Entity) error {
-	ids := make([]uint, 0, len(entity.PropertiesValuesMap))
+func (s *service) propertiesInit(ctx context.Context, entity *Entity) error {
+	return s.propsInit(ctx, entity, func(ctx context.Context, ids []interface{}) ([]property.Property, []entity_type.Relation, error) {
+		return s.reference.Relation.Service.PropertyAndRelationQuery(ctx, &selection_condition.SelectionCondition{
+			Where: selection_condition.WhereCondition{
+				Field:     "ID",
+				Condition: "in",
+				Value:     ids,
+			},
+		})
+	})
+}
+
+func (s *service) tPropertiesInit(ctx context.Context, entity *Entity, langID uint) error {
+	return s.propsInit(ctx, entity, func(ctx context.Context, ids []interface{}) ([]property.Property, []entity_type.Relation, error) {
+		return s.reference.Relation.Service.TPropertyAndRelationQuery(ctx, &selection_condition.SelectionCondition{
+			Where: selection_condition.WhereCondition{
+				Field:     "ID",
+				Condition: "in",
+				Value:     ids,
+			},
+		}, langID)
+	})
+}
+
+func (s *service) propsInit(ctx context.Context, entity *Entity, propertyAndRelationQuery func(ctx context.Context, ids []interface{}) ([]property.Property, []entity_type.Relation, error)) error {
+	ids := make([]interface{}, 0, len(entity.PropertiesValuesMap))
 	for id := range entity.PropertiesValuesMap {
 		ids = append(ids, id)
 	}
+
+	props, rels, err := propertyAndRelationQuery(ctx, ids)
+	if err != nil {
+		return errors.Wrapf(err, "Can not find properties and relations for an entity: %v", entity)
+	}
+
+	entity.PropertiesValues = make(map[uint]PropertyValue, len(props))
+	for _, prop := range props {
+		entity.PropertiesValues[prop.ID] = PropertyValue{Property: prop}
+	}
+
+	entity.RelationsValues = make(map[uint]RelationValue, len(rels))
+	for _, rel := range rels {
+		entity.RelationsValues[rel.ID] = RelationValue{Relation: rel}
+	}
+
 	return nil
 }

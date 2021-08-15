@@ -36,17 +36,17 @@ func NewPlatform(cfg config.Configuration) (*Platform, error) {
 		return nil, err
 	}
 
-	data, err := data.NewDataSubsystem(infra)
-	if err != nil {
-		return nil, err
-	}
-
 	reference, err := reference.NewReferenceSubsystem(infra)
 	if err != nil {
 		return nil, err
 	}
 
 	search, err := search.NewSearchSubsystem(infra)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := data.NewDataSubsystem(infra, reference, search)
 	if err != nil {
 		return nil, err
 	}

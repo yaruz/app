@@ -26,5 +26,7 @@ type RelationRepository interface {
 	TCreate(ctx context.Context, entity *Relation, langID uint) (err error)
 	TUpdate(ctx context.Context, entity *Relation, langID uint) (err error)
 	PropertyAndRelationQuery(ctx context.Context, cond *selection_condition.SelectionCondition) ([]property.Property, []Relation, error)
+	TPropertyAndRelationQuery(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) ([]property.Property, []Relation, error)
 	GetPropertiesAndRelationsByEntityTypeID(ctx context.Context, entityTypeID uint) ([]property.Property, []Relation, error)
+	TGetPropertiesAndRelationsByEntityTypeID(ctx context.Context, entityTypeID uint, langID uint) ([]property.Property, []Relation, error)
 }

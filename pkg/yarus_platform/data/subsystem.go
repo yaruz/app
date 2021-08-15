@@ -3,6 +3,10 @@ package data
 import (
 	golog "log"
 
+	"github.com/yaruz/app/pkg/yarus_platform/search"
+
+	"github.com/yaruz/app/pkg/yarus_platform/reference"
+
 	"github.com/yaruz/app/pkg/yarus_platform/infrastructure"
 
 	"github.com/yaruz/app/pkg/yarus_platform/data/infrastructure/repository/gorm"
@@ -14,6 +18,8 @@ import (
 )
 
 type DataSubsystem struct {
+	reference *reference.ReferenceSubsystem
+	search    *search.SearchSubsystem
 	Entity    DataDomainEntity
 	TextValue DataDomainTextValue
 }
@@ -28,8 +34,11 @@ type DataDomainTextValue struct {
 	Repository text_value.Repository
 }
 
-func NewDataSubsystem(infra *infrastructure.Infrastructure) (*DataSubsystem, error) {
-	d := &DataSubsystem{}
+func NewDataSubsystem(infra *infrastructure.Infrastructure, reference *reference.ReferenceSubsystem, search *search.SearchSubsystem) (*DataSubsystem, error) {
+	d := &DataSubsystem{
+		reference: reference,
+		search:    search,
+	}
 	if err := d.setupRepositories(infra); err != nil {
 		return nil, err
 	}
@@ -62,6 +71,6 @@ func (d *DataSubsystem) setupRepositories(infra *infrastructure.Infrastructure) 
 }
 
 func (d *DataSubsystem) setupServices(logger log.ILogger) {
-	d.Entity.Service = entity.NewService(logger, d.Entity.Repository)
+	d.Entity.Service = entity.NewService(logger, d.Entity.Repository, d.reference, d.search)
 	d.TextValue.Service = text_value.NewService(logger, d.TextValue.Repository)
 }
