@@ -1,7 +1,9 @@
-package yarus_platform
+package data
 
 import (
 	golog "log"
+
+	"github.com/yaruz/app/pkg/yarus_platform/infrastructure"
 
 	"github.com/yaruz/app/pkg/yarus_platform/data/infrastructure/repository/gorm"
 
@@ -26,7 +28,7 @@ type DataDomainTextValue struct {
 	Repository text_value.Repository
 }
 
-func newDataSubsystem(infra *infrastructure) (*DataSubsystem, error) {
+func NewDataSubsystem(infra *infrastructure.Infrastructure) (*DataSubsystem, error) {
 	d := &DataSubsystem{}
 	if err := d.setupRepositories(infra); err != nil {
 		return nil, err
@@ -35,7 +37,7 @@ func newDataSubsystem(infra *infrastructure) (*DataSubsystem, error) {
 	return d, nil
 }
 
-func (d *DataSubsystem) setupRepositories(infra *infrastructure) (err error) {
+func (d *DataSubsystem) setupRepositories(infra *infrastructure.Infrastructure) (err error) {
 	var ok bool
 
 	repo, err := gorm.GetRepository(infra.Logger, infra.DataDB, entity.EntityName)

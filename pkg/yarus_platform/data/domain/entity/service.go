@@ -3,11 +3,12 @@ package entity
 import (
 	"context"
 
-	"github.com/minipkg/selection_condition"
-
 	"github.com/pkg/errors"
 
 	"github.com/minipkg/log"
+	"github.com/minipkg/selection_condition"
+
+	"github.com/yaruz/app/pkg/yarus_platform/reference"
 )
 
 // IService encapsulates usecase logic.
@@ -25,6 +26,7 @@ type IService interface {
 type service struct {
 	logger     log.ILogger
 	repository Repository
+	reference  reference.ReferenceSubsystem
 }
 
 var _ IService = (*service)(nil)
@@ -102,6 +104,14 @@ func (s *service) Delete(ctx context.Context, id uint) error {
 	err := s.repository.Delete(ctx, id)
 	if err != nil {
 		return errors.Wrapf(err, "Can not delete an entity by ID: %v", id)
+	}
+	return nil
+}
+
+func (s *service) propertiesInit(entity *Entity) error {
+	ids := make([]uint, 0, len(entity.PropertiesValuesMap))
+	for id := range entity.PropertiesValuesMap {
+		ids = append(ids, id)
 	}
 	return nil
 }

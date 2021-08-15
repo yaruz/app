@@ -1,13 +1,11 @@
-package yarus_platform
+package reference
 
 import (
 	"context"
 	"fmt"
 	golog "log"
 
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_lang"
-
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
+	"github.com/yaruz/app/pkg/yarus_platform/infrastructure"
 
 	"github.com/minipkg/selection_condition"
 
@@ -15,6 +13,7 @@ import (
 	"github.com/minipkg/log"
 	"github.com/pkg/errors"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type2property"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_group"
@@ -22,6 +21,7 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type2property_view_type"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_unit"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_view_type"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_lang"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_source"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_value"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/infrastructure/repository/gorm"
@@ -101,7 +101,7 @@ type ReferenceDomainTextLang struct {
 	Repository text_lang.Repository
 }
 
-func newReferenceSubsystem(infra *infrastructure) (*ReferenceSubsystem, error) {
+func NewReferenceSubsystem(infra *infrastructure.Infrastructure) (*ReferenceSubsystem, error) {
 	d := &ReferenceSubsystem{}
 	if err := d.setupRepositories(infra); err != nil {
 		return nil, err
@@ -145,7 +145,7 @@ func (d *ReferenceSubsystem) autoMigrate(db minipkg_gorm.IDB) error {
 	return nil
 }
 
-func (d *ReferenceSubsystem) setupRepositories(infra *infrastructure) (err error) {
+func (d *ReferenceSubsystem) setupRepositories(infra *infrastructure.Infrastructure) (err error) {
 	var ok bool
 
 	repo, err := gorm.GetRepository(infra.Logger, infra.ReferenceDB, text_source.EntityName)

@@ -1,4 +1,4 @@
-package yarus_platform
+package infrastructure
 
 import (
 	minipkg_gorm "github.com/minipkg/db/gorm"
@@ -10,7 +10,7 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform/config"
 )
 
-type infrastructure struct {
+type Infrastructure struct {
 	Logger      log.ILogger
 	DataDB      minipkg_gorm.IDB
 	ReferenceDB minipkg_gorm.IDB
@@ -19,7 +19,7 @@ type infrastructure struct {
 	Cache       cache.Service
 }
 
-func newInfra(logger log.ILogger, cfg config.Infrastructure) (*infrastructure, error) {
+func NewInfra(logger log.ILogger, cfg config.Infrastructure) (*Infrastructure, error) {
 
 	DataDB, err := minipkg_gorm.New(logger, cfg.DataDB)
 	if err != nil {
@@ -41,7 +41,7 @@ func newInfra(logger log.ILogger, cfg config.Infrastructure) (*infrastructure, e
 		return nil, err
 	}
 
-	return &infrastructure{
+	return &Infrastructure{
 		Logger:      logger,
 		DataDB:      DataDB,
 		ReferenceDB: ReferenceDB,
@@ -51,7 +51,7 @@ func newInfra(logger log.ILogger, cfg config.Infrastructure) (*infrastructure, e
 	}, nil
 }
 
-func (i *infrastructure) Stop() error {
+func (i *Infrastructure) Stop() error {
 	errRedis := i.Redis.Close()
 	errDataDB := i.DataDB.Close()
 	errReferenceDB := i.ReferenceDB.Close()

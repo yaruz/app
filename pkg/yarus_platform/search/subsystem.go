@@ -1,13 +1,14 @@
-package yarus_platform
+package search
 
 import (
 	"github.com/minipkg/log"
+	"github.com/yaruz/app/pkg/yarus_platform/infrastructure"
 )
 
 type SearchSubsystem struct {
 }
 
-func newSearchSubsystem(infra *infrastructure) (*SearchSubsystem, error) {
+func NewSearchSubsystem(infra *infrastructure.Infrastructure) (*SearchSubsystem, error) {
 	d := &SearchSubsystem{}
 	if err := d.setupRepositories(infra); err != nil {
 		return nil, err
@@ -16,7 +17,7 @@ func newSearchSubsystem(infra *infrastructure) (*SearchSubsystem, error) {
 	return d, nil
 }
 
-func (d *SearchSubsystem) setupRepositories(infra *infrastructure) (err error) {
+func (d *SearchSubsystem) setupRepositories(infra *infrastructure.Infrastructure) (err error) {
 	return nil
 }
 

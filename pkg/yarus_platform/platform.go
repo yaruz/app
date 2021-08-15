@@ -2,23 +2,27 @@ package yarus_platform
 
 import (
 	"github.com/minipkg/log"
+	"github.com/yaruz/app/pkg/yarus_platform/data"
+	"github.com/yaruz/app/pkg/yarus_platform/infrastructure"
+	"github.com/yaruz/app/pkg/yarus_platform/reference"
+	"github.com/yaruz/app/pkg/yarus_platform/search"
 
 	"github.com/yaruz/app/pkg/yarus_platform/config"
 )
 
 type IPlatform interface {
 	Stop() error
-	DataSubsystem() *DataSubsystem
-	ReferenceSubsystem() *ReferenceSubsystem
-	SearchSubsystem() *SearchSubsystem
+	DataSubsystem() *data.DataSubsystem
+	ReferenceSubsystem() *reference.ReferenceSubsystem
+	SearchSubsystem() *search.SearchSubsystem
 }
 
 type Platform struct {
 	cfg                config.Configuration
-	dataSubsystem      *DataSubsystem
-	referenceSubsystem *ReferenceSubsystem
-	searchSubsystem    *SearchSubsystem
-	infra              *infrastructure
+	dataSubsystem      *data.DataSubsystem
+	referenceSubsystem *reference.ReferenceSubsystem
+	searchSubsystem    *search.SearchSubsystem
+	infra              *infrastructure.Infrastructure
 }
 
 func NewPlatform(cfg config.Configuration) (*Platform, error) {
@@ -27,22 +31,22 @@ func NewPlatform(cfg config.Configuration) (*Platform, error) {
 		return nil, err
 	}
 
-	infra, err := newInfra(logger, cfg.Infra)
+	infra, err := infrastructure.NewInfra(logger, cfg.Infra)
 	if err != nil {
 		return nil, err
 	}
 
-	data, err := newDataSubsystem(infra)
+	data, err := data.NewDataSubsystem(infra)
 	if err != nil {
 		return nil, err
 	}
 
-	reference, err := newReferenceSubsystem(infra)
+	reference, err := reference.NewReferenceSubsystem(infra)
 	if err != nil {
 		return nil, err
 	}
 
-	search, err := newSearchSubsystem(infra)
+	search, err := search.NewSearchSubsystem(infra)
 	if err != nil {
 		return nil, err
 	}
@@ -56,15 +60,15 @@ func NewPlatform(cfg config.Configuration) (*Platform, error) {
 	}, nil
 }
 
-func (r *Platform) DataSubsystem() *DataSubsystem {
+func (r *Platform) DataSubsystem() *data.DataSubsystem {
 	return r.dataSubsystem
 }
 
-func (r *Platform) ReferenceSubsystem() *ReferenceSubsystem {
+func (r *Platform) ReferenceSubsystem() *reference.ReferenceSubsystem {
 	return r.referenceSubsystem
 }
 
-func (r *Platform) SearchSubsystem() *SearchSubsystem {
+func (r *Platform) SearchSubsystem() *search.SearchSubsystem {
 	return r.searchSubsystem
 }
 
