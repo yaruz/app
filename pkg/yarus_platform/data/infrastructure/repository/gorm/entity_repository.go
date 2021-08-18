@@ -37,10 +37,10 @@ func (r *EntityRepository) autoMigrate() {
 }
 
 // Get reads the album with the specified ID from the database.
-func (r *EntityRepository) Get(ctx context.Context, id uint) (*domain_entity.Entity, error) {
+func (r *EntityRepository) Get(ctx context.Context, id uint, langID uint) (*domain_entity.Entity, error) {
 	entity := &domain_entity.Entity{}
 
-	err := r.DB().First(entity, id).Error
+	err := r.textValueJoin(r.db.DB(), langID).First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -56,7 +56,7 @@ func (r *EntityRepository) Get(ctx context.Context, id uint) (*domain_entity.Ent
 }
 
 func (r *EntityRepository) First(ctx context.Context, entity *domain_entity.Entity) (*domain_entity.Entity, error) {
-	err := r.DB().Where(entity).First(entity).Error
+	err := r.db.DB().Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -74,7 +74,7 @@ func (r *EntityRepository) First(ctx context.Context, entity *domain_entity.Enti
 // Query retrieves the album records with the specified offset and limit from the database.
 func (r *EntityRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]domain_entity.Entity, error) {
 	items := []domain_entity.Entity{}
-	db := minipkg_gorm.Conditions(r.DB(), cond)
+	db := minipkg_gorm.Conditions(r.db.DB(), cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -101,7 +101,7 @@ func (r *EntityRepository) Count(ctx context.Context, cond *selection_condition.
 	c := cond
 	c.Limit = 0
 	c.Offset = 0
-	db := minipkg_gorm.Conditions(r.DB(), cond)
+	db := minipkg_gorm.Conditions(r.db.DB(), cond)
 	if db.Error != nil {
 		return 0, db.Error
 	}
@@ -158,4 +158,8 @@ func (r *EntityRepository) Delete(ctx context.Context, id uint) error {
 		}
 	}
 	return err
+}
+
+func (r *EntityRepository) textValueJoin(db *gorm.DB, langID uint) *gorm.DB {
+	return db.Joins("left join text_value on entity.id = text_value.entity_id and lang_id = ?", langID)
 }

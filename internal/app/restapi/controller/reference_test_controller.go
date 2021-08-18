@@ -15,7 +15,7 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform"
 )
 
-type testController struct {
+type referenceTestController struct {
 	Logger        log.ILogger
 	yaruzPlatform yarus_platform.IPlatform
 }
@@ -23,8 +23,8 @@ type testController struct {
 // RegisterHandlers sets up the routing of the HTTP handlers.
 //	GET /api/models/ - список всех моделей
 //	GET /api/model/{ID} - детали модели
-func RegisterTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platform.IPlatform, logger log.ILogger, authHandler routing.Handler) {
-	c := testController{
+func RegisterReferenceTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platform.IPlatform, logger log.ILogger, authHandler routing.Handler) {
+	c := referenceTestController{
 		Logger:        logger,
 		yaruzPlatform: yaruzPlatform,
 	}
@@ -43,7 +43,7 @@ func RegisterTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platform.IP
 	r.Get("/entity-type-binding", c.entityTypeBinding)
 }
 
-func (c testController) textSource(ctx *routing.Context) error {
+func (c referenceTestController) textSource(ctx *routing.Context) error {
 	res := make([]map[string]interface{}, 0, 10)
 	res = append(res, map[string]interface{}{"test": "text-source"})
 	cntx := ctx.Request.Context()
@@ -80,7 +80,7 @@ func (c testController) textSource(ctx *routing.Context) error {
 	return ctx.Write(res)
 }
 
-func (c testController) textValue(ctx *routing.Context) error {
+func (c referenceTestController) textValue(ctx *routing.Context) error {
 	res := make([]map[string]interface{}, 0, 10)
 	res = append(res, map[string]interface{}{"test": "text-value"})
 	cntx := ctx.Request.Context()
@@ -141,7 +141,7 @@ func (c testController) textValue(ctx *routing.Context) error {
 	return ctx.Write(res)
 }
 
-func (c testController) propertyUnit(ctx *routing.Context) error {
+func (c referenceTestController) propertyUnit(ctx *routing.Context) error {
 	res := make([]map[string]interface{}, 0, 10)
 	res = append(res, map[string]interface{}{"test": "property-unit"})
 	cntx := ctx.Request.Context()
@@ -206,7 +206,7 @@ func (c testController) propertyUnit(ctx *routing.Context) error {
 	return ctx.Write(res)
 }
 
-func (c testController) propertyGroup(ctx *routing.Context) error {
+func (c referenceTestController) propertyGroup(ctx *routing.Context) error {
 	res := make([]map[string]interface{}, 0, 10)
 	res = append(res, map[string]interface{}{"test": "property-group"})
 	cntx := ctx.Request.Context()
@@ -271,7 +271,7 @@ func (c testController) propertyGroup(ctx *routing.Context) error {
 	return ctx.Write(res)
 }
 
-func (c testController) propertyViewType(ctx *routing.Context) error {
+func (c referenceTestController) propertyViewType(ctx *routing.Context) error {
 	res := make([]map[string]interface{}, 0, 10)
 	res = append(res, map[string]interface{}{"test": "property-view-type"})
 	cntx := ctx.Request.Context()
@@ -336,7 +336,7 @@ func (c testController) propertyViewType(ctx *routing.Context) error {
 	return ctx.Write(res)
 }
 
-func (c testController) propertyType(ctx *routing.Context) error {
+func (c referenceTestController) propertyType(ctx *routing.Context) error {
 	res := make([]map[string]interface{}, 0, 10)
 	res = append(res, map[string]interface{}{"test": "property-type"})
 	cntx := ctx.Request.Context()
@@ -427,7 +427,7 @@ func (c testController) propertyType(ctx *routing.Context) error {
 	return ctx.Write(res)
 }
 
-func (c testController) propertyTypeWithText(ctx *routing.Context) error {
+func (c referenceTestController) propertyTypeWithText(ctx *routing.Context) error {
 	res := make([]map[string]interface{}, 0, 10)
 	res = append(res, map[string]interface{}{"test": "property-type-with-text"})
 	cntx := ctx.Request.Context()
@@ -486,7 +486,7 @@ func (c testController) propertyTypeWithText(ctx *routing.Context) error {
 	return ctx.Write(res)
 }
 
-func (c testController) property(ctx *routing.Context) error {
+func (c referenceTestController) property(ctx *routing.Context) error {
 	res := make([]map[string]interface{}, 0, 10)
 	res = append(res, map[string]interface{}{"test": "property"})
 	cntx := ctx.Request.Context()
@@ -573,7 +573,7 @@ func (c testController) property(ctx *routing.Context) error {
 
 type PropertyOptionsTestCases [][][]map[string]interface{}
 
-func (c testController) propertyOptionsValidation(ctx *routing.Context) error {
+func (c referenceTestController) propertyOptionsValidation(ctx *routing.Context) error {
 	res := make([]map[string]interface{}, 0, 10)
 	res = append(res, map[string]interface{}{"test": "property option validation"})
 
@@ -706,7 +706,7 @@ func (c testController) propertyOptionsValidation(ctx *routing.Context) error {
 	return ctx.Write(res)
 }
 
-func (c testController) entityType(ctx *routing.Context) error {
+func (c referenceTestController) entityType(ctx *routing.Context) error {
 	res := make([]map[string]interface{}, 0, 10)
 	res = append(res, map[string]interface{}{"test": "entity-type"})
 	cntx := ctx.Request.Context()
@@ -771,7 +771,7 @@ func (c testController) entityType(ctx *routing.Context) error {
 	return ctx.Write(res)
 }
 
-func (c testController) entityTypeBinding(ctx *routing.Context) error {
+func (c referenceTestController) entityTypeBinding(ctx *routing.Context) error {
 	res := make([]map[string]interface{}, 0, 10)
 	res = append(res, map[string]interface{}{"test": "entity-type"})
 	cntx := ctx.Request.Context()
@@ -853,7 +853,7 @@ func (c testController) entityTypeBinding(ctx *routing.Context) error {
 	return ctx.Write(res)
 }
 
-func (c testController) relation(ctx *routing.Context) error {
+func (c referenceTestController) relation(ctx *routing.Context) error {
 	res := make([]map[string]interface{}, 0, 10)
 	res = append(res, map[string]interface{}{"test": "entity-type"})
 	cntx := ctx.Request.Context()

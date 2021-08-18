@@ -118,6 +118,7 @@ func (app *App) Run() error {
 // RegisterHandlers sets up the routing of the HTTP handlers.
 func (app *App) RegisterHandlers(rg *routing.RouteGroup, authMiddleware routing.Handler) {
 	//	Example
-	rgTask := rg.Group("/test")
-	controller.RegisterTestHandlers(rgTask, app.Infra.YaruzRepository, app.Infra.Logger, authMiddleware)
+	rgTest := rg.Group("/test")
+	controller.RegisterReferenceTestHandlers(rgTest, app.Infra.YaruzRepository, app.Infra.Logger, authMiddleware)
+	controller.RegisterDataTestHandlers(rgTest, app.Infra.YaruzRepository, app.Infra.Logger, authMiddleware)
 }

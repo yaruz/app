@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_value"
+
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -21,6 +23,7 @@ type Entity struct {
 	PropertiesValuesMap map[uint]interface{}   `gorm:"-" json:"-"`
 	PropertiesValues    map[uint]PropertyValue `gorm:"-" json:"propertiesValues"`
 	RelationsValues     map[uint]RelationValue `gorm:"-" json:"relationsValues"`
+	TextValues          []text_value.TextValue `json:"-"`
 	CreatedAt           time.Time              `json:"createdAt"`
 	UpdatedAt           time.Time              `json:"updatedAt"`
 	DeletedAt           gorm.DeletedAt         `gorm:"index" json:"deletedAt,omitempty"`
