@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"context"
+
 	routing "github.com/go-ozzo/ozzo-routing/v2"
 	"github.com/minipkg/log"
 	"github.com/yaruz/app/pkg/yarus_platform"
@@ -28,11 +30,16 @@ func (c dataTestController) entity(ctx *routing.Context) error {
 	res = append(res, map[string]interface{}{"test": "text-source"})
 	cntx := ctx.Request.Context()
 
-	entity := c.yaruzPlatform.ReferenceSubsystem().TextSource.Service.NewEntity()
+	if err := c.propertyUnitsInit(cntx); err != nil {
+		res = append(res, map[string]interface{}{"propertyUnitsInit": err.Error()})
+	}
 
-	err := c.yaruzPlatform.ReferenceSubsystem().TextSource.Service.Create(cntx, entity)
-	if err != nil {
-		res = append(res, map[string]interface{}{"1. errCreate": err.Error()})
+	if err := c.propertiesInit(cntx); err != nil {
+		res = append(res, map[string]interface{}{"propertiesInit": err.Error()})
+	}
+
+	if err := c.entityTypesInit(cntx); err != nil {
+		res = append(res, map[string]interface{}{"entityTypesInit": err.Error()})
 	}
 
 	val := c.yaruzPlatform.ReferenceSubsystem().TextValue.Service.NewEntity()
@@ -58,4 +65,29 @@ func (c dataTestController) entity(ctx *routing.Context) error {
 	}
 
 	return ctx.Write(res)
+}
+
+func (c dataTestController) propertyUnitsInit(ctx context.Context) error {
+	langID := uint(1)
+
+	propertyUnitMM := c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Service.NewEntity()
+	propertyUnitMM.Sysname = "mm"
+	propertyUnitLenName := "мм"
+	propertyUnitLenDesc := "миллиметры"
+	propertyUnitMM.Name = &propertyUnitLenName
+	propertyUnitMM.Description = &propertyUnitLenDesc
+
+	err := c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Service.TCreate(ctx, propertyUnitMM, langID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c dataTestController) propertiesInit(ctx context.Context) error {
+	return nil
+}
+
+func (c dataTestController) entityTypesInit(ctx context.Context) error {
+	return nil
 }
