@@ -15,12 +15,14 @@ import (
 type RelationService interface {
 	NewEntity() *Relation
 	Get(ctx context.Context, id uint) (*Relation, error)
+	First(ctx context.Context, entity *Relation) (*Relation, error)
 	Query(ctx context.Context, query *selection_condition.SelectionCondition) ([]Relation, error)
 	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error)
 	Create(ctx context.Context, entity *Relation) error
 	Update(ctx context.Context, entity *Relation) error
 	Delete(ctx context.Context, entity *Relation) error
 	TGet(ctx context.Context, id uint, langID uint) (*Relation, error)
+	TFirst(ctx context.Context, entity *Relation, langID uint) (*Relation, error)
 	TQuery(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) ([]Relation, error)
 	TCreate(ctx context.Context, entity *Relation, langID uint) (err error)
 	TUpdate(ctx context.Context, entity *Relation, langID uint) (err error)
@@ -65,8 +67,24 @@ func (s *relationService) Get(ctx context.Context, id uint) (*Relation, error) {
 	return entity, nil
 }
 
+func (s *relationService) First(ctx context.Context, entity *Relation) (*Relation, error) {
+	entity, err := s.repository.First(ctx, entity)
+	if err != nil {
+		return nil, err
+	}
+	return entity, nil
+}
+
 func (s *relationService) TGet(ctx context.Context, id uint, langID uint) (*Relation, error) {
 	entity, err := s.repository.TGet(ctx, id, langID)
+	if err != nil {
+		return nil, err
+	}
+	return entity, nil
+}
+
+func (s *relationService) TFirst(ctx context.Context, entity *Relation, langID uint) (*Relation, error) {
+	entity, err := s.repository.TFirst(ctx, entity, langID)
 	if err != nil {
 		return nil, err
 	}

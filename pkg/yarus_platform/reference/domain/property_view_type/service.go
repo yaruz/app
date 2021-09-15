@@ -14,12 +14,14 @@ import (
 type IService interface {
 	NewEntity() *PropertyViewType
 	Get(ctx context.Context, id uint) (*PropertyViewType, error)
+	First(ctx context.Context, entity *PropertyViewType) (*PropertyViewType, error)
 	Query(ctx context.Context, query *selection_condition.SelectionCondition) ([]PropertyViewType, error)
 	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error)
 	Create(ctx context.Context, entity *PropertyViewType) error
 	Update(ctx context.Context, entity *PropertyViewType) error
 	Delete(ctx context.Context, entity *PropertyViewType) error
 	TGet(ctx context.Context, id uint, langID uint) (*PropertyViewType, error)
+	TFirst(ctx context.Context, entity *PropertyViewType, langID uint) (*PropertyViewType, error)
 	TQuery(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) ([]PropertyViewType, error)
 	TCreate(ctx context.Context, entity *PropertyViewType, langID uint) (err error)
 	TUpdate(ctx context.Context, entity *PropertyViewType, langID uint) (err error)
@@ -60,8 +62,24 @@ func (s *service) Get(ctx context.Context, id uint) (*PropertyViewType, error) {
 	return entity, nil
 }
 
+func (s *service) First(ctx context.Context, entity *PropertyViewType) (*PropertyViewType, error) {
+	entity, err := s.repository.First(ctx, entity)
+	if err != nil {
+		return nil, err
+	}
+	return entity, nil
+}
+
 func (s *service) TGet(ctx context.Context, id uint, langID uint) (*PropertyViewType, error) {
 	entity, err := s.repository.TGet(ctx, id, langID)
+	if err != nil {
+		return nil, err
+	}
+	return entity, nil
+}
+
+func (s *service) TFirst(ctx context.Context, entity *PropertyViewType, langID uint) (*PropertyViewType, error) {
+	entity, err := s.repository.TFirst(ctx, entity, langID)
 	if err != nil {
 		return nil, err
 	}

@@ -10,7 +10,7 @@ import (
 type Repository interface {
 	SetDefaultConditions(conditions *selection_condition.SelectionCondition)
 	// Get returns the album with the specified album ID.
-	Get(ctx context.Context, id uint) (*Entity, error)
+	Get(ctx context.Context, id uint, langID uint) (*Entity, error)
 	First(ctx context.Context, entity *Entity) (*Entity, error)
 	// Query returns the list of albums with the given offset and limit.
 	Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]Entity, error)
