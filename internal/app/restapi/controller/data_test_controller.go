@@ -22,9 +22,18 @@ type dataTestController struct {
 var langID = uint(1)
 var propertyUnitMMSysname = "mm"
 var entityTypeObjSysname = "obj"
-var propertyOptSysname = "opt"
 var propertyNumberSysname = "num"
 var propertyLenSysname = "len"
+var propertyOptSysname = "opt"
+var propertyOpt0ID = 0
+var propertyOpt0Key = "one"
+var propertyOpt0Val = 1
+var propertyOpt1ID = 1
+var propertyOpt1Key = "two"
+var propertyOpt1Val = 2
+var propertyOpt2ID = 2
+var propertyOpt2Key = "three"
+var propertyOpt2Val = 3
 
 // RegisterHandlers sets up the routing of the HTTP handlers.
 //	GET /api/models/ - список всех моделей
@@ -71,6 +80,11 @@ func (c dataTestController) entity(ctx *routing.Context) error {
 	}
 
 	entity := c.yaruzPlatform.DataSubsystem().Entity.Service.NewEntity()
+	entity.PropertiesValuesMap = map[uint]interface{}{
+		propertyNumber.ID: 158,
+		propertyLen.ID:    32.543,
+		propertyOpt.ID:    propertyOpt1Val,
+	}
 
 	return ctx.Write(res)
 }
@@ -134,9 +148,9 @@ func (c dataTestController) propertiesInit(ctx context.Context) error {
 	propertyOpts.PropertyTypeID = property_type.IDInt
 	propertyOpts.PropertyUnitID = &propertyUnitItem.ID
 	propertyOpts.Options = []map[string]interface{}{
-		{"one": 1},
-		{"two": 2},
-		{"three": 3},
+		{propertyOpt0Key: propertyOpt0Val},
+		{propertyOpt1Key: propertyOpt1Val},
+		{propertyOpt2Key: propertyOpt2Val},
 	}
 	propertyOptsName := "опции"
 	propertyOptsDesc := "опции (шт)"

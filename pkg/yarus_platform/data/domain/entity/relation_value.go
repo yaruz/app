@@ -6,5 +6,5 @@ import (
 
 type RelationValue struct {
 	entity_type.Relation
-	Value []Entity
+	Value []uint
 }

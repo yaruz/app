@@ -24,6 +24,7 @@ type IService interface {
 	Update(ctx context.Context, entity *Entity) error
 	Save(ctx context.Context, entity *Entity) error
 	Delete(ctx context.Context, id uint) error
+	EntityInit(ctx context.Context, entity *Entity, langID uint) error
 }
 
 type service struct {
@@ -60,6 +61,10 @@ func (s *service) NewEntity() *Entity {
 func (s *service) Get(ctx context.Context, id uint, langID uint) (*Entity, error) {
 	entity, err := s.repository.Get(ctx, id, langID)
 	if err != nil {
+		return nil, err
+	}
+
+	if err = s.EntityInit(ctx, entity, langID); err != nil {
 		return nil, err
 	}
 	return entity, nil
@@ -114,6 +119,14 @@ func (s *service) Delete(ctx context.Context, id uint) error {
 	return nil
 }
 
+func (s *service) EntityInit(ctx context.Context, entity *Entity, langID uint) error {
+
+	if err := s.tPropertiesInit(ctx, entity, langID); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *service) propertiesInit(ctx context.Context, entity *Entity) error {
 	return s.propsInit(ctx, entity, func(ctx context.Context, ids []interface{}) ([]property.Property, []entity_type.Relation, error) {
 		return s.reference.Relation.Service.PropertyAndRelationQuery(ctx, &selection_condition.SelectionCondition{
@@ -157,6 +170,31 @@ func (s *service) propsInit(ctx context.Context, entity *Entity, propertyAndRela
 	entity.RelationsValues = make(map[uint]RelationValue, len(rels))
 	for _, rel := range rels {
 		entity.RelationsValues[rel.ID] = RelationValue{Relation: rel}
+	}
+
+	return nil
+}
+
+func (s *service) tPropertiesValuesInit(ctx context.Context, entity *Entity, langID uint) error {
+
+	for id, val := range entity.PropertiesValuesMap {
+
+		_, propOk := entity.PropertiesValues[id]
+		rel, relOk := entity.RelationsValues[id]
+
+		switch {
+		case relOk:
+			entitiesIDs, ok := val.([]uint)
+			if !ok {
+				return errors.Errorf("Can not cast value of relation into a []uint. ID = %v; Val = %v.", id, val)
+			}
+			rel.Value = entitiesIDs
+			entity.RelationsValues[id] = rel
+		case propOk:
+		default:
+			return errors.Errorf("Property ID = %v not found.", id)
+		}
+
 	}
 
 	return nil
