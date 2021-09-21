@@ -124,6 +124,11 @@ func (s *service) EntityInit(ctx context.Context, entity *Entity, langID uint) e
 	if err := s.tPropertiesInit(ctx, entity, langID); err != nil {
 		return err
 	}
+
+	if err := s.tPropertiesValuesInit(ctx, entity, langID); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -179,7 +184,7 @@ func (s *service) tPropertiesValuesInit(ctx context.Context, entity *Entity, lan
 
 	for id, val := range entity.PropertiesValuesMap {
 
-		_, propOk := entity.PropertiesValues[id]
+		prop, propOk := entity.PropertiesValues[id]
 		rel, relOk := entity.RelationsValues[id]
 
 		switch {
@@ -191,6 +196,10 @@ func (s *service) tPropertiesValuesInit(ctx context.Context, entity *Entity, lan
 			rel.Value = entitiesIDs
 			entity.RelationsValues[id] = rel
 		case propOk:
+			if err := prop.SetValue(val); err != nil {
+				return errors.Errorf("Can not set value to PropertyValue. ID = %v; Val = %v.", id, val)
+			}
+			entity.PropertiesValues[id] = prop
 		default:
 			return errors.Errorf("Property ID = %v not found.", id)
 		}

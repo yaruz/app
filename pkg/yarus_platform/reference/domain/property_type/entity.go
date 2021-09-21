@@ -15,7 +15,6 @@ const (
 	SysnameRelation  = "relation"
 	SysnameBoolean   = "boolean"
 	SysnameInt       = "int"
-	SysnameBigint    = "bigint"
 	SysnameFloat     = "float"
 	SysnameDate      = "date"
 	SysnameTimestamp = "timestamp"
@@ -23,18 +22,16 @@ const (
 	IDRelation       = 1
 	IDBoolean        = 2
 	IDInt            = 3
-	IDBigint         = 4
-	IDFloat          = 5
-	IDDate           = 6
-	IDTimestamp      = 7
-	IDText           = 8
+	IDFloat          = 4
+	IDDate           = 5
+	IDTimestamp      = 6
+	IDText           = 7
 )
 
 var ValidTypesIDs = []interface{}{
 	uint(IDRelation),
 	uint(IDBoolean),
 	uint(IDInt),
-	uint(IDBigint),
 	uint(IDFloat),
 	uint(IDDate),
 	uint(IDTimestamp),

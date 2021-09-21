@@ -333,9 +333,6 @@ func (d *ReferenceSubsystem) PropertyTypeDataInit(ctx context.Context) error {
 				Sysname: property_type.SysnameInt,
 			},
 			{
-				Sysname: property_type.SysnameBigint,
-			},
-			{
 				Sysname: property_type.SysnameFloat,
 			},
 			{

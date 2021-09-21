@@ -66,24 +66,39 @@ func (c dataTestController) entity(ctx *routing.Context) error {
 
 	propertyNumber, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyNumberSysname}, langID)
 	if err != nil {
-		return err
+		res = append(res, map[string]interface{}{"finding for propertyNumber": err.Error()})
 	}
 
 	propertyLen, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyLenSysname}, langID)
 	if err != nil {
-		return err
+		res = append(res, map[string]interface{}{"finding for propertyLen": err.Error()})
 	}
 
 	propertyOpt, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyOptSysname}, langID)
 	if err != nil {
-		return err
+		res = append(res, map[string]interface{}{"finding for propertyOpt": err.Error()})
 	}
 
 	entity := c.yaruzPlatform.DataSubsystem().Entity.Service.NewEntity()
 	entity.PropertiesValuesMap = map[uint]interface{}{
-		propertyNumber.ID: 158,
-		propertyLen.ID:    32.543,
+		propertyNumber.ID: int(158),
+		propertyLen.ID:    float64(32.543),
 		propertyOpt.ID:    propertyOpt1Val,
+	}
+
+	err = entity.BeforeSave()
+	if err != nil {
+		res = append(res, map[string]interface{}{"entity.BeforeSave()": err.Error()})
+	}
+
+	err = entity.AfterFind()
+	if err != nil {
+		res = append(res, map[string]interface{}{"entity.AfterFind()": err.Error()})
+	}
+
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntityInit(cntx, entity, langID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"entity.AfterFind()": err.Error()})
 	}
 
 	return ctx.Write(res)
