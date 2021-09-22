@@ -157,10 +157,11 @@ func (r *PropertyTypeRepository) Create(ctx context.Context, entity *property_ty
 
 func (r *PropertyTypeRepository) TCreate(ctx context.Context, entity *property_type.PropertyType, langID uint) (err error) {
 
+	if entity.ID > 0 {
+		return errors.New("entity is not new")
+	}
+
 	return r.db.DB().Transaction(func(tx *gorm.DB) error {
-		if entity.ID > 0 {
-			return errors.New("entity is not new")
-		}
 
 		if entity.NameSourceID, err = r.textSourceRepository.CreateValueTx(ctx, tx, entity.Name, langID); err != nil {
 			return err
@@ -184,10 +185,11 @@ func (r *PropertyTypeRepository) Update(ctx context.Context, entity *property_ty
 
 func (r *PropertyTypeRepository) TUpdate(ctx context.Context, entity *property_type.PropertyType, langID uint) (err error) {
 
+	if entity.ID == 0 {
+		return errors.New("entity is new")
+	}
+
 	return r.db.DB().Transaction(func(tx *gorm.DB) error {
-		if entity.ID == 0 {
-			return errors.New("entity is new")
-		}
 
 		if entity.NameSourceID, err = r.textSourceRepository.UpdateValueTx(ctx, tx, entity.NameSourceID, entity.Name, langID); err != nil {
 			return err

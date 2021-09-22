@@ -95,14 +95,6 @@ LOOP:
 					break LOOP
 				}
 
-			case property_type.IDBigint, property_type.IDRelation:
-				if _, ok := itemVal.(int); !ok {
-					if _, ok := itemVal.(int64); !ok {
-						err = errors.Errorf("value type must be a bigint, value: %#v", itemVal)
-						break LOOP
-					}
-				}
-
 			case property_type.IDFloat:
 				if _, ok := itemVal.(float64); !ok {
 					if _, ok := itemVal.(int); !ok {

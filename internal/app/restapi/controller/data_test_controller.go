@@ -49,7 +49,7 @@ func RegisterDataTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platfor
 
 func (c dataTestController) entity(ctx *routing.Context) error {
 	res := make([]map[string]interface{}, 0, 10)
-	res = append(res, map[string]interface{}{"test": "text-source"})
+	res = append(res, map[string]interface{}{"test": "entity"})
 	cntx := ctx.Request.Context()
 
 	if err := c.propertyUnitsInit(cntx); err != nil {
@@ -86,20 +86,31 @@ func (c dataTestController) entity(ctx *routing.Context) error {
 		propertyOpt.ID:    propertyOpt1Val,
 	}
 
-	err = entity.BeforeSave()
-	if err != nil {
-		res = append(res, map[string]interface{}{"entity.BeforeSave()": err.Error()})
-	}
-
-	err = entity.AfterFind()
-	if err != nil {
-		res = append(res, map[string]interface{}{"entity.AfterFind()": err.Error()})
-	}
+	//err = entity.BeforeSave()
+	//if err != nil {
+	//	res = append(res, map[string]interface{}{"entity.BeforeSave()": err.Error()})
+	//}
+	//
+	//err = entity.AfterFind()
+	//if err != nil {
+	//	res = append(res, map[string]interface{}{"entity.AfterFind()": err.Error()})
+	//}
 
 	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntityInit(cntx, entity, langID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity.AfterFind()": err.Error()})
 	}
+
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Create(cntx, entity)
+	if err != nil {
+		res = append(res, map[string]interface{}{"entity.Create()": err.Error()})
+	}
+
+	entityG, err := c.yaruzPlatform.DataSubsystem().Entity.Service.Get(cntx, entity.ID, langID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"entity.Get()": err.Error()})
+	}
+	res = append(res, map[string]interface{}{"entity": entityG})
 
 	return ctx.Write(res)
 }
@@ -182,8 +193,8 @@ func (c dataTestController) propertiesInit(ctx context.Context) error {
 func (c dataTestController) entityTypesInit(ctx context.Context) error {
 	entityTypeObj := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.NewEntity()
 	entityTypeObj.Sysname = entityTypeObjSysname
-	entityTypeObjName := "Объект"
-	entityTypeObjDesc := "Тип объект"
+	entityTypeObjName := "объект"
+	entityTypeObjDesc := "тип объект"
 	entityTypeObj.Name = &entityTypeObjName
 	entityTypeObj.Description = &entityTypeObjDesc
 

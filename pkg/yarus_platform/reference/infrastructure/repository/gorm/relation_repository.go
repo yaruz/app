@@ -399,10 +399,11 @@ func (r *RelationRepository) Update(ctx context.Context, entity *entity_type.Rel
 
 func (r *RelationRepository) TUpdate(ctx context.Context, entity *entity_type.Relation, langID uint) (err error) {
 
+	if entity.ID == 0 {
+		return errors.New("entity is new")
+	}
+
 	return r.db.DB().Transaction(func(tx *gorm.DB) error {
-		if entity.ID == 0 {
-			return errors.New("entity is new")
-		}
 
 		if entity.NameSourceID, err = r.textSourceRepository.UpdateValueTx(ctx, tx, entity.NameSourceID, entity.Name, langID); err != nil {
 			return err

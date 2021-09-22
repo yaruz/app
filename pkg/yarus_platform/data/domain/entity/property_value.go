@@ -24,11 +24,19 @@ func (v *PropertyValue) SetValue(value interface{}) error {
 		}
 		v.Value = val
 	case property_type.IDInt:
-		val, ok := value.(int)
-		if !ok {
+		valInt, okInt := value.(int)
+		valFloat, okFloat := value.(float64) // после анмаршаллинга из JSON тип float64
+
+		if okInt {
+			v.Value = valInt
+		} else if okFloat {
+			if float64(int(valFloat)) != valFloat {
+				return errors.Errorf("Can not cast value of PropertyValue to int from float64. Value = %v.", value)
+			}
+			v.Value = int(valFloat)
+		} else if !okInt && !okFloat {
 			return errors.Errorf("Can not cast value of PropertyValue to int. Value = %v.", value)
 		}
-		v.Value = val
 	case property_type.IDFloat:
 		val, ok := value.(float64)
 		if !ok {

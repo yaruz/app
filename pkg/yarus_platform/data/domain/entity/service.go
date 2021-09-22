@@ -189,15 +189,13 @@ func (s *service) tPropertiesValuesInit(ctx context.Context, entity *Entity, lan
 
 		switch {
 		case relOk:
-			entitiesIDs, ok := val.([]uint)
-			if !ok {
-				return errors.Errorf("Can not cast value of relation into a []uint. ID = %v; Val = %v.", id, val)
+			if err := rel.SetValue(val); err != nil {
+				return errors.Errorf("Can not set value to PropertyValue. Property ID = %v; Value = %v.", id, val)
 			}
-			rel.Value = entitiesIDs
 			entity.RelationsValues[id] = rel
 		case propOk:
 			if err := prop.SetValue(val); err != nil {
-				return errors.Errorf("Can not set value to PropertyValue. ID = %v; Val = %v.", id, val)
+				return errors.Errorf("Can not set value to PropertyValue. Property ID = %v; Value = %v.", id, val)
 			}
 			entity.PropertiesValues[id] = prop
 		default:
