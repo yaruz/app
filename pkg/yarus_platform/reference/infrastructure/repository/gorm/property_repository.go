@@ -174,6 +174,10 @@ func (r *PropertyRepository) Create(ctx context.Context, entity *property.Proper
 		return errors.New("entity is not new")
 	}
 
+	if err := entity.Validate(); err != nil {
+		return err
+	}
+
 	if err := entity.BeforeSave(); err != nil {
 		return err
 	}
@@ -185,6 +189,10 @@ func (r *PropertyRepository) TCreate(ctx context.Context, entity *property.Prope
 
 	if entity.ID > 0 {
 		return errors.New("entity is not new")
+	}
+
+	if err := entity.Validate(); err != nil {
+		return err
 	}
 
 	if err := entity.BeforeSave(); err != nil {
@@ -211,6 +219,10 @@ func (r *PropertyRepository) Update(ctx context.Context, entity *property.Proper
 		return errors.New("entity is new")
 	}
 
+	if err := entity.Validate(); err != nil {
+		return err
+	}
+
 	return r.saveTx(ctx, r.db.DB(), entity)
 }
 
@@ -218,6 +230,10 @@ func (r *PropertyRepository) TUpdate(ctx context.Context, entity *property.Prope
 
 	if entity.ID == 0 {
 		return errors.New("entity is new")
+	}
+
+	if err := entity.Validate(); err != nil {
+		return err
 	}
 
 	return r.db.DB().Transaction(func(tx *gorm.DB) error {

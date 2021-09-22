@@ -348,6 +348,10 @@ func (r *RelationRepository) Create(ctx context.Context, entity *entity_type.Rel
 		return errors.New("entity is not new")
 	}
 
+	if err := entity.Validate(); err != nil {
+		return err
+	}
+
 	if err := entity.BeforeSave(); err != nil {
 		return err
 	}
@@ -365,6 +369,10 @@ func (r *RelationRepository) TCreate(ctx context.Context, entity *entity_type.Re
 
 	if entity.ID > 0 {
 		return errors.New("entity is not new")
+	}
+
+	if err := entity.Validate(); err != nil {
+		return err
 	}
 
 	if err := entity.BeforeSave(); err != nil {
@@ -394,6 +402,10 @@ func (r *RelationRepository) Update(ctx context.Context, entity *entity_type.Rel
 		return errors.New("entity is new")
 	}
 
+	if err := entity.Validate(); err != nil {
+		return err
+	}
+
 	return r.saveTx(ctx, r.db.DB(), entity)
 }
 
@@ -401,6 +413,10 @@ func (r *RelationRepository) TUpdate(ctx context.Context, entity *entity_type.Re
 
 	if entity.ID == 0 {
 		return errors.New("entity is new")
+	}
+
+	if err := entity.Validate(); err != nil {
+		return err
 	}
 
 	return r.db.DB().Transaction(func(tx *gorm.DB) error {
