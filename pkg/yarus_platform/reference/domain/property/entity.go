@@ -2,7 +2,6 @@ package property
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -20,6 +19,7 @@ const (
 	EntityName       = "property"
 	TableName        = "property"
 	ParseFormateDate = "2006-01-02"
+	ParseFormateTime = time.RFC3339
 )
 
 // Property ...
@@ -84,19 +84,19 @@ LOOP:
 			switch e.PropertyTypeID {
 
 			case property_type.IDBoolean:
-				if _, ok := itemVal.(bool); !ok {
+				if _, err := GetValueBool(itemVal); err != nil {
 					err = errors.Errorf("value type must be a boolean, value: %#v", itemVal)
 					break LOOP
 				}
 
 			case property_type.IDInt:
-				if _, ok := itemVal.(int); !ok {
+				if _, err := GetValueInt(itemVal); err != nil {
 					err = errors.Errorf("value type must be an int, value: %#v", itemVal)
 					break LOOP
 				}
 
 			case property_type.IDFloat:
-				if _, ok := itemVal.(float64); !ok {
+				if _, err := GetValueFloat(itemVal); err != nil {
 					if _, ok := itemVal.(int); !ok {
 						err = errors.Errorf("value type must be a float, value: %#v", itemVal)
 						break LOOP
@@ -104,36 +104,20 @@ LOOP:
 				}
 
 			case property_type.IDDate:
-				s, ok := itemVal.(string)
-				if !ok {
-					err = errors.Errorf("value type must be a date, value: %#v", itemVal)
-					break LOOP
-				}
-				//d := &datatypes.Date{}
-				var t time.Time
-				t, err = time.Parse(ParseFormateDate, s)
-				if err != nil {
-					err = errors.Errorf("value type must be a date, value: %#v", itemVal)
-					break LOOP
-				}
-				d := datatypes.Date(t)
-				dv, err := d.Value()
-				if err != nil {
-					err = errors.Errorf("value type must be a date, value: %#v", itemVal)
-					break LOOP
-				}
-				fmt.Printf("%#v", dv)
-
-			case property_type.IDTimestamp:
-				if _, ok := itemVal.(int); !ok {
-					if _, ok := itemVal.(int64); !ok {
-						err = errors.Errorf("value type must be a timestamp, value: %#v", itemVal)
+				if _, err := GetValueDate(itemVal); err != nil {
+					if _, ok := itemVal.(int); !ok {
+						err = errors.Errorf("value type must be a date, value: %#v", itemVal)
 						break LOOP
 					}
 				}
 
+			case property_type.IDTime:
+				if _, err := GetValueTime(itemVal); err != nil {
+					err = errors.Errorf("value type must be a timestamp, value: %#v", itemVal)
+				}
+
 			case property_type.IDText:
-				if _, ok := itemVal.(string); !ok {
+				if _, err := GetValueText(itemVal); err != nil {
 					err = errors.Errorf("value type must be a text, value: %#v", itemVal)
 					break LOOP
 				}
@@ -141,6 +125,152 @@ LOOP:
 		}
 	}
 	return err
+}
+
+func GetValueBool(value interface{}) (bool, error) {
+	var res bool
+
+	if res, ok := value.(bool); !ok {
+		return res, errors.Errorf("can not cast to a boolean value, value: %#v", value)
+	}
+	return res, nil
+}
+
+func GetValueInt(value interface{}) (int, error) {
+	var res int
+
+	valInt, okInt := value.(int)
+	valFloat, okFloat := value.(float64) // после анмаршаллинга из JSON тип float64
+
+	if okInt {
+		res = valInt
+	} else if okFloat {
+		if float64(int(valFloat)) != valFloat {
+			return res, errors.Errorf("Can not cast value of PropertyValue to int from float64. Value = %v.", value)
+		}
+		res = int(valFloat)
+	} else {
+		return res, errors.Errorf("Can not cast value of PropertyValue to int. Value = %v.", value)
+	}
+	return res, nil
+}
+
+func GetRelationValue(value interface{}) ([]uint, error) {
+	var res []uint
+
+	valInt, okInt := value.([]int)
+	valUint, okUint := value.([]uint)
+	valFloat, okFloat := value.([]float64) // после анмаршаллинга из JSON тип float64
+
+	if okUint {
+		res = valUint
+	} else if okInt {
+		res = make([]uint, 0, len(valInt))
+
+		for _, i := range valInt {
+
+			if int(uint(i)) != i {
+				return res, errors.Errorf("Can not cast value of Relation to []uint from []int. Value = %v.", value)
+			}
+			res = append(res, uint(i))
+		}
+	} else if okFloat {
+		res = make([]uint, 0, len(valInt))
+
+		for _, i := range valFloat {
+
+			if float64(uint(i)) != i {
+				return res, errors.Errorf("Can not cast value of Relation to []uint from []float64. Value = %v.", value)
+			}
+			res = append(res, uint(i))
+		}
+	} else {
+		return res, errors.Errorf("Can not cast value of Relation to []uint. Value = %v.", value)
+	}
+	return res, nil
+}
+
+func GetValueFloat(value interface{}) (float64, error) {
+	var res float64
+	var ok bool
+
+	if res, ok = value.(float64); !ok {
+
+		resInt, ok := value.(int)
+		if !ok {
+			return res, errors.Errorf("Can not cast value of PropertyValue to float. Value = %v.", value)
+		}
+		res = float64(resInt)
+	}
+	return res, nil
+}
+
+func GetValueDate(value interface{}) (time.Time, error) {
+	var res time.Time
+	var t time.Time
+	var err error
+
+	vStr, okStr := value.(string)
+	vInt64, okInt64 := value.(int64)
+	vInt, okInt := value.(int)
+
+	if okStr {
+		t, err = time.Parse(ParseFormateDate, vStr)
+		if err != nil {
+			return res, errors.Wrapf(err, "Can not pars string value by ParseFormateDate to date. Value = %v.", value)
+		}
+	} else if okInt || okInt64 {
+
+		if okInt {
+			vInt64 = int64(vInt)
+		}
+
+		t = time.Unix(vInt64, 0)
+	} else {
+		return res, errors.Errorf("Can not cast value of PropertyValue to string (as a string format of a date) or int (as a timestamp). Value = %v.", value)
+	}
+
+	y, m, d := t.Date()
+	res = time.Date(y, m, d, 0, 0, 0, 0, t.Location())
+
+	return res, nil
+}
+
+func GetValueTime(value interface{}) (time.Time, error) {
+	var res time.Time
+	var t time.Time
+	var err error
+
+	vStr, okStr := value.(string)
+	vInt64, okInt64 := value.(int64)
+	vInt, okInt := value.(int)
+
+	if okStr {
+		t, err = time.Parse(ParseFormateDate, vStr)
+		if err != nil {
+			return res, errors.Wrapf(err, "Can not pars string value by ParseFormateDate to date. Value = %v.", value)
+		}
+	} else if okInt || okInt64 {
+
+		if okInt {
+			vInt64 = int64(vInt)
+		}
+
+		t = time.Unix(vInt64, 0)
+	} else {
+		return res, errors.Errorf("Can not cast value of PropertyValue to string (as a string format of a date) or int (as a timestamp). Value = %v.", value)
+	}
+
+	return t, nil
+}
+
+func GetValueText(value interface{}) (string, error) {
+	var res string
+
+	if res, ok := value.(string); !ok {
+		return res, errors.Errorf("can not cast to a string value, value: %#v", value)
+	}
+	return res, nil
 }
 
 func (e *Property) AfterFind() error {

@@ -215,7 +215,7 @@ func (c dataTestController) propertiesInit(ctx context.Context) error {
 
 	propertyTS := c.yaruzPlatform.ReferenceSubsystem().Property.Service.NewEntity()
 	propertyTS.Sysname = propertyTSSysname
-	propertyTS.PropertyTypeID = property_type.IDTimestamp
+	propertyTS.PropertyTypeID = property_type.IDTime
 	propertyTS.PropertyUnitID = &propertyUnitMM.ID
 	propertyTSName := "дата"
 	propertyTSDesc := "дата события"

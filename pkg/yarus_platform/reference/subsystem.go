@@ -339,7 +339,7 @@ func (d *ReferenceSubsystem) PropertyTypeDataInit(ctx context.Context) error {
 				Sysname: property_type.SysnameDate,
 			},
 			{
-				Sysname: property_type.SysnameTimestamp,
+				Sysname: property_type.SysnameTime,
 			},
 			{
 				Sysname: property_type.SysnameText,

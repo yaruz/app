@@ -137,7 +137,7 @@ func (s *service) propertiesInit(ctx context.Context, entity *Entity) error {
 		return s.reference.Relation.Service.PropertyAndRelationQuery(ctx, &selection_condition.SelectionCondition{
 			Where: selection_condition.WhereCondition{
 				Field:     "ID",
-				Condition: "in",
+				Condition: selection_condition.ConditionIn,
 				Value:     ids,
 			},
 		})
@@ -149,7 +149,7 @@ func (s *service) tPropertiesInit(ctx context.Context, entity *Entity, langID ui
 		return s.reference.Relation.Service.TPropertyAndRelationQuery(ctx, &selection_condition.SelectionCondition{
 			Where: selection_condition.WhereCondition{
 				Field:     "ID",
-				Condition: "in",
+				Condition: selection_condition.ConditionIn,
 				Value:     ids,
 			},
 		}, langID)
@@ -169,17 +169,19 @@ func (s *service) propsInit(ctx context.Context, entity *Entity, propertyAndRela
 
 	entity.PropertiesValues = make(map[uint]PropertyValue, len(props))
 	for _, prop := range props {
-		entity.PropertiesValues[prop.ID] = PropertyValue{Property: prop}
+		entity.PropertiesValues[prop.ID] = PropertyValue{Property: &prop}
 	}
 
 	entity.RelationsValues = make(map[uint]RelationValue, len(rels))
 	for _, rel := range rels {
-		entity.RelationsValues[rel.ID] = RelationValue{Relation: rel}
+		entity.RelationsValues[rel.ID] = RelationValue{Relation: &rel}
 	}
 
 	return nil
 }
 
+// Инициализация PropertiesValues и RelationsValues из PropertiesValuesMap
+// Запускаем после запуска tPropertiesInit
 func (s *service) tPropertiesValuesInit(ctx context.Context, entity *Entity, langID uint) error {
 
 	for id, val := range entity.PropertiesValuesMap {
@@ -194,7 +196,7 @@ func (s *service) tPropertiesValuesInit(ctx context.Context, entity *Entity, lan
 			}
 			entity.RelationsValues[id] = rel
 		case propOk:
-			if err := prop.SetValue(val); err != nil {
+			if err := prop.SetValue(val, langID); err != nil {
 				return errors.Errorf("Can not set value to PropertyValue. Property ID = %v; Value = %v.", id, val)
 			}
 			entity.PropertiesValues[id] = prop
@@ -205,4 +207,36 @@ func (s *service) tPropertiesValuesInit(ctx context.Context, entity *Entity, lan
 	}
 
 	return nil
+}
+
+// value - значение, не ссылка
+func (s *service) EntitySetPropertyValue(ctx context.Context, entity *Entity, property *property.Property, value interface{}, langID uint) error {
+	propertyValue := &PropertyValue{
+		Property: property,
+	}
+
+	if err := propertyValue.SetValue(value, langID); err != nil {
+		return err
+	}
+	entity.setPropertyValue(propertyValue)
+
+	return nil
+}
+
+// value - значение, не ссылка, []uint - IDs связанных сущностей
+func (s *service) EntitySetRelationValue(ctx context.Context, entity *Entity, relation *entity_type.Relation, value interface{}, langID uint) error {
+	relationValue := &RelationValue{
+		Relation: relation,
+	}
+
+	if err := relationValue.SetValue(value); err != nil {
+		return err
+	}
+	entity.setRelationValue(relationValue)
+
+	return nil
+}
+
+func (s *service) EntityDeletePropertyValue(ctx context.Context, entity *Entity, propertyID uint) {
+	entity.DeletePropertyValue(propertyID)
 }

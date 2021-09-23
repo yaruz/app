@@ -10,22 +10,22 @@ import (
 )
 
 const (
-	EntityName       = "propertyType"
-	TableName        = "property_type"
-	SysnameRelation  = "relation"
-	SysnameBoolean   = "boolean"
-	SysnameInt       = "int"
-	SysnameFloat     = "float"
-	SysnameDate      = "date"
-	SysnameTimestamp = "timestamp"
-	SysnameText      = "text"
-	IDRelation       = 1
-	IDBoolean        = 2
-	IDInt            = 3
-	IDFloat          = 4
-	IDDate           = 5
-	IDTimestamp      = 6
-	IDText           = 7
+	EntityName      = "propertyType"
+	TableName       = "property_type"
+	SysnameRelation = "relation"
+	SysnameBoolean  = "boolean"
+	SysnameInt      = "int"
+	SysnameFloat    = "float"
+	SysnameDate     = "date"
+	SysnameTime     = "time"
+	SysnameText     = "text"
+	IDRelation      = 1
+	IDBoolean       = 2
+	IDInt           = 3
+	IDFloat         = 4
+	IDDate          = 5
+	IDTime          = 6
+	IDText          = 7
 )
 
 var ValidTypesIDs = []interface{}{
@@ -34,7 +34,7 @@ var ValidTypesIDs = []interface{}{
 	uint(IDInt),
 	uint(IDFloat),
 	uint(IDDate),
-	uint(IDTimestamp),
+	uint(IDTime),
 	uint(IDText),
 }
 

@@ -67,3 +67,32 @@ func (e *Entity) propertiesValuesMap2PropertiesB() error {
 	}
 	return e.PropertiesB.UnmarshalJSON(jsonb)
 }
+
+func (e *Entity) setPropertyValue(propertyValue *PropertyValue) {
+	propertyID := propertyValue.Property.ID
+
+	e.PropertiesValuesMap[propertyID] = propertyValue.Value
+	e.PropertiesValues[propertyID] = *propertyValue
+}
+
+func (e *Entity) setRelationValue(relationValue *RelationValue) {
+	propertyID := relationValue.Property.ID
+
+	e.PropertiesValuesMap[propertyID] = relationValue.Value
+	e.RelationsValues[propertyID] = *relationValue
+}
+
+func (e *Entity) DeletePropertyValue(propertyID uint) {
+
+	if _, ok := e.PropertiesValuesMap[propertyID]; ok {
+		delete(e.PropertiesValuesMap, propertyID)
+	}
+
+	if _, ok := e.PropertiesValues[propertyID]; ok {
+		delete(e.PropertiesValues, propertyID)
+	}
+
+	if _, ok := e.RelationsValues[propertyID]; ok {
+		delete(e.RelationsValues, propertyID)
+	}
+}

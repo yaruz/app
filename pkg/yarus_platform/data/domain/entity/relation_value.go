@@ -3,23 +3,25 @@ package entity
 import (
 	"github.com/pkg/errors"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
 )
 
 type RelationValue struct {
-	entity_type.Relation
+	*entity_type.Relation
 	Value []uint
 }
 
-func (v *RelationValue) SetValue(value interface{}) error {
+func (v *RelationValue) SetValue(value interface{}) (err error) {
 	if v.Property.PropertyTypeID == 0 {
 		return errors.Errorf("Can not set value to RelationValue: Property does not set.")
 	}
 
-	entitiesIDs, ok := value.([]uint)
-	if !ok {
-		return errors.Errorf("Can not cast value of relation into a []uint. Value = %v.", value)
+	if v.Property.PropertyTypeID != property_type.IDRelation {
+		return errors.Errorf("Can not set value to RelationValue: PropertyTypeID does not equal IDRelation.")
 	}
-	v.Value = entitiesIDs
 
-	return nil
+	v.Value, err = property.GetRelationValue(value)
+
+	return err
 }
