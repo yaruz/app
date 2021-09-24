@@ -71,12 +71,26 @@ func (e *Entity) propertiesValuesMap2PropertiesB() error {
 func (e *Entity) setPropertyValue(propertyValue *PropertyValue) {
 	propertyID := propertyValue.Property.ID
 
+	if e.PropertiesValuesMap == nil {
+		e.PropertiesValuesMap = make(map[uint]interface{}, 1)
+	}
+	if e.PropertiesValues == nil {
+		e.PropertiesValues = make(map[uint]PropertyValue, 1)
+	}
+
 	e.PropertiesValuesMap[propertyID] = propertyValue.Value
 	e.PropertiesValues[propertyID] = *propertyValue
 }
 
 func (e *Entity) setRelationValue(relationValue *RelationValue) {
 	propertyID := relationValue.Property.ID
+
+	if e.PropertiesValuesMap == nil {
+		e.PropertiesValuesMap = make(map[uint]interface{}, 1)
+	}
+	if e.RelationsValues == nil {
+		e.RelationsValues = make(map[uint]RelationValue, 1)
+	}
 
 	e.PropertiesValuesMap[propertyID] = relationValue.Value
 	e.RelationsValues[propertyID] = *relationValue

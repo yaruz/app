@@ -18,13 +18,17 @@ import (
 type IService interface {
 	NewEntity() *Entity
 	Get(ctx context.Context, id uint, langID uint) (*Entity, error)
-	Query(ctx context.Context, query *selection_condition.SelectionCondition) ([]Entity, error)
+	First(ctx context.Context, entity *Entity, langID uint) (*Entity, error)
+	Query(ctx context.Context, query *selection_condition.SelectionCondition, langID uint) ([]Entity, error)
 	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error)
-	Create(ctx context.Context, entity *Entity) error
-	Update(ctx context.Context, entity *Entity) error
-	Save(ctx context.Context, entity *Entity) error
+	Create(ctx context.Context, entity *Entity, langID uint) error
+	Update(ctx context.Context, entity *Entity, langID uint) error
+	Save(ctx context.Context, entity *Entity, langID uint) error
 	Delete(ctx context.Context, id uint) error
 	EntityInit(ctx context.Context, entity *Entity, langID uint) error
+	EntitySetPropertyValue(ctx context.Context, entity *Entity, property *property.Property, value interface{}, langID uint) error
+	EntitySetRelationValue(ctx context.Context, entity *Entity, relation *entity_type.Relation, value interface{}) error
+	EntityDeletePropertyValue(ctx context.Context, entity *Entity, propertyID uint)
 }
 
 type service struct {
@@ -70,11 +74,31 @@ func (s *service) Get(ctx context.Context, id uint, langID uint) (*Entity, error
 	return entity, nil
 }
 
+func (s *service) First(ctx context.Context, entity *Entity, langID uint) (*Entity, error) {
+	entity, err := s.repository.First(ctx, entity, langID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = s.EntityInit(ctx, entity, langID); err != nil {
+		return nil, err
+	}
+	return entity, nil
+}
+
 // Query returns the items with the specified selection condition.
-func (s *service) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]Entity, error) {
-	items, err := s.repository.Query(ctx, cond)
+func (s *service) Query(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) ([]Entity, error) {
+	items, err := s.repository.Query(ctx, cond, langID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Can not find a list of items by query: %v", cond)
+	}
+
+	for i := range items {
+
+		if err = s.EntityInit(ctx, &items[i], langID); err != nil {
+			return nil, err
+		}
+
 	}
 	return items, nil
 }
@@ -87,27 +111,42 @@ func (s *service) Count(ctx context.Context, cond *selection_condition.Selection
 	return count, nil
 }
 
-func (s *service) Create(ctx context.Context, entity *Entity) error {
-	err := s.repository.Create(ctx, entity)
+func (s *service) Create(ctx context.Context, entity *Entity, langID uint) error {
+	err := s.repository.Create(ctx, entity, langID)
 	if err != nil {
 		return errors.Wrapf(err, "Can not create an entity: %v", entity)
 	}
+
+	if err = s.EntityInit(ctx, entity, langID); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (s *service) Update(ctx context.Context, entity *Entity) error {
-	err := s.repository.Update(ctx, entity)
+func (s *service) Update(ctx context.Context, entity *Entity, langID uint) error {
+	err := s.repository.Update(ctx, entity, langID)
 	if err != nil {
 		return errors.Wrapf(err, "Can not update an entity: %v", entity)
 	}
+
+	if err = s.EntityInit(ctx, entity, langID); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (s *service) Save(ctx context.Context, entity *Entity) error {
-	err := s.repository.Save(ctx, entity)
+func (s *service) Save(ctx context.Context, entity *Entity, langID uint) error {
+	err := s.repository.Save(ctx, entity, langID)
 	if err != nil {
 		return errors.Wrapf(err, "Can not save an entity: %v", entity)
 	}
+
+	if err = s.EntityInit(ctx, entity, langID); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -168,13 +207,13 @@ func (s *service) propsInit(ctx context.Context, entity *Entity, propertyAndRela
 	}
 
 	entity.PropertiesValues = make(map[uint]PropertyValue, len(props))
-	for _, prop := range props {
-		entity.PropertiesValues[prop.ID] = PropertyValue{Property: &prop}
+	for i := range props {
+		entity.PropertiesValues[props[i].ID] = PropertyValue{Property: &props[i]}
 	}
 
 	entity.RelationsValues = make(map[uint]RelationValue, len(rels))
-	for _, rel := range rels {
-		entity.RelationsValues[rel.ID] = RelationValue{Relation: &rel}
+	for i := range rels {
+		entity.RelationsValues[rels[i].ID] = RelationValue{Relation: &rels[i]}
 	}
 
 	return nil
@@ -192,12 +231,12 @@ func (s *service) tPropertiesValuesInit(ctx context.Context, entity *Entity, lan
 		switch {
 		case relOk:
 			if err := rel.SetValue(val); err != nil {
-				return errors.Errorf("Can not set value to PropertyValue. Property ID = %v; Value = %v.", id, val)
+				return errors.Wrapf(err, "Can not set value to PropertyValue. Property ID = %v; Value = %v.", id, val)
 			}
 			entity.RelationsValues[id] = rel
 		case propOk:
 			if err := prop.SetValue(val, langID); err != nil {
-				return errors.Errorf("Can not set value to PropertyValue. Property ID = %v; Value = %v.", id, val)
+				return errors.Wrapf(err, "Can not set value to PropertyValue. Property ID = %v; Value = %v.", id, val)
 			}
 			entity.PropertiesValues[id] = prop
 		default:
@@ -211,29 +250,21 @@ func (s *service) tPropertiesValuesInit(ctx context.Context, entity *Entity, lan
 
 // value - значение, не ссылка
 func (s *service) EntitySetPropertyValue(ctx context.Context, entity *Entity, property *property.Property, value interface{}, langID uint) error {
-	propertyValue := &PropertyValue{
-		Property: property,
-	}
-
-	if err := propertyValue.SetValue(value, langID); err != nil {
+	propertyValue, err := newPropertyValue(property, value, langID)
+	if err != nil {
 		return err
 	}
 	entity.setPropertyValue(propertyValue)
-
 	return nil
 }
 
 // value - значение, не ссылка, []uint - IDs связанных сущностей
-func (s *service) EntitySetRelationValue(ctx context.Context, entity *Entity, relation *entity_type.Relation, value interface{}, langID uint) error {
-	relationValue := &RelationValue{
-		Relation: relation,
-	}
-
-	if err := relationValue.SetValue(value); err != nil {
+func (s *service) EntitySetRelationValue(ctx context.Context, entity *Entity, relation *entity_type.Relation, value interface{}) error {
+	relationValue, err := newRelationValue(relation, value)
+	if err != nil {
 		return err
 	}
 	entity.setRelationValue(relationValue)
-
 	return nil
 }
 

@@ -16,10 +16,11 @@ import (
 )
 
 const (
-	EntityName       = "property"
-	TableName        = "property"
-	ParseFormateDate = "2006-01-02"
-	ParseFormateTime = time.RFC3339
+	EntityName          = "property"
+	TableName           = "property"
+	ParseFormateDate    = "2006-01-02"
+	ParseFormateDateRFC = time.RFC3339
+	ParseFormateTime    = time.RFC3339
 )
 
 // Property ...
@@ -210,14 +211,18 @@ func GetValueDate(value interface{}) (time.Time, error) {
 	var t time.Time
 	var err error
 
+	t, okTime := value.(time.Time)
 	vStr, okStr := value.(string)
 	vInt64, okInt64 := value.(int64)
 	vInt, okInt := value.(int)
 
-	if okStr {
-		t, err = time.Parse(ParseFormateDate, vStr)
-		if err != nil {
-			return res, errors.Wrapf(err, "Can not pars string value by ParseFormateDate to date. Value = %v.", value)
+	if okTime {
+	} else if okStr {
+
+		if t, err = time.Parse(ParseFormateDateRFC, vStr); err != nil {
+			if t, err = time.Parse(ParseFormateDate, vStr); err != nil {
+				return res, errors.Wrapf(err, "Can not pars string value by ParseFormateDate to date. Value = %v.", value)
+			}
 		}
 	} else if okInt || okInt64 {
 
@@ -241,12 +246,14 @@ func GetValueTime(value interface{}) (time.Time, error) {
 	var t time.Time
 	var err error
 
+	t, okTime := value.(time.Time)
 	vStr, okStr := value.(string)
 	vInt64, okInt64 := value.(int64)
 	vInt, okInt := value.(int)
 
-	if okStr {
-		t, err = time.Parse(ParseFormateDate, vStr)
+	if okTime {
+	} else if okStr {
+		t, err = time.Parse(ParseFormateTime, vStr)
 		if err != nil {
 			return res, errors.Wrapf(err, "Can not pars string value by ParseFormateDate to date. Value = %v.", value)
 		}

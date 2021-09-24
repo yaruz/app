@@ -55,7 +55,7 @@ func (r *EntityRepository) Get(ctx context.Context, id uint, langID uint) (*doma
 	return entity, err
 }
 
-func (r *EntityRepository) First(ctx context.Context, entity *domain_entity.Entity) (*domain_entity.Entity, error) {
+func (r *EntityRepository) First(ctx context.Context, entity *domain_entity.Entity, langID uint) (*domain_entity.Entity, error) {
 	err := r.db.DB().Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -72,7 +72,7 @@ func (r *EntityRepository) First(ctx context.Context, entity *domain_entity.Enti
 }
 
 // Query retrieves the album records with the specified offset and limit from the database.
-func (r *EntityRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]domain_entity.Entity, error) {
+func (r *EntityRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) ([]domain_entity.Entity, error) {
 	items := []domain_entity.Entity{}
 	db := minipkg_gorm.Conditions(r.db.DB(), cond)
 	if db.Error != nil {
@@ -87,8 +87,8 @@ func (r *EntityRepository) Query(ctx context.Context, cond *selection_condition.
 		return nil, err
 	}
 
-	for _, entity := range items {
-		if err = entity.AfterFind(); err != nil {
+	for i := range items {
+		if err = (&items[i]).AfterFind(); err != nil {
 			return nil, err
 		}
 	}
@@ -111,7 +111,7 @@ func (r *EntityRepository) Count(ctx context.Context, cond *selection_condition.
 }
 
 // Create saves a new record in the database.
-func (r *EntityRepository) Create(ctx context.Context, entity *domain_entity.Entity) error {
+func (r *EntityRepository) Create(ctx context.Context, entity *domain_entity.Entity, langID uint) error {
 
 	if entity.ID > 0 {
 		return errors.New("entity is not new")
@@ -125,7 +125,7 @@ func (r *EntityRepository) Create(ctx context.Context, entity *domain_entity.Ent
 }
 
 // Update saves a changed Maintenance record in the database.
-func (r *EntityRepository) Update(ctx context.Context, entity *domain_entity.Entity) error {
+func (r *EntityRepository) Update(ctx context.Context, entity *domain_entity.Entity, langID uint) error {
 
 	if entity.ID == 0 {
 		return errors.New("entity is new")
@@ -135,11 +135,11 @@ func (r *EntityRepository) Update(ctx context.Context, entity *domain_entity.Ent
 		return err
 	}
 
-	return r.Save(ctx, entity)
+	return r.Save(ctx, entity, langID)
 }
 
 // Save update value in database, if the value doesn't have primary key, will insert it
-func (r *EntityRepository) Save(ctx context.Context, entity *domain_entity.Entity) error {
+func (r *EntityRepository) Save(ctx context.Context, entity *domain_entity.Entity, langID uint) error {
 
 	if err := entity.BeforeSave(); err != nil {
 		return err

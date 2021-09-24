@@ -11,6 +11,17 @@ type PropertyValue struct {
 	Value interface{} //	<simple type> || []<simple type>
 }
 
+func newPropertyValue(property *property.Property, value interface{}, langID uint) (*PropertyValue, error) {
+	propertyValue := &PropertyValue{
+		Property: property,
+	}
+
+	if err := propertyValue.SetValue(value, langID); err != nil {
+		return nil, err
+	}
+	return propertyValue, nil
+}
+
 func (v *PropertyValue) SetValue(value interface{}, langID uint) (err error) {
 	if v.Property.PropertyTypeID == 0 {
 		return errors.Errorf("Can not set value to PropertyValue: Property does not set.")

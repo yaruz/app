@@ -12,6 +12,17 @@ type RelationValue struct {
 	Value []uint
 }
 
+func newRelationValue(relation *entity_type.Relation, value interface{}) (*RelationValue, error) {
+	relationValue := &RelationValue{
+		Relation: relation,
+	}
+
+	if err := relationValue.SetValue(value); err != nil {
+		return nil, err
+	}
+	return relationValue, nil
+}
+
 func (v *RelationValue) SetValue(value interface{}) (err error) {
 	if v.Property.PropertyTypeID == 0 {
 		return errors.Errorf("Can not set value to RelationValue: Property does not set.")

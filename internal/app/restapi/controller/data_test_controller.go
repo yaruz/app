@@ -27,7 +27,7 @@ var propertyNumberSysname = "num"
 var propertyLenSysname = "len"
 var propertyBoolSysname = "bool"
 var propertyDateSysname = "date"
-var propertyTSSysname = "ts"
+var propertyTSSysname = "time"
 var propertyNameSysname = "name"
 var propertyOptSysname = "opt"
 var propertyOpt0ID = 0
@@ -94,7 +94,7 @@ func (c dataTestController) entity(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"finding for propertyDate": err.Error()})
 	}
 
-	propertyTS, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyTSSysname}, langID)
+	propertyTime, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyTSSysname}, langID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"finding for propertyTS": err.Error()})
 	}
@@ -105,21 +105,46 @@ func (c dataTestController) entity(ctx *routing.Context) error {
 	//}
 
 	entity := c.yaruzPlatform.DataSubsystem().Entity.Service.NewEntity()
-	entity.PropertiesValuesMap = map[uint]interface{}{
-		propertyNumber.ID: int(158),
-		propertyLen.ID:    float64(32.543),
-		propertyOpt.ID:    propertyOpt1Val,
-		propertyBool.ID:   true,
-		propertyDate.ID:   "2021-09-22",
-		propertyTS.ID:     time.Now().Unix(),
-	}
+	//entity.PropertiesValuesMap = map[uint]interface{}{
+	//	propertyNumber.ID: int(158),
+	//	propertyLen.ID:    float64(32.543),
+	//	propertyOpt.ID:    propertyOpt1Val,
+	//	propertyBool.ID:   true,
+	//	propertyDate.ID:   "2021-09-22",
+	//	propertyTime.ID:     time.Now().Unix(),
+	//}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntityInit(cntx, entity, langID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyNumber, int(158), langID)
 	if err != nil {
-		res = append(res, map[string]interface{}{"entity.AfterFind()": err.Error()})
+		res = append(res, map[string]interface{}{"Set propertyNumber": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Create(cntx, entity)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyLen, float64(32.543), langID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"Set propertyLen": err.Error()})
+	}
+
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyOpt, propertyOpt1Val, langID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"Set propertyOpt": err.Error()})
+	}
+
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyBool, true, langID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
+	}
+
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyDate, time.Now(), langID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"Set propertyDate": err.Error()})
+	}
+
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyTime, time.Now(), langID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"Set propertyTime": err.Error()})
+	}
+
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Create(cntx, entity, langID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity.Create()": err.Error()})
 	}
