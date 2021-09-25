@@ -20,7 +20,8 @@ type dataTestController struct {
 	yaruzPlatform yarus_platform.IPlatform
 }
 
-var langID = uint(1)
+var langEngID = uint(1)
+var langRusID = uint(2)
 var propertyUnitMMSysname = "mm"
 var entityTypeObjSysname = "obj"
 var propertyNumberSysname = "num"
@@ -50,6 +51,7 @@ func RegisterDataTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platfor
 	}
 
 	r.Get("/entity", c.entity)
+	r.Get("/entity-text", c.entityText)
 }
 
 func (c dataTestController) entity(ctx *routing.Context) error {
@@ -69,40 +71,35 @@ func (c dataTestController) entity(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"entityTypesInit": err.Error()})
 	}
 
-	propertyNumber, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyNumberSysname}, langID)
+	propertyNumber, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyNumberSysname}, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"finding for propertyNumber": err.Error()})
 	}
 
-	propertyLen, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyLenSysname}, langID)
+	propertyLen, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyLenSysname}, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"finding for propertyLen": err.Error()})
 	}
 
-	propertyOpt, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyOptSysname}, langID)
+	propertyOpt, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyOptSysname}, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"finding for propertyOpt": err.Error()})
 	}
 
-	propertyBool, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyBoolSysname}, langID)
+	propertyBool, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyBoolSysname}, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"finding for propertyBool": err.Error()})
 	}
 
-	propertyDate, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyDateSysname}, langID)
+	propertyDate, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyDateSysname}, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"finding for propertyDate": err.Error()})
 	}
 
-	propertyTime, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyTSSysname}, langID)
+	propertyTime, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyTSSysname}, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"finding for propertyTS": err.Error()})
 	}
-
-	//propertyName, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyNameSysname}, langID)
-	//if err != nil {
-	//	res = append(res, map[string]interface{}{"finding for propertyName": err.Error()})
-	//}
 
 	entity := c.yaruzPlatform.DataSubsystem().Entity.Service.NewEntity()
 	//entity.PropertiesValuesMap = map[uint]interface{}{
@@ -114,46 +111,136 @@ func (c dataTestController) entity(ctx *routing.Context) error {
 	//	propertyTime.ID:     time.Now().Unix(),
 	//}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyNumber, int(158), langID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyNumber, int(158), langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyNumber": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyLen, float64(32.543), langID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyLen, float64(32.543), langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyLen": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyOpt, propertyOpt1Val, langID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyOpt, propertyOpt1Val, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyOpt": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyBool, true, langID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyBool, true, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyDate, time.Now(), langID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyDate, time.Now(), langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyDate": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyTime, time.Now(), langID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyTime, time.Now(), langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyTime": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Create(cntx, entity, langID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Create(cntx, entity, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity.Create()": err.Error()})
 	}
 
-	entityG, err := c.yaruzPlatform.DataSubsystem().Entity.Service.Get(cntx, entity.ID, langID)
+	entityG, err := c.yaruzPlatform.DataSubsystem().Entity.Service.Get(cntx, entity.ID, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity.Get()": err.Error()})
 	}
 	res = append(res, map[string]interface{}{"entity": entityG})
+
+	return ctx.Write(res)
+}
+
+func (c dataTestController) entityText(ctx *routing.Context) error {
+	res := make([]map[string]interface{}, 0, 10)
+	res = append(res, map[string]interface{}{"test": "entity"})
+	cntx := ctx.Request.Context()
+
+	if err := c.propertyUnitsInit(cntx); err != nil {
+		res = append(res, map[string]interface{}{"propertyUnitsInit": err.Error()})
+	}
+
+	if err := c.propertiesInit(cntx); err != nil {
+		res = append(res, map[string]interface{}{"propertiesInit": err.Error()})
+	}
+
+	if err := c.entityTypesInit(cntx); err != nil {
+		res = append(res, map[string]interface{}{"entityTypesInit": err.Error()})
+	}
+
+	propertyName, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyNameSysname}, langRusID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"finding for propertyName": err.Error()})
+	}
+
+	entity := c.yaruzPlatform.DataSubsystem().Entity.Service.NewEntity()
+
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyName, "Андрей", langRusID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
+	}
+
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Create(cntx, entity, langRusID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"entity.Create()": err.Error()})
+	}
+
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyName, "Андрей Калинин", langRusID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
+	}
+
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, entity, langRusID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"entity.Update()": err.Error()})
+	}
+
+	entity1, err := c.yaruzPlatform.DataSubsystem().Entity.Service.Get(cntx, entity.ID, langRusID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"entity1.Get()": err.Error()})
+	}
+	res = append(res, map[string]interface{}{"entity1": entity1})
+
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity1, propertyName, "Андрей Калинин 1", langRusID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
+	}
+
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, entity, langRusID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"entity.Update()": err.Error()})
+	}
+
+	entity2, err := c.yaruzPlatform.DataSubsystem().Entity.Service.Get(cntx, entity.ID, langEngID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"entity2.Get()": err.Error()})
+	}
+	res = append(res, map[string]interface{}{"entity2": entity2})
+
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity2, propertyName, "Andrey", langEngID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
+	}
+
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity2, propertyName, "Andrey Kalinin", langEngID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
+	}
+
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, entity2, langEngID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"entity2.Update()": err.Error()})
+	}
+
+	entity3, err := c.yaruzPlatform.DataSubsystem().Entity.Service.Get(cntx, entity.ID, langEngID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"entity3.Get()": err.Error()})
+	}
+	res = append(res, map[string]interface{}{"entity3": entity3})
 
 	return ctx.Write(res)
 }
@@ -167,7 +254,7 @@ func (c dataTestController) propertyUnitsInit(ctx context.Context) error {
 	propertyUnitMM.Name = &propertyUnitLenName
 	propertyUnitMM.Description = &propertyUnitLenDesc
 
-	err := c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Service.TCreate(ctx, propertyUnitMM, langID)
+	err := c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Service.TCreate(ctx, propertyUnitMM, langRusID)
 	if err != nil {
 		return err
 	}
@@ -176,7 +263,7 @@ func (c dataTestController) propertyUnitsInit(ctx context.Context) error {
 
 func (c dataTestController) propertiesInit(ctx context.Context) error {
 
-	propertyUnitItem, err := c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Service.TFirst(ctx, &property_unit.PropertyUnit{Sysname: property_unit.SysnameItem}, langID)
+	propertyUnitItem, err := c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Service.TFirst(ctx, &property_unit.PropertyUnit{Sysname: property_unit.SysnameItem}, langRusID)
 	if err != nil {
 		return err
 	}
@@ -190,11 +277,11 @@ func (c dataTestController) propertiesInit(ctx context.Context) error {
 	propertyNumber.Name = &propertyNumberName
 	propertyNumber.Description = &propertyNumberDesc
 
-	if err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TCreate(ctx, propertyNumber, langID); err != nil {
+	if err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TCreate(ctx, propertyNumber, langRusID); err != nil {
 		return err
 	}
 
-	propertyUnitMM, err := c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Service.TFirst(ctx, &property_unit.PropertyUnit{Sysname: "mm"}, langID)
+	propertyUnitMM, err := c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Service.TFirst(ctx, &property_unit.PropertyUnit{Sysname: "mm"}, langRusID)
 	if err != nil {
 		return err
 	}
@@ -208,7 +295,7 @@ func (c dataTestController) propertiesInit(ctx context.Context) error {
 	propertyLen.Name = &propertyLenName
 	propertyLen.Description = &propertyLenDesc
 
-	if err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.TCreate(ctx, propertyLen, langID); err != nil {
+	if err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.TCreate(ctx, propertyLen, langRusID); err != nil {
 		return err
 	}
 
@@ -221,7 +308,7 @@ func (c dataTestController) propertiesInit(ctx context.Context) error {
 	propertyBool.Name = &propertyBoolName
 	propertyBool.Description = &propertyBoolDesc
 
-	if err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.TCreate(ctx, propertyBool, langID); err != nil {
+	if err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.TCreate(ctx, propertyBool, langRusID); err != nil {
 		return err
 	}
 
@@ -234,7 +321,7 @@ func (c dataTestController) propertiesInit(ctx context.Context) error {
 	propertyDate.Name = &propertyDateName
 	propertyDate.Description = &propertyDateDesc
 
-	if err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.TCreate(ctx, propertyDate, langID); err != nil {
+	if err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.TCreate(ctx, propertyDate, langRusID); err != nil {
 		return err
 	}
 
@@ -247,7 +334,7 @@ func (c dataTestController) propertiesInit(ctx context.Context) error {
 	propertyTS.Name = &propertyTSName
 	propertyTS.Description = &propertyTSDesc
 
-	if err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.TCreate(ctx, propertyTS, langID); err != nil {
+	if err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.TCreate(ctx, propertyTS, langRusID); err != nil {
 		return err
 	}
 
@@ -260,7 +347,7 @@ func (c dataTestController) propertiesInit(ctx context.Context) error {
 	propertyName.Name = &propertyNameName
 	propertyName.Description = &propertyNameDesc
 
-	if err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.TCreate(ctx, propertyName, langID); err != nil {
+	if err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.TCreate(ctx, propertyName, langRusID); err != nil {
 		return err
 	}
 
@@ -278,7 +365,7 @@ func (c dataTestController) propertiesInit(ctx context.Context) error {
 	propertyOpts.Name = &propertyOptsName
 	propertyOpts.Description = &propertyOptsDesc
 
-	if err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TCreate(ctx, propertyOpts, langID); err != nil {
+	if err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TCreate(ctx, propertyOpts, langRusID); err != nil {
 		return err
 	}
 
@@ -293,7 +380,7 @@ func (c dataTestController) entityTypesInit(ctx context.Context) error {
 	entityTypeObj.Name = &entityTypeObjName
 	entityTypeObj.Description = &entityTypeObjDesc
 
-	if err := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.TCreate(ctx, entityTypeObj, langID); err != nil {
+	if err := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.TCreate(ctx, entityTypeObj, langRusID); err != nil {
 		return err
 	}
 

@@ -129,9 +129,8 @@ LOOP:
 }
 
 func GetValueBool(value interface{}) (bool, error) {
-	var res bool
-
-	if res, ok := value.(bool); !ok {
+	res, ok := value.(bool)
+	if !ok {
 		return res, errors.Errorf("can not cast to a boolean value, value: %#v", value)
 	}
 	return res, nil
@@ -192,10 +191,8 @@ func GetRelationValue(value interface{}) ([]uint, error) {
 }
 
 func GetValueFloat(value interface{}) (float64, error) {
-	var res float64
-	var ok bool
-
-	if res, ok = value.(float64); !ok {
+	res, ok := value.(float64)
+	if !ok {
 
 		resInt, ok := value.(int)
 		if !ok {
@@ -242,7 +239,6 @@ func GetValueDate(value interface{}) (time.Time, error) {
 }
 
 func GetValueTime(value interface{}) (time.Time, error) {
-	var res time.Time
 	var t time.Time
 	var err error
 
@@ -255,7 +251,7 @@ func GetValueTime(value interface{}) (time.Time, error) {
 	} else if okStr {
 		t, err = time.Parse(ParseFormateTime, vStr)
 		if err != nil {
-			return res, errors.Wrapf(err, "Can not pars string value by ParseFormateDate to date. Value = %v.", value)
+			return t, errors.Wrapf(err, "Can not pars string value by ParseFormateDate to date. Value = %v.", value)
 		}
 	} else if okInt || okInt64 {
 
@@ -265,16 +261,15 @@ func GetValueTime(value interface{}) (time.Time, error) {
 
 		t = time.Unix(vInt64, 0)
 	} else {
-		return res, errors.Errorf("Can not cast value of PropertyValue to string (as a string format of a date) or int (as a timestamp). Value = %v.", value)
+		return t, errors.Errorf("Can not cast value of PropertyValue to string (as a string format of a date) or int (as a timestamp). Value = %v.", value)
 	}
 
 	return t, nil
 }
 
 func GetValueText(value interface{}) (string, error) {
-	var res string
-
-	if res, ok := value.(string); !ok {
+	res, ok := value.(string)
+	if !ok {
 		return res, errors.Errorf("can not cast to a string value, value: %#v", value)
 	}
 	return res, nil

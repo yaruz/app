@@ -183,19 +183,21 @@ func (r *TextValueRepository) BatchSaveChangesTx(ctx context.Context, entityID u
 			newTextValues = append(newTextValues, *textValue)
 		}
 
-		delTextValuesIds := make([]uint, 0)
-		for _, t := range mapOldTextValues {
-			delTextValuesIds = append(delTextValuesIds, t.ID)
-		}
+		if len(mapOldTextValues) > 0 {
+			delTextValuesIds := make([]uint, 0)
+			for _, t := range mapOldTextValues {
+				delTextValuesIds = append(delTextValuesIds, t.ID)
+			}
 
-		if err := r.BatchDeleteTx(ctx, &selection_condition.SelectionCondition{
-			Where: selection_condition.WhereCondition{
-				Field:     "id",
-				Condition: selection_condition.ConditionIn,
-				Value:     delTextValuesIds,
-			},
-		}, tx); err != nil {
-			return err
+			if err := r.BatchDeleteTx(ctx, &selection_condition.SelectionCondition{
+				Where: selection_condition.WhereCondition{
+					Field:     "id",
+					Condition: selection_condition.ConditionIn,
+					Value:     delTextValuesIds,
+				},
+			}, tx); err != nil {
+				return err
+			}
 		}
 
 		return tx.Save(newTextValues).Error

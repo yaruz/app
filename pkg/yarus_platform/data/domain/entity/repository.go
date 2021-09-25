@@ -17,6 +17,5 @@ type Repository interface {
 	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error)
 	Create(ctx context.Context, entity *Entity, langID uint) error
 	Update(ctx context.Context, entity *Entity, langID uint) error
-	Save(ctx context.Context, entity *Entity, langID uint) error
 	Delete(ctx context.Context, id uint) error
 }

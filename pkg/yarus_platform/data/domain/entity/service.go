@@ -23,7 +23,6 @@ type IService interface {
 	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error)
 	Create(ctx context.Context, entity *Entity, langID uint) error
 	Update(ctx context.Context, entity *Entity, langID uint) error
-	Save(ctx context.Context, entity *Entity, langID uint) error
 	Delete(ctx context.Context, id uint) error
 	EntityInit(ctx context.Context, entity *Entity, langID uint) error
 	EntitySetPropertyValue(ctx context.Context, entity *Entity, property *property.Property, value interface{}, langID uint) error
@@ -128,19 +127,6 @@ func (s *service) Update(ctx context.Context, entity *Entity, langID uint) error
 	err := s.repository.Update(ctx, entity, langID)
 	if err != nil {
 		return errors.Wrapf(err, "Can not update an entity: %v", entity)
-	}
-
-	if err = s.EntityInit(ctx, entity, langID); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *service) Save(ctx context.Context, entity *Entity, langID uint) error {
-	err := s.repository.Save(ctx, entity, langID)
-	if err != nil {
-		return errors.Wrapf(err, "Can not save an entity: %v", entity)
 	}
 
 	if err = s.EntityInit(ctx, entity, langID); err != nil {
