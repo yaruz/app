@@ -129,3 +129,75 @@ func (r *TextValueRepository) Delete(ctx context.Context, id uint) error {
 	}
 	return err
 }
+
+func (r *TextValueRepository) BatchDeleteTx(ctx context.Context, cond *selection_condition.SelectionCondition, tx *gorm.DB) error {
+	db := minipkg_gorm.Conditions(tx, cond)
+	if db.Error != nil {
+		return db.Error
+	}
+
+	err := db.Delete(&text_value.TextValue{}).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return apperror.ErrNotFound
+		}
+	}
+	return err
+}
+
+func (r *TextValueRepository) BatchSaveChangesTx(ctx context.Context, entityID uint, langID uint, mapOfStrings map[uint]string, tx *gorm.DB) error {
+	return tx.Transaction(func(tx *gorm.DB) error {
+		var textValue *text_value.TextValue
+		// можно и без этого запроса, а просто брать из entity.TextValues, но для большей безопасности сделаем отдельный независимый запрос
+		oldTextValues, err := r.Query(ctx, &selection_condition.SelectionCondition{
+			Where: &text_value.TextValue{
+				EntityID: entityID,
+				LangID:   langID,
+			},
+		})
+		if err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+			oldTextValues = make([]text_value.TextValue, 0)
+		}
+
+		mapOldTextValues := make(map[uint]*text_value.TextValue, len(oldTextValues))
+		for i := range oldTextValues {
+			mapOldTextValues[oldTextValues[i].PropertyID] = &oldTextValues[i]
+		}
+
+		newTextValues := make([]text_value.TextValue, 0, len(oldTextValues))
+		for propertyID, value := range mapOfStrings {
+			if _, ok := mapOldTextValues[propertyID]; ok {
+				textValue = mapOldTextValues[propertyID]
+				delete(mapOldTextValues, propertyID)
+			} else {
+				textValue = &text_value.TextValue{
+					EntityID:   entityID,
+					LangID:     langID,
+					PropertyID: propertyID,
+				}
+			}
+			textValue.Value = value
+			newTextValues = append(newTextValues, *textValue)
+		}
+
+		delTextValuesIds := make([]uint, 0)
+		for _, t := range mapOldTextValues {
+			delTextValuesIds = append(delTextValuesIds, t.ID)
+		}
+
+		if err := r.BatchDeleteTx(ctx, &selection_condition.SelectionCondition{
+			Where: selection_condition.WhereCondition{
+				Field:     "id",
+				Condition: selection_condition.ConditionIn,
+				Value:     delTextValuesIds,
+			},
+		}, tx); err != nil {
+			return err
+		}
+
+		return tx.Save(newTextValues).Error
+	})
+}

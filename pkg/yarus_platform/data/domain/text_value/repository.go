@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/minipkg/selection_condition"
+	"gorm.io/gorm"
 )
 
 // Repository encapsulates the logic to access albums from the data source.
@@ -19,4 +20,6 @@ type Repository interface {
 	Update(ctx context.Context, entity *TextValue) error
 	Save(ctx context.Context, entity *TextValue) error
 	Delete(ctx context.Context, id uint) error
+	BatchSaveChangesTx(ctx context.Context, entityID uint, langID uint, mapOfStrings map[uint]string, tx *gorm.DB) error
+	BatchDeleteTx(ctx context.Context, cond *selection_condition.SelectionCondition, tx *gorm.DB) error
 }
