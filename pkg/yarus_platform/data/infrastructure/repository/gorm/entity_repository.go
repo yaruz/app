@@ -245,5 +245,5 @@ func (r *EntityRepository) getTextValuesFromPropertiesValuesMap(entity *domain_e
 
 func (r *EntityRepository) textValueJoin(db *gorm.DB, langID uint) *gorm.DB {
 	//return db.Joins("left join text_value on entity.id = text_value.entity_id and lang_id = ?", langID)
-	return db.Joins("TextValues", r.db.DB().Where(&text_value.TextValue{LangID: langID}))
+	return db.Joins("TextValues", r.db.DB().Model(&text_value.TextValue{}).Where(&text_value.TextValue{LangID: langID}))
 }
