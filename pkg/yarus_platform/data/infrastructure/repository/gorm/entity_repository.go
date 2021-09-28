@@ -43,7 +43,7 @@ func (r *EntityRepository) autoMigrate() {
 func (r *EntityRepository) Get(ctx context.Context, id uint, langID uint) (*domain_entity.Entity, error) {
 	entity := &domain_entity.Entity{}
 
-	err := r.textValueJoin(r.db.DB(), langID).First(entity, id).Error
+	err := r.textValuePreload(r.db.DB(), langID).First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -59,7 +59,7 @@ func (r *EntityRepository) Get(ctx context.Context, id uint, langID uint) (*doma
 }
 
 func (r *EntityRepository) First(ctx context.Context, entity *domain_entity.Entity, langID uint) (*domain_entity.Entity, error) {
-	err := r.textValueJoin(r.db.DB(), langID).Where(entity).First(entity).Error
+	err := r.textValuePreload(r.db.DB(), langID).Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruzerror.ErrNotFound
@@ -77,7 +77,7 @@ func (r *EntityRepository) First(ctx context.Context, entity *domain_entity.Enti
 // Query retrieves the album records with the specified offset and limit from the database.
 func (r *EntityRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) ([]domain_entity.Entity, error) {
 	items := []domain_entity.Entity{}
-	db := minipkg_gorm.Conditions(r.textValueJoin(r.db.DB(), langID), cond)
+	db := minipkg_gorm.Conditions(r.textValuePreload(r.db.DB(), langID), cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -189,7 +189,7 @@ func (r *EntityRepository) afterSaveTx(ctx context.Context, entity *domain_entit
 
 func (r *EntityRepository) resetTextValuesInPropertiesValuesMap(ctx context.Context, entity *domain_entity.Entity, propertiesIDs []uint) {
 	for _, propertyID := range propertiesIDs {
-		entity.PropertiesValuesMap[propertyID] = 0
+		entity.PropertiesValuesMap[propertyID] = ""
 	}
 }
 
@@ -243,7 +243,6 @@ func (r *EntityRepository) getTextValuesFromPropertiesValuesMap(entity *domain_e
 	return textPropertiesIDs, textValuesMap, nil
 }
 
-func (r *EntityRepository) textValueJoin(db *gorm.DB, langID uint) *gorm.DB {
-	//return db.Joins("left join text_value on entity.id = text_value.entity_id and lang_id = ?", langID)
-	return db.Joins("TextValues", r.db.DB().Model(&text_value.TextValue{}).Where(&text_value.TextValue{LangID: langID}))
+func (r *EntityRepository) textValuePreload(db *gorm.DB, langID uint) *gorm.DB {
+	return db.Preload("TextValues", r.db.DB().Model(&text_value.TextValue{}).Where(&text_value.TextValue{LangID: langID}))
 }

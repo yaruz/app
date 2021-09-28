@@ -210,7 +210,7 @@ func (c dataTestController) entityText(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, entity, langRusID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, entity1, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity.Update()": err.Error()})
 	}
