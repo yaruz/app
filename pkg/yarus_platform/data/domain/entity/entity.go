@@ -96,6 +96,7 @@ func (e *Entity) setRelationValue(relationValue *RelationValue) {
 	e.RelationsValues[propertyID] = *relationValue
 }
 
+// Удаляет как значения свойств, так и значения связей
 func (e *Entity) DeletePropertyValue(propertyID uint) {
 
 	if _, ok := e.PropertiesValuesMap[propertyID]; ok {

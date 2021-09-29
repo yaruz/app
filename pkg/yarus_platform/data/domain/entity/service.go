@@ -26,7 +26,7 @@ type IService interface {
 	Delete(ctx context.Context, id uint) error
 	EntityInit(ctx context.Context, entity *Entity, langID uint) error
 	EntitySetPropertyValue(ctx context.Context, entity *Entity, property *property.Property, value interface{}, langID uint) error
-	EntitySetRelationValue(ctx context.Context, entity *Entity, relation *entity_type.Relation, value interface{}) error
+	EntitySetRelationValue(ctx context.Context, entity *Entity, relation *entity_type.Relation, value []uint) error
 	EntityDeletePropertyValue(ctx context.Context, entity *Entity, propertyID uint)
 }
 
@@ -216,7 +216,7 @@ func (s *service) tPropertiesValuesInit(ctx context.Context, entity *Entity, lan
 
 		switch {
 		case relOk:
-			if err := rel.SetValue(val); err != nil {
+			if err := rel.SetValueByInterface(val); err != nil {
 				return errors.Wrapf(err, "Can not set value to PropertyValue. Property ID = %v; Value = %v.", id, val)
 			}
 			entity.RelationsValues[id] = rel
@@ -245,7 +245,7 @@ func (s *service) EntitySetPropertyValue(ctx context.Context, entity *Entity, pr
 }
 
 // value - значение, не ссылка, []uint - IDs связанных сущностей
-func (s *service) EntitySetRelationValue(ctx context.Context, entity *Entity, relation *entity_type.Relation, value interface{}) error {
+func (s *service) EntitySetRelationValue(ctx context.Context, entity *Entity, relation *entity_type.Relation, value []uint) error {
 	relationValue, err := newRelationValue(relation, value)
 	if err != nil {
 		return err
@@ -254,6 +254,19 @@ func (s *service) EntitySetRelationValue(ctx context.Context, entity *Entity, re
 	return nil
 }
 
+// Удаляет как значения свойств, так и значения связей
 func (s *service) EntityDeletePropertyValue(ctx context.Context, entity *Entity, propertyID uint) {
 	entity.DeletePropertyValue(propertyID)
+}
+
+func (s *service) BindRelatedEntity(ctx context.Context, entity *Entity, relation *entity_type.Relation, entityID uint) {
+}
+
+func (s *service) BindRelatedEntities(ctx context.Context, entity *Entity, relation *entity_type.Relation, entityIDs []uint) {
+}
+
+func (s *service) UnbindRelatedEntity(ctx context.Context, entity *Entity, relation *entity_type.Relation, entityID uint) {
+}
+
+func (s *service) UnbindRelatedEntities(ctx context.Context, entity *Entity, relation *entity_type.Relation, entityIDs []uint) {
 }
