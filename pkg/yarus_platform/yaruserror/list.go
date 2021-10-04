@@ -4,8 +4,17 @@ import (
 	"github.com/pkg/errors"
 )
 
+// ErrNotSet is error for case when some thing is not set
+var ErrNotSet error = errors.New("Not set.")
+
 // ErrNotFound is error for case when entity not found
 var ErrNotFound error = errors.New("Not found.")
+
+// ErrAlreadyExists is error for case when some value is already exists
+var ErrAlreadyExists error = errors.New("Already exists.")
+
+// ErrEmptyParams is error for case when params are empty
+var ErrEmptyParams error = errors.New("Empty params.")
 
 // ErrBadRequest is error for case when bad request
 var ErrBadParams error = errors.New("Bad params.")

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_value"
 
 	"gorm.io/datatypes"
@@ -42,6 +44,12 @@ func (e *Entity) TableName() string {
 // New func is a constructor for the Entity
 func New() *Entity {
 	return &Entity{}
+}
+
+func (e Entity) Validate() error {
+	return validation.ValidateStruct(&e,
+		validation.Field(&e.EntityTypeID, validation.Required),
+	)
 }
 
 func (e *Entity) AfterFind() error {

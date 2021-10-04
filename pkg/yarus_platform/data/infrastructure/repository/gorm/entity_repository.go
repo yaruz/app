@@ -12,7 +12,7 @@ import (
 	domain_entity "github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_value"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
-	"github.com/yaruz/app/pkg/yarus_platform/yaruzerror"
+	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 )
 
 // EntityRepository is a repository for the model entity
@@ -46,7 +46,7 @@ func (r *EntityRepository) Get(ctx context.Context, id uint, langID uint) (*doma
 	err := r.textValuePreload(r.db.DB(), langID).First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return entity, yaruzerror.ErrNotFound
+			return entity, yaruserror.ErrNotFound
 		}
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (r *EntityRepository) First(ctx context.Context, entity *domain_entity.Enti
 	err := r.textValuePreload(r.db.DB(), langID).Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return entity, yaruzerror.ErrNotFound
+			return entity, yaruserror.ErrNotFound
 		}
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func (r *EntityRepository) Query(ctx context.Context, cond *selection_condition.
 	err := db.Find(&items).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return items, yaruzerror.ErrNotFound
+			return items, yaruserror.ErrNotFound
 		}
 		return nil, err
 	}
@@ -120,6 +120,10 @@ func (r *EntityRepository) Create(ctx context.Context, entity *domain_entity.Ent
 		return errors.New("entity is not new")
 	}
 
+	if err := entity.Validate(); err != nil {
+		return err
+	}
+
 	textValuesMap, err := r.beforeSave(ctx, entity)
 	if err != nil {
 		return err
@@ -144,6 +148,10 @@ func (r *EntityRepository) updateTx(ctx context.Context, entity *domain_entity.E
 
 	if entity.ID == 0 {
 		return errors.New("entity is new")
+	}
+
+	if err := entity.Validate(); err != nil {
+		return err
 	}
 
 	textValuesMap, err := r.beforeSave(ctx, entity)

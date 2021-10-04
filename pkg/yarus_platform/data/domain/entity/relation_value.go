@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"encoding/json"
 	"sort"
 
 	"github.com/pkg/errors"
@@ -41,8 +42,14 @@ func (v *RelationValue) SetValueByInterface(value interface{}) (err error) {
 	if err = v.propertyTypeIDCheck(); err != nil {
 		return err
 	}
+
 	v.Value, err = property.GetRelationValue(value)
-	return err
+	if err != nil {
+		return err
+	}
+
+	v.sortValue()
+	return nil
 }
 
 func (v *RelationValue) SetValue(value []uint) error {
@@ -50,41 +57,109 @@ func (v *RelationValue) SetValue(value []uint) error {
 		return err
 	}
 	v.Value = value
+	v.sortValue()
 	return nil
 }
 
-func (v *RelationValue) BindRelatedEntity(entityID uint) {
+func (v *RelationValue) AddValue(value uint) error {
 	if v.Value == nil {
 		v.Value = make([]uint, 0, 1)
 	}
-	v.Value = append(v.Value, entityID)
-}
 
-func (v *RelationValue) BindRelatedEntities(entityIDs []uint) {
-	if v.Value == nil {
-		v.Value = make([]uint, 0, len(entityIDs))
+	i, ok := v.SearchValue(value)
+	if ok {
+		return yaruserror.ErrAlreadyExists
 	}
-	v.Value = append(v.Value, entityIDs...)
+
+	if i < v.Len() {
+		values := v.Value
+		v.Value = append(append(values[:i], value), values[i:]...)
+	} else {
+		v.Value = append(v.Value, value)
+	}
+	return nil
 }
 
-func (v *RelationValue) UnbindRelatedEntity(entityID uint) error {
+func (v *RelationValue) AddValues(values []uint, isStopIfErrAlreadyExists bool) error {
 	if v.Value == nil {
+		v.Value = make([]uint, 0, len(values))
+	}
+	alreadyExists := make(map[int]uint)
+
+	for i, value := range values {
+		if err := v.AddValue(value); err != nil {
+			alreadyExists[i] = value
+
+			if isStopIfErrAlreadyExists {
+				break
+			}
+		}
+	}
+
+	if len(alreadyExists) > 0 {
+		alreadyExistsB, err := json.Marshal(alreadyExists)
+		if err != nil {
+			return err
+		}
+		return errors.Wrap(yaruserror.ErrAlreadyExists, string(alreadyExistsB))
+	}
+	return nil
+}
+
+func (v *RelationValue) RemoveValue(Value uint) error {
+	if v.Value == nil {
+		return yaruserror.ErrEmptyParams
+	}
+
+	i, ok := v.SearchValue(Value)
+	if !ok {
 		return yaruserror.ErrNotFound
 	}
-	if _, ok := v.Value[entityID]; !ok {
-		return yaruserror.ErrNotFound
-	}
 
+	v.Value = append(v.Value[:i], v.Value[i+1:]...)
+	return nil
 }
 
-func (v *RelationValue) UnbindRelatedEntities(entityIDs []uint) {
+func (v *RelationValue) RemoveValues(entityIDs []uint, isStopWithErrNotFound bool) error {
+	if entityIDs == nil || len(entityIDs) == 0 {
+		return yaruserror.ErrEmptyParams
+	}
+
+	notFound := make(map[int]uint)
+	for i, id := range entityIDs {
+		if _, ok := v.SearchValue(id); !ok {
+			notFound[i] = id
+		}
+	}
+
+	if len(notFound) == 0 || !isStopWithErrNotFound {
+		for i, id := range entityIDs {
+			if _, ok := notFound[i]; ok {
+				continue
+			}
+			if err := v.RemoveValue(id); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(notFound) > 0 {
+		notFoundB, err := json.Marshal(notFound)
+		if err != nil {
+			return err
+		}
+		return errors.Wrap(yaruserror.ErrNotFound, string(notFoundB))
+	}
+	return nil
 }
 
 func (v *RelationValue) sortValue() {
+	v.CheckValueNotNil()
 	sort.Slice(v.Value, func(i, j int) bool { return v.Value[i] < v.Value[j] })
 }
 
-func (v *RelationValue) searchValue(value uint) (int, bool) {
+func (v *RelationValue) SearchValue(value uint) (int, bool) {
+	v.CheckValueNotNil()
 	intSlice := make([]int, len(v.Value))
 
 	for i, val := range v.Value {
@@ -93,4 +168,15 @@ func (v *RelationValue) searchValue(value uint) (int, bool) {
 
 	indx := sort.SearchInts(intSlice, int(value))
 	return indx, len(v.Value) > indx && v.Value[indx] == value
+}
+
+func (v *RelationValue) CheckValueNotNil() {
+	if v.Value == nil {
+		v.Value = make([]uint, 0)
+	}
+}
+
+func (v *RelationValue) Len() int {
+	v.CheckValueNotNil()
+	return len(v.Value)
 }

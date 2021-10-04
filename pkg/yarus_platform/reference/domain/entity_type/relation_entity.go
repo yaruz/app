@@ -24,7 +24,11 @@ func (e *Relation) TableName() string {
 
 // NewRelation func is a constructor for the Property
 func NewRelation() *Relation {
-	return &Relation{}
+	return &Relation{
+		Property: property.Property{
+			PropertyTypeID: property_type.IDRelation,
+		},
+	}
 }
 
 func (e Relation) Validate() error {
@@ -36,6 +40,14 @@ func (e Relation) Validate() error {
 		return err
 	}
 	return e.Property.Validate()
+}
+
+func (e *Relation) SetUndependedEntityType(typeID *EntityType) {
+	e.UndependedEntityType = typeID
+}
+
+func (e *Relation) SetDependedEntityType(typeID *EntityType) {
+	e.DependedEntityType = typeID
 }
 
 func (e *Relation) AfterFind() error {
