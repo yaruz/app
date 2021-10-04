@@ -48,7 +48,7 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 	var textSourceRepository text_source.Repository
 
 	switch entityName {
-	case entity_type.EntityName, property.EntityName, property_type.EntityName, property_view_type.EntityName, property_unit.EntityName, property_group.EntityName:
+	case entity_type.EntityName, property.EntityName, entity_type.RelationEntityName, property_type.EntityName, property_view_type.EntityName, property_unit.EntityName, property_group.EntityName:
 		if textSourceRepository, err = r.getTextSourceRepository(logger, dbase); err != nil {
 			return nil, err
 		}

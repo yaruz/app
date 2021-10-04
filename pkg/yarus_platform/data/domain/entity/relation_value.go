@@ -21,6 +21,10 @@ func newRelationValue(relation *entity_type.Relation, value []uint) (*RelationVa
 		Relation: relation,
 	}
 
+	if err := relationValue.propertyTypeIDCheck(); err != nil {
+		return nil, err
+	}
+
 	if err := relationValue.SetValue(value); err != nil {
 		return nil, err
 	}
@@ -32,30 +36,21 @@ func (v *RelationValue) propertyTypeIDCheck() error {
 		return errors.Errorf("Can not set value to RelationValue: Property does not set.")
 	}
 
-	if v.Property.PropertyTypeID != property_type.IDRelation {
+	if v.Relation.Property.PropertyTypeID != property_type.IDRelation {
 		return errors.Errorf("Can not set value to RelationValue: PropertyTypeID does not equal IDRelation.")
 	}
 	return nil
 }
 
 func (v *RelationValue) SetValueByInterface(value interface{}) (err error) {
-	if err = v.propertyTypeIDCheck(); err != nil {
-		return err
-	}
-
-	v.Value, err = property.GetRelationValue(value)
+	valueUint, err := property.GetRelationValue(value)
 	if err != nil {
 		return err
 	}
-
-	v.sortValue()
-	return nil
+	return v.SetValue(valueUint)
 }
 
 func (v *RelationValue) SetValue(value []uint) error {
-	if err := v.propertyTypeIDCheck(); err != nil {
-		return err
-	}
 	v.Value = value
 	v.sortValue()
 	return nil
@@ -81,17 +76,28 @@ func (v *RelationValue) AddValue(value uint) error {
 }
 
 func (v *RelationValue) AddValues(values []uint, isStopIfErrAlreadyExists bool) error {
+	if values == nil || len(values) == 0 {
+		return yaruserror.ErrEmptyParams
+	}
+
 	if v.Value == nil {
 		v.Value = make([]uint, 0, len(values))
 	}
 	alreadyExists := make(map[int]uint)
 
 	for i, value := range values {
-		if err := v.AddValue(value); err != nil {
+		if _, ok := v.SearchValue(value); ok {
 			alreadyExists[i] = value
+		}
+	}
 
-			if isStopIfErrAlreadyExists {
-				break
+	if len(alreadyExists) == 0 || !isStopIfErrAlreadyExists {
+		for i, id := range values {
+			if _, ok := alreadyExists[i]; ok {
+				continue
+			}
+			if err := v.AddValue(id); err != nil {
+				return err
 			}
 		}
 	}
@@ -107,10 +113,6 @@ func (v *RelationValue) AddValues(values []uint, isStopIfErrAlreadyExists bool) 
 }
 
 func (v *RelationValue) RemoveValue(Value uint) error {
-	if v.Value == nil {
-		return yaruserror.ErrEmptyParams
-	}
-
 	i, ok := v.SearchValue(Value)
 	if !ok {
 		return yaruserror.ErrNotFound
@@ -120,7 +122,7 @@ func (v *RelationValue) RemoveValue(Value uint) error {
 	return nil
 }
 
-func (v *RelationValue) RemoveValues(entityIDs []uint, isStopWithErrNotFound bool) error {
+func (v *RelationValue) RemoveValues(entityIDs []uint, isStopIfErrNotFound bool) error {
 	if entityIDs == nil || len(entityIDs) == 0 {
 		return yaruserror.ErrEmptyParams
 	}
@@ -132,7 +134,7 @@ func (v *RelationValue) RemoveValues(entityIDs []uint, isStopWithErrNotFound boo
 		}
 	}
 
-	if len(notFound) == 0 || !isStopWithErrNotFound {
+	if len(notFound) == 0 || !isStopIfErrNotFound {
 		for i, id := range entityIDs {
 			if _, ok := notFound[i]; ok {
 				continue

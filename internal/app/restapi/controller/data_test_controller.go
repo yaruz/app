@@ -299,22 +299,53 @@ func (c dataTestController) entityRelation(ctx *routing.Context) error {
 	blogger := c.yaruzPlatform.DataSubsystem().Entity.Service.NewEntity()
 	blogger.EntityTypeID = entityTypeBlogger.ID
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetRelationValue(cntx, blogger, rel2Post, []uint{10, 20, 30})
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetRelationValue(cntx, blogger, rel2Post, []uint{20, 10, 30})
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set rel2Post": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetRelationValue(cntx, blogger, rel2Story, []uint{3, 1, 2})
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetRelationValue(cntx, blogger, rel2Story, []uint{31, 11, 21})
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set rel2Post": err.Error()})
 	}
 
-	relValuePost := blogger.RelationsValues[rel2Post.ID]
-	err = relValuePost.RemoveValue(20)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Create(cntx, blogger, langRusID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"Create": err.Error()})
+	}
+
+	blogger2, err := c.yaruzPlatform.DataSubsystem().Entity.Service.Get(cntx, blogger.ID, langRusID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"Create": err.Error()})
+	}
+
+	relValuePost := blogger2.RelationsValues[rel2Post.ID]
+	err = relValuePost.RemoveValues([]uint{20, 30}, false)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
 	}
 
+	relValueStory := blogger2.RelationsValues[rel2Story.ID]
+	err = relValueStory.RemoveValues([]uint{21, 31}, false)
+	if err != nil {
+		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
+	}
+
+	err = relValuePost.AddValues([]uint{5, 3, 12, 3, 2, 18}, false)
+	if err != nil {
+		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
+	}
+
+	err = relValueStory.AddValues([]uint{5, 3, 12, 3, 2, 18}, false)
+	if err != nil {
+		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
+	}
+
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, blogger2, langRusID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"Create": err.Error()})
+	}
+	return nil
 }
 
 func (c dataTestController) propertyUnitsInit(ctx context.Context) error {

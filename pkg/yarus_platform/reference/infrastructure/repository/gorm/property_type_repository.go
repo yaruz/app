@@ -10,7 +10,7 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_view_type"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_source"
-	"github.com/yaruz/app/pkg/yarus_platform/yaruzerror"
+	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 	"gorm.io/gorm"
 )
 
@@ -59,7 +59,7 @@ func (r *PropertyTypeRepository) getTx(ctx context.Context, tx *gorm.DB, id uint
 	err := tx.First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return entity, yaruzerror.ErrNotFound
+			return entity, yaruserror.ErrNotFound
 		}
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func (r *PropertyTypeRepository) firstTx(ctx context.Context, tx *gorm.DB, entit
 	err := tx.Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return entity, yaruzerror.ErrNotFound
+			return entity, yaruserror.ErrNotFound
 		}
 		return nil, err
 	}
@@ -126,7 +126,7 @@ func (r *PropertyTypeRepository) queryTx(ctx context.Context, tx *gorm.DB, cond 
 	err := db.Model(r.model).Find(&items).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return items, yaruzerror.ErrNotFound
+			return items, yaruserror.ErrNotFound
 		}
 		return nil, err
 	}

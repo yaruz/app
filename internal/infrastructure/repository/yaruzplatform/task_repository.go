@@ -27,7 +27,7 @@ func (r *TaskRepository) Get(ctx context.Context, id uint) (*task.Task, error) {
 	//err := r.DB().First(entity, id).Error
 	//if err != nil {
 	//	if errors.Is(err, gorm.ErrRecordNotFound) {
-	//		return entity, yaruzerror.ErrNotFound
+	//		return entity, yaruserror.ErrNotFound
 	//	}
 	//}
 
@@ -38,7 +38,7 @@ func (r *TaskRepository) First(ctx context.Context, entity *task.Task) (*task.Ta
 	//err := r.DB().Where(entity).First(entity).Error
 	//if err != nil {
 	//	if errors.Is(err, gorm.ErrRecordNotFound) {
-	//		return entity, yaruzerror.ErrNotFound
+	//		return entity, yaruserror.ErrNotFound
 	//	}
 	//}
 
@@ -56,7 +56,7 @@ func (r *TaskRepository) Query(ctx context.Context, cond *selection_condition.Se
 	//err := db.Find(&items).Error
 	//if err != nil {
 	//	if err == gorm.ErrRecordNotFound {
-	//		return items, yaruzerror.ErrNotFound
+	//		return items, yaruserror.ErrNotFound
 	//	}
 	//}
 

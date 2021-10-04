@@ -16,7 +16,7 @@ import (
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/selection_condition"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type2property"
-	"github.com/yaruz/app/pkg/yarus_platform/yaruzerror"
+	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 	"gorm.io/gorm"
 )
 
@@ -62,7 +62,7 @@ func (r *RelationRepository) getTx(ctx context.Context, tx *gorm.DB, id uint) (*
 	err := r.joins(r.propertyTypeRelationTx(tx)).First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return entity, yaruzerror.ErrNotFound
+			return entity, yaruserror.ErrNotFound
 		}
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (r *RelationRepository) firstTx(ctx context.Context, tx *gorm.DB, entity *e
 	err := r.joins(r.propertyTypeRelationTx(tx)).Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return entity, yaruzerror.ErrNotFound
+			return entity, yaruserror.ErrNotFound
 		}
 		return nil, err
 	}
@@ -139,7 +139,7 @@ func (r *RelationRepository) queryTx(ctx context.Context, tx *gorm.DB, cond *sel
 	err := r.joins(db).Find(&items).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, yaruzerror.ErrNotFound
+			return nil, yaruserror.ErrNotFound
 		}
 		return nil, err
 	}
@@ -199,7 +199,7 @@ func (r *RelationRepository) propertyAndRelationQueryTx(ctx context.Context, tx 
 	err := r.joins(db).Find(&items).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, nil, yaruzerror.ErrNotFound
+			return nil, nil, yaruserror.ErrNotFound
 		}
 		return nil, nil, err
 	}
@@ -380,11 +380,11 @@ func (r *RelationRepository) TCreate(ctx context.Context, entity *entity_type.Re
 	}
 
 	return r.db.DB().Transaction(func(tx *gorm.DB) error {
-		if entity.NameSourceID, err = r.textSourceRepository.CreateValueTx(ctx, tx, entity.Name, langID); err != nil {
+		if entity.Property.NameSourceID, err = r.textSourceRepository.CreateValueTx(ctx, tx, entity.Property.Name, langID); err != nil {
 			return err
 		}
 
-		if entity.DescriptionSourceID, err = r.textSourceRepository.CreateValueTx(ctx, tx, entity.Description, langID); err != nil {
+		if entity.Property.DescriptionSourceID, err = r.textSourceRepository.CreateValueTx(ctx, tx, entity.Property.Description, langID); err != nil {
 			return err
 		}
 		if err := tx.Create(entity).Error; err != nil {
@@ -421,11 +421,11 @@ func (r *RelationRepository) TUpdate(ctx context.Context, entity *entity_type.Re
 
 	return r.db.DB().Transaction(func(tx *gorm.DB) error {
 
-		if entity.NameSourceID, err = r.textSourceRepository.UpdateValueTx(ctx, tx, entity.NameSourceID, entity.Name, langID); err != nil {
+		if entity.Property.NameSourceID, err = r.textSourceRepository.UpdateValueTx(ctx, tx, entity.Property.NameSourceID, entity.Property.Name, langID); err != nil {
 			return err
 		}
 
-		if entity.DescriptionSourceID, err = r.textSourceRepository.UpdateValueTx(ctx, tx, entity.DescriptionSourceID, entity.Description, langID); err != nil {
+		if entity.Property.DescriptionSourceID, err = r.textSourceRepository.UpdateValueTx(ctx, tx, entity.Property.DescriptionSourceID, entity.Property.Description, langID); err != nil {
 			return err
 		}
 		return r.saveTx(ctx, tx, entity)

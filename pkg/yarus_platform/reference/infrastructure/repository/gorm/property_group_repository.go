@@ -14,7 +14,7 @@ import (
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/selection_condition"
 
-	"github.com/yaruz/app/pkg/yarus_platform/yaruzerror"
+	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 )
 
 // PropertyGroupRepository is a repository for the model entity
@@ -55,7 +55,7 @@ func (r *PropertyGroupRepository) getTx(ctx context.Context, tx *gorm.DB, id uin
 	err := tx.First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return entity, yaruzerror.ErrNotFound
+			return entity, yaruserror.ErrNotFound
 		}
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (r *PropertyGroupRepository) firstTx(ctx context.Context, tx *gorm.DB, enti
 	err := tx.Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return entity, yaruzerror.ErrNotFound
+			return entity, yaruserror.ErrNotFound
 		}
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (r *PropertyGroupRepository) queryTx(ctx context.Context, tx *gorm.DB, cond
 	err := db.Find(&items).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return items, yaruzerror.ErrNotFound
+			return items, yaruserror.ErrNotFound
 		}
 		return nil, err
 	}
