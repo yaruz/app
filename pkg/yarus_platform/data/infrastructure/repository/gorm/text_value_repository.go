@@ -200,6 +200,9 @@ func (r *TextValueRepository) BatchSaveChangesTx(ctx context.Context, entityID u
 			}
 		}
 
-		return tx.Save(newTextValues).Error
+		if len(newTextValues) > 0 {
+			return tx.Save(newTextValues).Error
+		}
+		return nil
 	})
 }

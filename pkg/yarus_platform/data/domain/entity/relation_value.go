@@ -66,9 +66,11 @@ func (v *RelationValue) AddValue(value uint) error {
 		return yaruserror.ErrAlreadyExists
 	}
 
-	if i < v.Len() {
-		values := v.Value
-		v.Value = append(append(values[:i], value), values[i:]...)
+	if i == 0 {
+		v.Value = append([]uint{value}, v.Value...)
+	} else if i < v.Len() {
+		v.Value = append(v.Value[:i+1], v.Value[i:]...)
+		v.Value[i] = value
 	} else {
 		v.Value = append(v.Value, value)
 	}
@@ -97,7 +99,10 @@ func (v *RelationValue) AddValues(values []uint, isStopIfErrAlreadyExists bool) 
 				continue
 			}
 			if err := v.AddValue(id); err != nil {
-				return err
+				if !errors.Is(err, yaruserror.ErrAlreadyExists) {
+					return err
+				}
+				alreadyExists[i] = id
 			}
 		}
 	}

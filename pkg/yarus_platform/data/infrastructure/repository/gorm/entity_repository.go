@@ -230,14 +230,14 @@ func (r *EntityRepository) textValues2PropertiesValuesMap(entity *domain_entity.
 	}
 }
 
-// (!) Только если свой-ства устанавливались методом Service.EntitySetPropertyValue() или после изменения PropertiesValuesMap был запущен метод Service.EntityInit(),
+// (!) Только если свой-ства устанавливались методом Service.EntitySetValueForProperty() или после изменения PropertiesValuesMap был запущен метод Service.EntityInit(),
 // т.е. состав свойств в PropertiesValues - актуальный
 func (r *EntityRepository) getTextValuesFromPropertiesValuesMap(entity *domain_entity.Entity) (textPropertiesIDs []uint, textValuesMap map[uint]string, err error) {
 	textValuesMap = make(map[uint]string)
 	textPropertiesIDs = make([]uint, 0)
 
 	for propertyID, val := range entity.PropertiesValuesMap {
-		if entity.PropertiesValues[propertyID].Property.PropertyTypeID != property_type.IDText {
+		if _, ok := entity.RelationsValues[propertyID]; ok || entity.PropertiesValues[propertyID].Property.PropertyTypeID != property_type.IDText {
 			continue
 		}
 

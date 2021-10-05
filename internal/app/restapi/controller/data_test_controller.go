@@ -124,32 +124,32 @@ func (c dataTestController) entity(ctx *routing.Context) error {
 	//	propertyTime.ID:     time.Now().Unix(),
 	//}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyNumber, int(158), langRusID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(entity, propertyNumber, int(158), langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyNumber": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyLen, float64(32.543), langRusID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(entity, propertyLen, float64(32.543), langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyLen": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyOpt, propertyOpt1Val, langRusID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(entity, propertyOpt, propertyOpt1Val, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyOpt": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyBool, true, langRusID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(entity, propertyBool, true, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyDate, time.Now(), langRusID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(entity, propertyDate, time.Now(), langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyDate": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyTime, time.Now(), langRusID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(entity, propertyTime, time.Now(), langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyTime": err.Error()})
 	}
@@ -198,7 +198,7 @@ func (c dataTestController) entityText(ctx *routing.Context) error {
 	entity := c.yaruzPlatform.DataSubsystem().Entity.Service.NewEntity()
 	entity.EntityTypeID = entityType.ID
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyName, "Андрей", langRusID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(entity, propertyName, "Андрей", langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
 	}
@@ -208,7 +208,7 @@ func (c dataTestController) entityText(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"entity.Create()": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity, propertyName, "Андрей Калинин", langRusID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(entity, propertyName, "Андрей Калинин", langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
 	}
@@ -224,7 +224,7 @@ func (c dataTestController) entityText(ctx *routing.Context) error {
 	}
 	res = append(res, map[string]interface{}{"entity1": entity1})
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity1, propertyName, "Андрей Калинин 1", langRusID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(entity1, propertyName, "Андрей Калинин 1", langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
 	}
@@ -240,12 +240,12 @@ func (c dataTestController) entityText(ctx *routing.Context) error {
 	}
 	res = append(res, map[string]interface{}{"entity2": entity2})
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity2, propertyName, "Andrey", langEngID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(entity2, propertyName, "Andrey", langEngID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetPropertyValue(cntx, entity2, propertyName, "Andrey Kalinin", langEngID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(entity2, propertyName, "Andrey Kalinin", langEngID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
 	}
@@ -299,12 +299,12 @@ func (c dataTestController) entityRelation(ctx *routing.Context) error {
 	blogger := c.yaruzPlatform.DataSubsystem().Entity.Service.NewEntity()
 	blogger.EntityTypeID = entityTypeBlogger.ID
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetRelationValue(cntx, blogger, rel2Post, []uint{20, 10, 30})
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForRelation(blogger, rel2Post, []uint{20, 10, 30})
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set rel2Post": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetRelationValue(cntx, blogger, rel2Story, []uint{31, 11, 21})
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForRelation(blogger, rel2Story, []uint{31, 11, 21})
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set rel2Post": err.Error()})
 	}
@@ -340,6 +340,9 @@ func (c dataTestController) entityRelation(ctx *routing.Context) error {
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
 	}
+
+	c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetRelationValue(blogger2, &relValuePost)
+	c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetRelationValue(blogger2, &relValueStory)
 
 	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, blogger2, langRusID)
 	if err != nil {

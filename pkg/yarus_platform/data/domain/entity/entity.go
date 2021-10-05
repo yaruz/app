@@ -76,7 +76,7 @@ func (e *Entity) propertiesValuesMap2PropertiesB() error {
 	return e.PropertiesB.UnmarshalJSON(jsonb)
 }
 
-func (e *Entity) setPropertyValue(propertyValue *PropertyValue) {
+func (e *Entity) SetPropertyValue(propertyValue *PropertyValue) {
 	propertyID := propertyValue.Property.ID
 
 	if e.PropertiesValuesMap == nil {
@@ -90,7 +90,7 @@ func (e *Entity) setPropertyValue(propertyValue *PropertyValue) {
 	e.PropertiesValues[propertyID] = *propertyValue
 }
 
-func (e *Entity) setRelationValue(relationValue *RelationValue) {
+func (e *Entity) SetRelationValue(relationValue *RelationValue) {
 	propertyID := relationValue.Property.ID
 
 	if e.PropertiesValuesMap == nil {

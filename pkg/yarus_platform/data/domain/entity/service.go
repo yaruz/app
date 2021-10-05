@@ -25,8 +25,10 @@ type IService interface {
 	Update(ctx context.Context, entity *Entity, langID uint) error
 	Delete(ctx context.Context, id uint) error
 	EntityInit(ctx context.Context, entity *Entity, langID uint) error
-	EntitySetPropertyValue(ctx context.Context, entity *Entity, property *property.Property, value interface{}, langID uint) error
-	EntitySetRelationValue(ctx context.Context, entity *Entity, relation *entity_type.Relation, value []uint) error
+	EntitySetValueForProperty(entity *Entity, property *property.Property, value interface{}, langID uint) error
+	EntitySetValueForRelation(entity *Entity, relation *entity_type.Relation, value []uint) error
+	EntitySetPropertyValue(entity *Entity, propertyValue *PropertyValue)
+	EntitySetRelationValue(entity *Entity, relationValue *RelationValue)
 	EntityDeletePropertyValue(ctx context.Context, entity *Entity, propertyID uint)
 }
 
@@ -235,23 +237,31 @@ func (s *service) tPropertiesValuesInit(ctx context.Context, entity *Entity, lan
 }
 
 // value - значение, не ссылка
-func (s *service) EntitySetPropertyValue(ctx context.Context, entity *Entity, property *property.Property, value interface{}, langID uint) error {
+func (s *service) EntitySetValueForProperty(entity *Entity, property *property.Property, value interface{}, langID uint) error {
 	propertyValue, err := newPropertyValue(property, value, langID)
 	if err != nil {
 		return err
 	}
-	entity.setPropertyValue(propertyValue)
+	entity.SetPropertyValue(propertyValue)
 	return nil
 }
 
+func (s *service) EntitySetPropertyValue(entity *Entity, propertyValue *PropertyValue) {
+	entity.SetPropertyValue(propertyValue)
+}
+
 // value - значение, не ссылка, []uint - IDs связанных сущностей
-func (s *service) EntitySetRelationValue(ctx context.Context, entity *Entity, relation *entity_type.Relation, value []uint) error {
+func (s *service) EntitySetValueForRelation(entity *Entity, relation *entity_type.Relation, value []uint) error {
 	relationValue, err := newRelationValue(relation, value)
 	if err != nil {
 		return err
 	}
-	entity.setRelationValue(relationValue)
+	entity.SetRelationValue(relationValue)
 	return nil
+}
+
+func (s *service) EntitySetRelationValue(entity *Entity, relationValue *RelationValue) {
+	entity.SetRelationValue(relationValue)
 }
 
 // Удаляет как значения свойств, так и значения связей

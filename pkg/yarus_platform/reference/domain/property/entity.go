@@ -160,11 +160,13 @@ func GetRelationValue(value interface{}) ([]uint, error) {
 
 	valInt, okInt := value.([]int)
 	valUint, okUint := value.([]uint)
-	valFloat, okFloat := value.([]float64) // после анмаршаллинга из JSON тип float64
+	valFloat, okFloat := value.([]float64)             // на всякий..
+	valInterface, okInterface := value.([]interface{}) // после анмаршаллинга из JSON тип []interface{}
 
-	if okUint {
+	switch {
+	case okUint:
 		res = valUint
-	} else if okInt {
+	case okInt:
 		res = make([]uint, 0, len(valInt))
 
 		for _, i := range valInt {
@@ -174,7 +176,7 @@ func GetRelationValue(value interface{}) ([]uint, error) {
 			}
 			res = append(res, uint(i))
 		}
-	} else if okFloat {
+	case okFloat:
 		res = make([]uint, 0, len(valInt))
 
 		for _, i := range valFloat {
@@ -184,9 +186,20 @@ func GetRelationValue(value interface{}) ([]uint, error) {
 			}
 			res = append(res, uint(i))
 		}
-	} else {
+	case okInterface:
+		res = make([]uint, 0, len(valInt))
+
+		for _, val := range valInterface {
+			valInt, err := GetValueInt(val)
+			if err != nil {
+				return nil, err
+			}
+			res = append(res, uint(valInt))
+		}
+	default:
 		return res, errors.Errorf("Can not cast value of Relation to []uint. Value = %v.", value)
 	}
+
 	return res, nil
 }
 
