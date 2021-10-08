@@ -3,6 +3,8 @@ package entity
 import (
 	"context"
 
+	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
+
 	"github.com/pkg/errors"
 
 	"github.com/minipkg/log"
@@ -29,7 +31,13 @@ type IService interface {
 	EntitySetValueForRelation(entity *Entity, relation *entity_type.Relation, value []uint) error
 	EntitySetPropertyValue(entity *Entity, propertyValue *PropertyValue)
 	EntitySetRelationValue(entity *Entity, relationValue *RelationValue)
-	EntityDeletePropertyValue(ctx context.Context, entity *Entity, propertyID uint)
+	EntityDeletePropertyValue(entity *Entity, propertyID uint)
+	BindRelatedEntity(relation *entity_type.Relation, entity1 *Entity, entity2 *Entity) error
+	BindRelatedEntities(relation *entity_type.Relation, entity *Entity, relatedEntities []*Entity) error
+	UnbindRelatedEntity(relation *entity_type.Relation, entity1 *Entity, entity2 *Entity) error
+	UnbindRelatedEntities(relation *entity_type.Relation, entity *Entity, relatedEntities []*Entity) error
+	CheckBindRelatedEntity(relation *entity_type.Relation, entity1 *Entity, entity2 *Entity) (firstParamEntityIsDepended bool, err error)
+	CheckBindRelatedEntities(relation *entity_type.Relation, entity *Entity, relatedEntities []*Entity) (firstParamEntityIsDepended bool, err error)
 }
 
 type service struct {
@@ -265,18 +273,215 @@ func (s *service) EntitySetRelationValue(entity *Entity, relationValue *Relation
 }
 
 // Удаляет как значения свойств, так и значения связей
-func (s *service) EntityDeletePropertyValue(ctx context.Context, entity *Entity, propertyID uint) {
+func (s *service) EntityDeletePropertyValue(entity *Entity, propertyID uint) {
 	entity.DeletePropertyValue(propertyID)
 }
 
-func (s *service) BindRelatedEntity(ctx context.Context, entity *Entity, relation *entity_type.Relation, entityID uint) {
+func (s *service) BindRelatedEntityID(entity *Entity, relation *entity_type.Relation, relatedEntityID uint) error {
+	propertyID := relation.Property.ID
+
+	if _, ok := entity.PropertiesValuesMap[propertyID]; !ok {
+		return s.EntitySetValueForRelation(entity, relation, []uint{relatedEntityID})
+	}
+
+	relationsValues, ok := entity.RelationsValues[propertyID]
+	if !ok {
+		return errors.Wrapf(yaruserror.ErrNotSet, "RelationsValues fo relation ID = %v not init", propertyID)
+	}
+
+	if err := relationsValues.AddValue(relatedEntityID); err != nil {
+		return err
+	}
+
+	s.EntitySetRelationValue(entity, &relationsValues)
+	return nil
 }
 
-func (s *service) BindRelatedEntities(ctx context.Context, entity *Entity, relation *entity_type.Relation, entityIDs []uint) {
+func (s *service) BindRelatedEntityIDs(entity *Entity, relation *entity_type.Relation, relatedEntityIDs []uint) error {
+	propertyID := relation.Property.ID
+
+	if _, ok := entity.PropertiesValuesMap[propertyID]; !ok {
+		return s.EntitySetValueForRelation(entity, relation, relatedEntityIDs)
+	}
+
+	relationsValues, ok := entity.RelationsValues[propertyID]
+	if !ok {
+		return errors.Wrapf(yaruserror.ErrNotSet, "RelationsValues fo relation ID = %v not init", propertyID)
+	}
+
+	return relationsValues.AddValues(relatedEntityIDs, false)
 }
 
-func (s *service) UnbindRelatedEntity(ctx context.Context, entity *Entity, relation *entity_type.Relation, entityID uint) {
+func (s *service) UnbindRelatedEntityID(entity *Entity, relation *entity_type.Relation, relatedEntityID uint) error {
+	propertyID := relation.Property.ID
+
+	if _, ok := entity.PropertiesValuesMap[propertyID]; !ok {
+		return errors.Wrapf(yaruserror.ErrNotFound, "related entity with ID = %v not found", relatedEntityID)
+	}
+
+	relationsValues, ok := entity.RelationsValues[propertyID]
+	if !ok {
+		return errors.Wrapf(yaruserror.ErrNotSet, "RelationsValues fo relation ID = %v not init", propertyID)
+	}
+
+	if err := relationsValues.RemoveValue(relatedEntityID); err != nil {
+		return err
+	}
+
+	if len(relationsValues.Value) == 0 {
+		s.EntityDeletePropertyValue(entity, propertyID)
+	} else {
+		s.EntitySetRelationValue(entity, &relationsValues)
+	}
+
+	return nil
 }
 
-func (s *service) UnbindRelatedEntities(ctx context.Context, entity *Entity, relation *entity_type.Relation, entityIDs []uint) {
+func (s *service) UnbindRelatedEntityIDs(entity *Entity, relation *entity_type.Relation, relatedEntityIDs []uint) error {
+	propertyID := relation.Property.ID
+
+	if _, ok := entity.PropertiesValuesMap[propertyID]; !ok {
+		return errors.Wrapf(yaruserror.ErrNotFound, "related entity with ID = %v not found", relatedEntityIDs)
+	}
+
+	relationsValues, ok := entity.RelationsValues[propertyID]
+	if !ok {
+		return errors.Wrapf(yaruserror.ErrNotSet, "RelationsValues fo relation ID = %v not init", propertyID)
+	}
+
+	return relationsValues.RemoveValues(relatedEntityIDs, false)
+}
+
+func (s *service) BindRelatedEntity(relation *entity_type.Relation, entity1 *Entity, entity2 *Entity) error {
+	_, err := s.CheckBindRelatedEntity(relation, entity1, entity2)
+	if err != nil {
+		return err
+	}
+
+	entity1Copy := *entity1
+	entity2Copy := *entity2
+
+	err = s.BindRelatedEntityID(entity1, relation, entity2.ID)
+	if err == nil {
+		err = s.BindRelatedEntityID(entity2, relation, entity1.ID)
+	}
+
+	if err != nil {
+		*entity1 = entity1Copy
+		*entity2 = entity2Copy
+	}
+
+	return err
+}
+
+func (s *service) BindRelatedEntities(relation *entity_type.Relation, entity *Entity, relatedEntities []*Entity) error {
+	_, err := s.CheckBindRelatedEntities(relation, entity, relatedEntities)
+	if err != nil {
+		return err
+	}
+
+	for _, relatedEntity := range relatedEntities {
+		if err = s.BindRelatedEntity(relation, entity, relatedEntity); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *service) UnbindRelatedEntity(relation *entity_type.Relation, entity1 *Entity, entity2 *Entity) error {
+	_, err := s.CheckBindRelatedEntity(relation, entity1, entity2)
+	if err != nil {
+		return err
+	}
+
+	entity1Copy := *entity1
+	entity2Copy := *entity2
+
+	err = s.UnbindRelatedEntityID(entity1, relation, entity2.ID)
+	if err == nil {
+		err = s.UnbindRelatedEntityID(entity2, relation, entity1.ID)
+	}
+
+	if err != nil {
+		*entity1 = entity1Copy
+		*entity2 = entity2Copy
+	}
+
+	return err
+}
+
+func (s *service) UnbindRelatedEntities(relation *entity_type.Relation, entity *Entity, relatedEntities []*Entity) error {
+	_, err := s.CheckBindRelatedEntities(relation, entity, relatedEntities)
+	if err != nil {
+		return err
+	}
+
+	for _, relatedEntity := range relatedEntities {
+		if err = s.UnbindRelatedEntity(relation, entity, relatedEntity); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *service) CheckBindRelatedEntity(relation *entity_type.Relation, entity1 *Entity, entity2 *Entity) (firstParamEntityIsDepended bool, err error) {
+	if relation == nil {
+		return false, errors.Wrapf(yaruserror.ErrNotSet, "relation is nil")
+	}
+
+	if entity1 == nil {
+		return false, errors.Wrapf(yaruserror.ErrNotSet, "entity1 is nil")
+	}
+
+	if entity2 == nil {
+		return false, errors.Wrapf(yaruserror.ErrNotSet, "entity2 is nil")
+	}
+
+	if entity1.EntityTypeID == relation.DependedEntityType.ID && entity2.EntityTypeID == relation.UndependedEntityType.ID {
+		return true, nil
+	} else if entity2.EntityTypeID == relation.DependedEntityType.ID && entity1.EntityTypeID == relation.UndependedEntityType.ID {
+		return false, nil
+	} else {
+		return false, errors.New("wrong types")
+	}
+
+	return false, nil
+}
+
+func (s *service) CheckBindRelatedEntities(relation *entity_type.Relation, entity *Entity, relatedEntities []*Entity) (firstParamEntityIsDepended bool, err error) {
+	if relation == nil {
+		return false, errors.Wrapf(yaruserror.ErrNotSet, "relation is nil")
+	}
+
+	if entity == nil {
+		return false, errors.Wrapf(yaruserror.ErrNotSet, "entity is nil")
+	}
+
+	if relatedEntities == nil {
+		return false, errors.Wrapf(yaruserror.ErrNotSet, "relatedEntities is nil")
+	}
+
+	if len(relatedEntities) == 0 {
+		return false, errors.Wrapf(yaruserror.ErrNotSet, "relatedEntities is empty")
+	}
+
+	if entity.EntityTypeID == relation.DependedEntityType.ID {
+		for _, e := range relatedEntities {
+			if e.EntityTypeID != relation.UndependedEntityType.ID {
+				return false, errors.New("wrong types")
+			}
+		}
+	} else if entity.EntityTypeID == relation.UndependedEntityType.ID {
+		for _, e := range relatedEntities {
+			if e.EntityTypeID != relation.DependedEntityType.ID {
+				return false, errors.New("wrong types")
+			}
+		}
+	} else {
+		return false, errors.New("wrong types")
+	}
+
+	return false, nil
 }
