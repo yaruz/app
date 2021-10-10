@@ -27,7 +27,7 @@ const (
 type Entity struct {
 	ID                  uint                   `gorm:"type:bigserial;primaryKey" json:"id"`
 	EntityTypeID        uint                   `gorm:"type:bigint not null;index" json:"entityTypeID"`
-	PropertiesB         datatypes.JSON         `json:"-"`
+	PropertiesB         datatypes.JSON         `gorm:"index:idx_properties_b,type:gin" json:"-"`
 	PropertiesValuesMap map[uint]interface{}   `gorm:"-" json:"-"`
 	PropertiesValues    map[uint]PropertyValue `gorm:"-" json:"propertiesValues"`
 	RelationsValues     map[uint]RelationValue `gorm:"-" json:"relationsValues"`
