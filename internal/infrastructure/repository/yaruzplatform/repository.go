@@ -34,7 +34,7 @@ func GetRepository(logger log.ILogger, yaruzRepository yarus_platform.IPlatform,
 	case task.EntityName:
 		repo, err = NewTaskRepository(r)
 	default:
-		err = errors.Errorf("Repository for entity %q not found", entity)
+		err = errors.Errorf("Text for entity %q not found", entity)
 	}
 	return repo, err
 }

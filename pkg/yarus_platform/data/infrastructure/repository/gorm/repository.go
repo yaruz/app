@@ -41,7 +41,7 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 	case text_value.EntityName:
 		repo, err = NewTextValueRepository(r)
 	default:
-		err = errors.Errorf("Repository for entity %q not found", entityName)
+		err = errors.Errorf("Text for entity %q not found", entityName)
 	}
 	return repo, err
 }
@@ -57,10 +57,6 @@ func (r *repository) getTextValueRepository(logger log.ILogger, dbase minipkg_go
 	}
 
 	return textValueRepository, nil
-}
-
-func (r *repository) SetDefaultConditions(defaultConditions *selection_condition.SelectionCondition) {
-	r.Conditions = defaultConditions
 }
 
 func (r repository) DB() *gorm.DB {

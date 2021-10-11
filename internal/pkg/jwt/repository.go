@@ -4,9 +4,10 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 
+	"strconv"
+
 	"github.com/yaruz/app/internal/pkg/apperror"
 	"github.com/yaruz/app/internal/pkg/auth"
-	"strconv"
 )
 
 type Repository struct {
@@ -47,12 +48,12 @@ func (r Repository) ParseStringToken(tokenString string, signingKey string) (aut
 		return []byte(signingKey), nil
 	})
 	if err != nil {
-		return nil, errors.Wrapf(apperror.ErrBadRequest, "Repository.ParseToken error: %v", err)
+		return nil, errors.Wrapf(apperror.ErrBadRequest, "Text.ParseToken error: %v", err)
 	}
 
 	claims, ok := token.Claims.(*claims)
 	if !ok {
-		return nil, errors.Wrapf(apperror.ErrBadRequest, "Repository.ParseToken error.")
+		return nil, errors.Wrapf(apperror.ErrBadRequest, "Text.ParseToken error.")
 	}
 
 	if !token.Valid {

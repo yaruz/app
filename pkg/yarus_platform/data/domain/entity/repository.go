@@ -4,7 +4,13 @@ import (
 	"context"
 
 	"github.com/minipkg/selection_condition"
+
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_value"
 )
+
+type ValueRepositories struct {
+	Text text_value.Repository
+}
 
 // Repository encapsulates the logic to access albums from the data source.
 type Repository interface {

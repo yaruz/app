@@ -2,14 +2,18 @@ package entity
 
 import (
 	"encoding/json"
-	"time"
+
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/bool_value"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/date_value"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/float_value"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/int_value"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/time_value"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_value"
 
 	"gorm.io/datatypes"
-	"gorm.io/gorm"
 )
 
 const (
@@ -25,16 +29,18 @@ const (
 // 	RelationsValues - красивый и удобный список со связями - // - // -
 //
 type Entity struct {
-	ID                  uint                   `gorm:"type:bigserial;primaryKey" json:"id"`
-	EntityTypeID        uint                   `gorm:"type:bigint not null;index" json:"entityTypeID"`
-	PropertiesB         datatypes.JSON         `gorm:"index:idx_properties_b,type:gin" json:"-"`
-	PropertiesValuesMap map[uint]interface{}   `gorm:"-" json:"-"`
-	PropertiesValues    map[uint]PropertyValue `gorm:"-" json:"propertiesValues"`
-	RelationsValues     map[uint]RelationValue `gorm:"-" json:"relationsValues"`
-	TextValues          []text_value.TextValue `json:"-"`
-	CreatedAt           time.Time              `json:"createdAt"`
-	UpdatedAt           time.Time              `json:"updatedAt"`
-	DeletedAt           gorm.DeletedAt         `gorm:"index" json:"deletedAt,omitempty"`
+	ID                  uint                     `gorm:"type:bigserial;primaryKey" json:"id"`
+	EntityTypeID        uint                     `gorm:"type:bigint not null;index" json:"entityTypeID"`
+	PropertiesB         datatypes.JSON           `gorm:"index:idx_properties_b,type:gin" json:"-"`
+	PropertiesValuesMap map[uint]interface{}     `gorm:"-" json:"-"`
+	PropertiesValues    map[uint]PropertyValue   `gorm:"-" json:"propertiesValues"`
+	RelationsValues     map[uint]RelationValue   `gorm:"-" json:"relationsValues"`
+	TextValues          []text_value.TextValue   `json:"-"`
+	BoolValues          []bool_value.BoolValue   `json:"-"`
+	IntValues           []int_value.IntValue     `json:"-"`
+	FloatValues         []float_value.FloatValue `json:"-"`
+	DateValues          []date_value.DateValue   `json:"-"`
+	TimeValues          []time_value.TimeValue   `json:"-"`
 }
 
 func (e *Entity) TableName() string {

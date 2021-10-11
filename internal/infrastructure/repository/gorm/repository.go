@@ -34,7 +34,7 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entity string) (r
 	case user.EntityName:
 		repo, err = NewUserRepository(r)
 	default:
-		err = errors.Errorf("Repository for entity %q not found", entity)
+		err = errors.Errorf("Text for entity %q not found", entity)
 	}
 	return repo, err
 }

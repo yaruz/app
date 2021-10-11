@@ -176,7 +176,7 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 		}
 		repo, err = NewRelationRepository(r, propertyRepository, entityType2PropertyRepository, textSourceRepository)
 	default:
-		err = errors.Errorf("Repository for entity %q not found", entityName)
+		err = errors.Errorf("Text for entity %q not found", entityName)
 	}
 	return repo, err
 }

@@ -18,20 +18,15 @@ import (
 )
 
 type DataSubsystem struct {
-	reference *reference.ReferenceSubsystem
-	search    *search.SearchSubsystem
-	Entity    DataDomainEntity
-	TextValue DataDomainTextValue
+	reference         *reference.ReferenceSubsystem
+	search            *search.SearchSubsystem
+	Entity            DataDomainEntity
+	ValueRepositories entity.ValueRepositories
 }
 
 type DataDomainEntity struct {
 	Service    entity.IService
 	Repository entity.Repository
-}
-
-type DataDomainTextValue struct {
-	Service    text_value.IService
-	Repository text_value.Repository
 }
 
 func NewDataSubsystem(infra *infrastructure.Infrastructure, reference *reference.ReferenceSubsystem, search *search.SearchSubsystem) (*DataSubsystem, error) {
@@ -62,7 +57,7 @@ func (d *DataSubsystem) setupRepositories(infra *infrastructure.Infrastructure) 
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", text_value.EntityName, err)
 	}
-	d.TextValue.Repository, ok = repo.(text_value.Repository)
+	d.ValueRepositories.Text, ok = repo.(text_value.Repository)
 	if !ok {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", text_value.EntityName, text_value.EntityName, repo)
 	}
@@ -72,5 +67,4 @@ func (d *DataSubsystem) setupRepositories(infra *infrastructure.Infrastructure) 
 
 func (d *DataSubsystem) setupServices(logger log.ILogger) {
 	d.Entity.Service = entity.NewService(logger, d.Entity.Repository, d.reference, d.search)
-	d.TextValue.Service = text_value.NewService(logger, d.TextValue.Repository)
 }
