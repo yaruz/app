@@ -10,8 +10,8 @@ const (
 // DateValue ...
 type DateValue struct {
 	ID         uint      `gorm:"type:bigserial;primaryKey" json:"id"`
-	EntityID   uint      `gorm:"type:bigint not null REFERENCES \"entity\"(id);uniqueIndex:un_date_value" json:"entityID"`
-	PropertyID uint      `gorm:"type:bigint not null;uniqueIndex:un_date_value" json:"propertyID"`
+	EntityID   uint      `gorm:"type:bigint not null REFERENCES \"entity\"(id)" json:"entityID"`
+	PropertyID uint      `gorm:"type:bigint not null" json:"propertyID"`
 	Value      time.Time `gorm:"type:date not null" json:"value"`
 }
 

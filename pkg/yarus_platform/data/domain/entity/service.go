@@ -57,7 +57,7 @@ func NewService(logger log.ILogger, repo Repository, reference *reference.Refere
 		reference:  reference,
 		search:     search,
 	}
-	repo.SetDefaultConditions(s.defaultConditions())
+	//repo.SetDefaultConditions(s.defaultConditions())
 	return s
 }
 

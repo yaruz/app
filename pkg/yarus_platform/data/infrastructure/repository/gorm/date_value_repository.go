@@ -3,8 +3,9 @@ package gorm
 import (
 	"context"
 	"errors"
+	"time"
 
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/bool_value"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/date_value"
 
 	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 
@@ -16,21 +17,21 @@ import (
 	"github.com/minipkg/selection_condition"
 )
 
-// BoolValueRepository is a repository for the model entity
-type BoolValueRepository struct {
+// DateValueRepository is a repository for the model entity
+type DateValueRepository struct {
 	repository
 }
 
-var _ bool_value.Repository = (*BoolValueRepository)(nil)
+var _ date_value.Repository = (*DateValueRepository)(nil)
 
-// New creates a new BoolValueRepository
-func NewBoolValueRepository(repository *repository) (*BoolValueRepository, error) {
-	return &BoolValueRepository{repository: *repository}, nil
+// New creates a new DateValueRepository
+func NewDateValueRepository(repository *repository) (*DateValueRepository, error) {
+	return &DateValueRepository{repository: *repository}, nil
 }
 
 // Query retrieves the records with the specified offset and limit from the database.
-func (r *BoolValueRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]bool_value.BoolValue, error) {
-	items := []bool_value.BoolValue{}
+func (r *DateValueRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]date_value.DateValue, error) {
+	items := []date_value.DateValue{}
 	db := minipkg_gorm.Conditions(r.DB(), cond)
 	if db.Error != nil {
 		return nil, db.Error
@@ -46,13 +47,13 @@ func (r *BoolValueRepository) Query(ctx context.Context, cond *selection_conditi
 	return items, err
 }
 
-func (r *BoolValueRepository) BatchDeleteTx(ctx context.Context, cond *selection_condition.SelectionCondition, tx *gorm.DB) error {
+func (r *DateValueRepository) BatchDeleteTx(ctx context.Context, cond *selection_condition.SelectionCondition, tx *gorm.DB) error {
 	db := minipkg_gorm.Conditions(tx, cond)
 	if db.Error != nil {
 		return db.Error
 	}
 
-	err := db.Delete(&bool_value.BoolValue{}).Error
+	err := db.Delete(&date_value.DateValue{}).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apperror.ErrNotFound
@@ -61,12 +62,12 @@ func (r *BoolValueRepository) BatchDeleteTx(ctx context.Context, cond *selection
 	return err
 }
 
-func (r *BoolValueRepository) BatchSaveChangesTx(ctx context.Context, entityID uint, mapOfValues map[uint]bool, tx *gorm.DB) error {
+func (r *DateValueRepository) BatchSaveChangesTx(ctx context.Context, entityID uint, mapOfValues map[uint]time.Time, tx *gorm.DB) error {
 	return tx.Transaction(func(tx *gorm.DB) error {
-		var valueObj *bool_value.BoolValue
-		// можно и без этого запроса, а просто брать из entity.BoolValues, но для большей безопасности сделаем отдельный независимый запрос
+		var valueObj *date_value.DateValue
+		// можно и без этого запроса, а просто брать из entity.DateValues, но для большей безопасности сделаем отдельный независимый запрос
 		oldValues, err := r.Query(ctx, &selection_condition.SelectionCondition{
-			Where: &bool_value.BoolValue{
+			Where: &date_value.DateValue{
 				EntityID: entityID,
 			},
 		})
@@ -74,21 +75,21 @@ func (r *BoolValueRepository) BatchSaveChangesTx(ctx context.Context, entityID u
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
 				return err
 			}
-			oldValues = make([]bool_value.BoolValue, 0)
+			oldValues = make([]date_value.DateValue, 0)
 		}
 
-		mapOldValues := make(map[uint]*bool_value.BoolValue, len(oldValues))
+		mapOldValues := make(map[uint]*date_value.DateValue, len(oldValues))
 		for i := range oldValues {
 			mapOldValues[oldValues[i].PropertyID] = &oldValues[i]
 		}
 
-		newValues := make([]bool_value.BoolValue, 0, len(oldValues))
+		newValues := make([]date_value.DateValue, 0, len(oldValues))
 		for propertyID, value := range mapOfValues {
 			if _, ok := mapOldValues[propertyID]; ok {
 				valueObj = mapOldValues[propertyID]
 				delete(mapOldValues, propertyID)
 			} else {
-				valueObj = &bool_value.BoolValue{
+				valueObj = &date_value.DateValue{
 					EntityID:   entityID,
 					PropertyID: propertyID,
 				}

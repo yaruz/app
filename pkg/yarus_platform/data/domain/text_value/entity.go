@@ -8,9 +8,9 @@ const (
 // TextValue ...
 type TextValue struct {
 	ID         uint   `gorm:"type:bigserial;primaryKey" json:"id"`
-	EntityID   uint   `gorm:"type:bigint not null REFERENCES \"entity\"(id);uniqueIndex:un_text_value" json:"entityID"`
-	LangID     uint   `gorm:"type:smallint not null;uniqueIndex:un_text_value" json:"langID"`
-	PropertyID uint   `gorm:"type:bigint not null;uniqueIndex:un_text_value" json:"propertyID"`
+	EntityID   uint   `gorm:"type:bigint not null REFERENCES \"entity\"(id)" json:"entityID"`
+	LangID     uint   `gorm:"type:smallint not null" json:"langID"`
+	PropertyID uint   `gorm:"type:bigint not null" json:"propertyID"`
 	Value      string `gorm:"type:text not null" json:"value"`
 }
 

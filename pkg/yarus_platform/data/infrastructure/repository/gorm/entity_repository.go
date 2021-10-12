@@ -18,16 +18,16 @@ import (
 // EntityRepository is a repository for the model entity
 type EntityRepository struct {
 	repository
-	textValueRepository text_value.Repository
+	valueRepositories *domain_entity.ValueRepositories
 }
 
 var _ domain_entity.Repository = (*EntityRepository)(nil)
 
 // New creates a new EntityRepository
-func NewEntityRepository(repository *repository, textValueRepository text_value.Repository) (*EntityRepository, error) {
+func NewEntityRepository(repository *repository, valueRepositories *domain_entity.ValueRepositories) (*EntityRepository, error) {
 	r := &EntityRepository{
-		repository:          *repository,
-		textValueRepository: textValueRepository,
+		repository:        *repository,
+		valueRepositories: valueRepositories,
 	}
 	r.autoMigrate()
 	return r, nil
@@ -192,7 +192,7 @@ func (r *EntityRepository) afterSaveTx(ctx context.Context, entity *domain_entit
 	for propertyID, value := range textValuesMap {
 		entity.PropertiesValuesMap[propertyID] = value
 	}
-	return r.textValueRepository.BatchSaveChangesTx(ctx, entity.ID, langID, textValuesMap, tx)
+	return r.valueRepositories.Text.BatchSaveChangesTx(ctx, entity.ID, langID, textValuesMap, tx)
 }
 
 func (r *EntityRepository) resetTextValuesInPropertiesValuesMap(ctx context.Context, entity *domain_entity.Entity, propertiesIDs []uint) {
@@ -205,7 +205,7 @@ func (r *EntityRepository) resetTextValuesInPropertiesValuesMap(ctx context.Cont
 func (r *EntityRepository) Delete(ctx context.Context, id uint) error {
 
 	return r.db.DB().Transaction(func(tx *gorm.DB) (err error) {
-		if err = r.textValueRepository.BatchDeleteTx(ctx, &selection_condition.SelectionCondition{
+		if err = r.valueRepositories.Text.BatchDeleteTx(ctx, &selection_condition.SelectionCondition{
 			Where: &text_value.TextValue{
 				EntityID: id,
 			},
@@ -252,5 +252,5 @@ func (r *EntityRepository) getTextValuesFromPropertiesValuesMap(entity *domain_e
 }
 
 func (r *EntityRepository) textValuePreload(db *gorm.DB, langID uint) *gorm.DB {
-	return db.Preload("TextValues", r.db.DB().Model(&text_value.TextValue{}).Where(&text_value.TextValue{LangID: langID}))
+	return db.Preload("BoolValues").Preload("IntValues").Preload("FloatValues").Preload("DateValues").Preload("TimeValues").Preload("TextValues", r.db.DB().Model(&text_value.TextValue{}).Where(&text_value.TextValue{LangID: langID}))
 }
