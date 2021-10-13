@@ -20,6 +20,6 @@ type Repository interface {
 	//Update(ctx context.Context, entity *TextValue) error
 	//Save(ctx context.Context, entity *TextValue) error
 	//Delete(ctx context.Context, id uint) error
-	BatchSaveChangesTx(ctx context.Context, entityID uint, langID uint, mapOfStrings map[uint]string, tx *gorm.DB) error
+	BatchSaveChangesTx(ctx context.Context, entityID uint, values []TextValue, langID uint, tx *gorm.DB) error
 	BatchDeleteTx(ctx context.Context, cond *selection_condition.SelectionCondition, tx *gorm.DB) error
 }

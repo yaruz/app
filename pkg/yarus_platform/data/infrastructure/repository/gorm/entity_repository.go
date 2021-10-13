@@ -3,6 +3,12 @@ package gorm
 import (
 	"context"
 
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/bool_value"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/date_value"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/float_value"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/int_value"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/time_value"
+
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/selection_condition"
 	"github.com/pkg/errors"
@@ -11,7 +17,6 @@ import (
 	"github.com/yaruz/app/internal/pkg/apperror"
 	domain_entity "github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_value"
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
 	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 )
 
@@ -43,15 +48,11 @@ func (r *EntityRepository) autoMigrate() {
 func (r *EntityRepository) Get(ctx context.Context, id uint, langID uint) (*domain_entity.Entity, error) {
 	entity := &domain_entity.Entity{}
 
-	err := r.textValuePreload(r.db.DB(), langID).First(entity, id).Error
+	err := r.preload(r.db.DB(), langID).First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruserror.ErrNotFound
 		}
-		return nil, err
-	}
-
-	if err = r.afterFind(ctx, entity); err != nil {
 		return nil, err
 	}
 
@@ -59,15 +60,11 @@ func (r *EntityRepository) Get(ctx context.Context, id uint, langID uint) (*doma
 }
 
 func (r *EntityRepository) First(ctx context.Context, entity *domain_entity.Entity, langID uint) (*domain_entity.Entity, error) {
-	err := r.textValuePreload(r.db.DB(), langID).Where(entity).First(entity).Error
+	err := r.preload(r.db.DB(), langID).Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruserror.ErrNotFound
 		}
-		return nil, err
-	}
-
-	if err = r.afterFind(ctx, entity); err != nil {
 		return nil, err
 	}
 
@@ -77,7 +74,7 @@ func (r *EntityRepository) First(ctx context.Context, entity *domain_entity.Enti
 // Query retrieves the album records with the specified offset and limit from the database.
 func (r *EntityRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) ([]domain_entity.Entity, error) {
 	items := []domain_entity.Entity{}
-	db := minipkg_gorm.Conditions(r.textValuePreload(r.db.DB(), langID), cond)
+	db := minipkg_gorm.Conditions(r.preload(r.db.DB(), langID), cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -88,12 +85,6 @@ func (r *EntityRepository) Query(ctx context.Context, cond *selection_condition.
 			return items, yaruserror.ErrNotFound
 		}
 		return nil, err
-	}
-
-	for i := range items {
-		if err = r.afterFind(ctx, &items[i]); err != nil {
-			return nil, err
-		}
 	}
 
 	return items, err
@@ -124,18 +115,13 @@ func (r *EntityRepository) Create(ctx context.Context, entity *domain_entity.Ent
 		return err
 	}
 
-	textValuesMap, err := r.beforeSave(ctx, entity)
-	if err != nil {
-		return err
-	}
-
 	return r.db.DB().Transaction(func(tx *gorm.DB) (err error) {
 
 		if err := tx.Create(entity).Error; err != nil {
 			return err
 		}
 
-		return r.afterSaveTx(ctx, entity, textValuesMap, langID, tx)
+		return r.afterSaveTx(ctx, entity, langID, tx)
 	})
 }
 
@@ -154,57 +140,100 @@ func (r *EntityRepository) updateTx(ctx context.Context, entity *domain_entity.E
 		return err
 	}
 
-	textValuesMap, err := r.beforeSave(ctx, entity)
-	if err != nil {
-		return err
-	}
-
 	return tx.Transaction(func(tx *gorm.DB) (err error) {
 
 		if err := tx.Save(entity).Error; err != nil {
 			return err
 		}
 
-		return r.afterSaveTx(ctx, entity, textValuesMap, langID, tx)
+		return r.afterSaveTx(ctx, entity, langID, tx)
 	})
 }
 
-func (r *EntityRepository) afterFind(ctx context.Context, entity *domain_entity.Entity) error {
+func (r *EntityRepository) afterSaveTx(ctx context.Context, entity *domain_entity.Entity, langID uint, tx *gorm.DB) error {
 
-	if err := entity.AfterFind(); err != nil {
+	if err := r.valueRepositories.Bool.BatchSaveChangesTx(ctx, entity.ID, entity.BoolValues, langID, tx); err != nil {
 		return err
 	}
-	r.textValues2PropertiesValuesMap(entity)
+
+	if err := r.valueRepositories.Int.BatchSaveChangesTx(ctx, entity.ID, entity.IntValues, langID, tx); err != nil {
+		return err
+	}
+
+	if err := r.valueRepositories.Float.BatchSaveChangesTx(ctx, entity.ID, entity.FloatValues, langID, tx); err != nil {
+		return err
+	}
+
+	if err := r.valueRepositories.Date.BatchSaveChangesTx(ctx, entity.ID, entity.DateValues, langID, tx); err != nil {
+		return err
+	}
+
+	if err := r.valueRepositories.Time.BatchSaveChangesTx(ctx, entity.ID, entity.TimeValues, langID, tx); err != nil {
+		return err
+	}
+
+	if err := r.valueRepositories.Text.BatchSaveChangesTx(ctx, entity.ID, entity.TextValues, langID, tx); err != nil {
+		return err
+	}
+
 	return nil
-}
-
-func (r *EntityRepository) beforeSave(ctx context.Context, entity *domain_entity.Entity) (textValuesMap map[uint]string, err error) {
-	propertiesIDs, textValuesMap, err := r.getTextValuesFromPropertiesValuesMap(entity)
-	if err != nil {
-		return nil, err
-	}
-	r.resetTextValuesInPropertiesValuesMap(ctx, entity, propertiesIDs)
-
-	return textValuesMap, entity.BeforeSave()
-}
-
-func (r *EntityRepository) afterSaveTx(ctx context.Context, entity *domain_entity.Entity, textValuesMap map[uint]string, langID uint, tx *gorm.DB) error {
-	for propertyID, value := range textValuesMap {
-		entity.PropertiesValuesMap[propertyID] = value
-	}
-	return r.valueRepositories.Text.BatchSaveChangesTx(ctx, entity.ID, langID, textValuesMap, tx)
-}
-
-func (r *EntityRepository) resetTextValuesInPropertiesValuesMap(ctx context.Context, entity *domain_entity.Entity, propertiesIDs []uint) {
-	for _, propertyID := range propertiesIDs {
-		entity.PropertiesValuesMap[propertyID] = ""
-	}
 }
 
 // Delete (soft) deletes a Maintenance record in the database.
 func (r *EntityRepository) Delete(ctx context.Context, id uint) error {
 
 	return r.db.DB().Transaction(func(tx *gorm.DB) (err error) {
+
+		if err = r.valueRepositories.Bool.BatchDeleteTx(ctx, &selection_condition.SelectionCondition{
+			Where: &bool_value.BoolValue{
+				EntityID: id,
+			},
+		}, tx); err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+		}
+
+		if err = r.valueRepositories.Int.BatchDeleteTx(ctx, &selection_condition.SelectionCondition{
+			Where: &int_value.IntValue{
+				EntityID: id,
+			},
+		}, tx); err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+		}
+
+		if err = r.valueRepositories.Float.BatchDeleteTx(ctx, &selection_condition.SelectionCondition{
+			Where: &float_value.FloatValue{
+				EntityID: id,
+			},
+		}, tx); err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+		}
+
+		if err = r.valueRepositories.Date.BatchDeleteTx(ctx, &selection_condition.SelectionCondition{
+			Where: &date_value.DateValue{
+				EntityID: id,
+			},
+		}, tx); err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+		}
+
+		if err = r.valueRepositories.Time.BatchDeleteTx(ctx, &selection_condition.SelectionCondition{
+			Where: &time_value.TimeValue{
+				EntityID: id,
+			},
+		}, tx); err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+		}
+
 		if err = r.valueRepositories.Text.BatchDeleteTx(ctx, &selection_condition.SelectionCondition{
 			Where: &text_value.TextValue{
 				EntityID: id,
@@ -224,33 +253,33 @@ func (r *EntityRepository) Delete(ctx context.Context, id uint) error {
 	})
 }
 
-func (r *EntityRepository) textValues2PropertiesValuesMap(entity *domain_entity.Entity) {
-	for _, textValue := range entity.TextValues {
-		entity.PropertiesValuesMap[textValue.PropertyID] = textValue.Value
-	}
-}
+//func (r *EntityRepository) textValues2PropertiesValuesMap(entity *domain_entity.Entity) {
+//	for _, textValue := range entity.TextValues {
+//		entity.PropertiesValuesMap[textValue.PropertyID] = textValue.Value
+//	}
+//}
+//
+//// (!) Только если свой-ства устанавливались методом Service.EntitySetValueForProperty() или после изменения PropertiesValuesMap был запущен метод Service.EntityInit(),
+//// т.е. состав свойств в PropertiesValues - актуальный
+//func (r *EntityRepository) getTextValuesFromPropertiesValuesMap(entity *domain_entity.Entity) (textPropertiesIDs []uint, textValuesMap map[uint]string, err error) {
+//	textValuesMap = make(map[uint]string)
+//	textPropertiesIDs = make([]uint, 0)
+//
+//	for propertyID, val := range entity.PropertiesValuesMap {
+//		if _, ok := entity.RelationsValues[propertyID]; ok || entity.PropertiesValues[propertyID].Property.PropertyTypeID != property_type.IDText {
+//			continue
+//		}
+//
+//		value, ok := val.(string)
+//		if !ok {
+//			return nil, nil, errors.Errorf("Can not cast string value from PropertiesValuesMap to string. Value = %v.", val)
+//		}
+//		textValuesMap[propertyID] = value
+//		textPropertiesIDs = append(textPropertiesIDs, propertyID)
+//	}
+//	return textPropertiesIDs, textValuesMap, nil
+//}
 
-// (!) Только если свой-ства устанавливались методом Service.EntitySetValueForProperty() или после изменения PropertiesValuesMap был запущен метод Service.EntityInit(),
-// т.е. состав свойств в PropertiesValues - актуальный
-func (r *EntityRepository) getTextValuesFromPropertiesValuesMap(entity *domain_entity.Entity) (textPropertiesIDs []uint, textValuesMap map[uint]string, err error) {
-	textValuesMap = make(map[uint]string)
-	textPropertiesIDs = make([]uint, 0)
-
-	for propertyID, val := range entity.PropertiesValuesMap {
-		if _, ok := entity.RelationsValues[propertyID]; ok || entity.PropertiesValues[propertyID].Property.PropertyTypeID != property_type.IDText {
-			continue
-		}
-
-		value, ok := val.(string)
-		if !ok {
-			return nil, nil, errors.Errorf("Can not cast string value from PropertiesValuesMap to string. Value = %v.", val)
-		}
-		textValuesMap[propertyID] = value
-		textPropertiesIDs = append(textPropertiesIDs, propertyID)
-	}
-	return textPropertiesIDs, textValuesMap, nil
-}
-
-func (r *EntityRepository) textValuePreload(db *gorm.DB, langID uint) *gorm.DB {
+func (r *EntityRepository) preload(db *gorm.DB, langID uint) *gorm.DB {
 	return db.Preload("BoolValues").Preload("IntValues").Preload("FloatValues").Preload("DateValues").Preload("TimeValues").Preload("TextValues", r.db.DB().Model(&text_value.TextValue{}).Where(&text_value.TextValue{LangID: langID}))
 }

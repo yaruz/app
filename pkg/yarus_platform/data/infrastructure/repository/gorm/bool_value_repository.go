@@ -3,6 +3,7 @@ package gorm
 import (
 	"context"
 	"errors"
+	"sort"
 
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/bool_value"
 
@@ -61,10 +62,8 @@ func (r *BoolValueRepository) BatchDeleteTx(ctx context.Context, cond *selection
 	return err
 }
 
-func (r *BoolValueRepository) BatchSaveChangesTx(ctx context.Context, entityID uint, mapOfValues map[uint]bool, tx *gorm.DB) error {
+func (r *BoolValueRepository) BatchSaveChangesTx(ctx context.Context, entityID uint, values []bool_value.BoolValue, langID uint, tx *gorm.DB) error {
 	return tx.Transaction(func(tx *gorm.DB) error {
-		var valueObj *bool_value.BoolValue
-		// можно и без этого запроса, а просто брать из entity.BoolValues, но для большей безопасности сделаем отдельный независимый запрос
 		oldValues, err := r.Query(ctx, &selection_condition.SelectionCondition{
 			Where: &bool_value.BoolValue{
 				EntityID: entityID,
@@ -77,46 +76,35 @@ func (r *BoolValueRepository) BatchSaveChangesTx(ctx context.Context, entityID u
 			oldValues = make([]bool_value.BoolValue, 0)
 		}
 
-		mapOldValues := make(map[uint]*bool_value.BoolValue, len(oldValues))
-		for i := range oldValues {
-			mapOldValues[oldValues[i].PropertyID] = &oldValues[i]
+		oldValuesIds := make([]int, 0, len(oldValues))
+		for _, oldValue := range oldValues {
+			oldValuesIds = append(oldValuesIds, int(oldValue.ID))
+		}
+		sort.Ints(oldValuesIds)
+
+		for _, value := range values {
+			i := sort.SearchInts(oldValuesIds, int(value.ID))
+			if i < len(oldValuesIds) && oldValuesIds[i] == int(value.ID) {
+				oldValuesIds = append(oldValuesIds[:i], oldValuesIds[i+1:]...)
+			}
 		}
 
-		newValues := make([]bool_value.BoolValue, 0, len(oldValues))
-		for propertyID, value := range mapOfValues {
-			if _, ok := mapOldValues[propertyID]; ok {
-				valueObj = mapOldValues[propertyID]
-				delete(mapOldValues, propertyID)
-			} else {
-				valueObj = &bool_value.BoolValue{
-					EntityID:   entityID,
-					PropertyID: propertyID,
-				}
-			}
-			valueObj.Value = value
-			newValues = append(newValues, *valueObj)
-		}
-
-		if len(mapOldValues) > 0 {
-			delValuesIds := make([]uint, 0)
-			for _, t := range mapOldValues {
-				delValuesIds = append(delValuesIds, t.ID)
-			}
-
+		if len(oldValuesIds) > 0 {
 			if err := r.BatchDeleteTx(ctx, &selection_condition.SelectionCondition{
 				Where: selection_condition.WhereCondition{
 					Field:     "id",
 					Condition: selection_condition.ConditionIn,
-					Value:     delValuesIds,
+					Value:     oldValuesIds,
 				},
 			}, tx); err != nil {
 				return err
 			}
 		}
 
-		if len(newValues) > 0 {
-			return tx.Save(newValues).Error
+		if len(values) > 0 {
+			return tx.Save(values).Error
 		}
+
 		return nil
 	})
 }

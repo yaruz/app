@@ -3,6 +3,7 @@ package gorm
 import (
 	"context"
 	"errors"
+	"sort"
 
 	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 
@@ -137,11 +138,9 @@ func (r *TextValueRepository) BatchDeleteTx(ctx context.Context, cond *selection
 	return err
 }
 
-func (r *TextValueRepository) BatchSaveChangesTx(ctx context.Context, entityID uint, langID uint, mapOfStrings map[uint]string, tx *gorm.DB) error {
+func (r *TextValueRepository) BatchSaveChangesTx(ctx context.Context, entityID uint, values []text_value.TextValue, langID uint, tx *gorm.DB) error {
 	return tx.Transaction(func(tx *gorm.DB) error {
-		var textValue *text_value.TextValue
-		// можно и без этого запроса, а просто брать из entity.TextValues, но для большей безопасности сделаем отдельный независимый запрос
-		oldTextValues, err := r.Query(ctx, &selection_condition.SelectionCondition{
+		oldValues, err := r.Query(ctx, &selection_condition.SelectionCondition{
 			Where: &text_value.TextValue{
 				EntityID: entityID,
 				LangID:   langID,
@@ -151,50 +150,38 @@ func (r *TextValueRepository) BatchSaveChangesTx(ctx context.Context, entityID u
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
 				return err
 			}
-			oldTextValues = make([]text_value.TextValue, 0)
+			oldValues = make([]text_value.TextValue, 0)
 		}
 
-		mapOldTextValues := make(map[uint]*text_value.TextValue, len(oldTextValues))
-		for i := range oldTextValues {
-			mapOldTextValues[oldTextValues[i].PropertyID] = &oldTextValues[i]
+		oldValuesIds := make([]int, 0, len(oldValues))
+		for _, oldValue := range oldValues {
+			oldValuesIds = append(oldValuesIds, int(oldValue.ID))
 		}
+		sort.Ints(oldValuesIds)
 
-		newTextValues := make([]text_value.TextValue, 0, len(oldTextValues))
-		for propertyID, value := range mapOfStrings {
-			if _, ok := mapOldTextValues[propertyID]; ok {
-				textValue = mapOldTextValues[propertyID]
-				delete(mapOldTextValues, propertyID)
-			} else {
-				textValue = &text_value.TextValue{
-					EntityID:   entityID,
-					LangID:     langID,
-					PropertyID: propertyID,
-				}
+		for _, value := range values {
+			i := sort.SearchInts(oldValuesIds, int(value.ID))
+			if i < len(oldValuesIds) && oldValuesIds[i] == int(value.ID) {
+				oldValuesIds = append(oldValuesIds[:i], oldValuesIds[i+1:]...)
 			}
-			textValue.Value = value
-			newTextValues = append(newTextValues, *textValue)
 		}
 
-		if len(mapOldTextValues) > 0 {
-			delTextValuesIds := make([]uint, 0)
-			for _, t := range mapOldTextValues {
-				delTextValuesIds = append(delTextValuesIds, t.ID)
-			}
-
+		if len(oldValuesIds) > 0 {
 			if err := r.BatchDeleteTx(ctx, &selection_condition.SelectionCondition{
 				Where: selection_condition.WhereCondition{
 					Field:     "id",
 					Condition: selection_condition.ConditionIn,
-					Value:     delTextValuesIds,
+					Value:     oldValuesIds,
 				},
 			}, tx); err != nil {
 				return err
 			}
 		}
 
-		if len(newTextValues) > 0 {
-			return tx.Save(newTextValues).Error
+		if len(values) > 0 {
+			return tx.Save(values).Error
 		}
+
 		return nil
 	})
 }

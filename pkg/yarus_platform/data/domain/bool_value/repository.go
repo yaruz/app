@@ -9,6 +9,6 @@ import (
 
 // Repository encapsulates the logic to access albums from the data source.
 type Repository interface {
-	BatchSaveChangesTx(ctx context.Context, entityID uint, mapOfValues map[uint]bool, tx *gorm.DB) error
+	BatchSaveChangesTx(ctx context.Context, entityID uint, values []BoolValue, langID uint, tx *gorm.DB) error
 	BatchDeleteTx(ctx context.Context, cond *selection_condition.SelectionCondition, tx *gorm.DB) error
 }

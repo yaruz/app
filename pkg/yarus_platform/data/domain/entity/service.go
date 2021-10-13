@@ -61,11 +61,6 @@ func NewService(logger log.ILogger, repo Repository, reference *reference.Refere
 	return s
 }
 
-// Defaults returns defaults params
-func (s *service) defaultConditions() *selection_condition.SelectionCondition {
-	return &selection_condition.SelectionCondition{}
-}
-
 func (s *service) NewEntity() *Entity {
 	return New()
 }
@@ -219,28 +214,63 @@ func (s *service) propsInit(ctx context.Context, entity *Entity, propertyAndRela
 // Запускаем после запуска tPropertiesInit
 func (s *service) tPropertiesValuesInit(ctx context.Context, entity *Entity, langID uint) error {
 
-	for id, val := range entity.PropertiesValuesMap {
-
-		prop, propOk := entity.PropertiesValues[id]
-		rel, relOk := entity.RelationsValues[id]
-
-		switch {
-		case relOk:
-			if err := rel.SetValueByInterface(val); err != nil {
-				return errors.Wrapf(err, "Can not set value to PropertyValue. Property ID = %v; Value = %v.", id, val)
-			}
-			entity.RelationsValues[id] = rel
-		case propOk:
-			if err := prop.SetValue(val, langID); err != nil {
-				return errors.Wrapf(err, "Can not set value to PropertyValue. Property ID = %v; Value = %v.", id, val)
-			}
-			entity.PropertiesValues[id] = prop
-		default:
-			return errors.Errorf("Property ID = %v not found.", id)
+	for _, propertyValue := range entity.BoolValues {
+		if err := s.setPropertyValue(ctx, entity, propertyValue.PropertyID, propertyValue.Value, langID); err != nil {
+			return err
 		}
-
 	}
 
+	for _, propertyValue := range entity.IntValues {
+		if err := s.setPropertyValue(ctx, entity, propertyValue.PropertyID, propertyValue.Value, langID); err != nil {
+			return err
+		}
+	}
+
+	for _, propertyValue := range entity.FloatValues {
+		if err := s.setPropertyValue(ctx, entity, propertyValue.PropertyID, propertyValue.Value, langID); err != nil {
+			return err
+		}
+	}
+
+	for _, propertyValue := range entity.DateValues {
+		if err := s.setPropertyValue(ctx, entity, propertyValue.PropertyID, propertyValue.Value, langID); err != nil {
+			return err
+		}
+	}
+
+	for _, propertyValue := range entity.TimeValues {
+		if err := s.setPropertyValue(ctx, entity, propertyValue.PropertyID, propertyValue.Value, langID); err != nil {
+			return err
+		}
+	}
+
+	for _, propertyValue := range entity.TextValues {
+		if err := s.setPropertyValue(ctx, entity, propertyValue.PropertyID, propertyValue.Value, langID); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *service) setPropertyValue(ctx context.Context, entity *Entity, propertyID uint, value interface{}, langID uint) error {
+	propertyValue, propOk := entity.PropertiesValues[propertyID]
+	relationValue, relOk := entity.RelationsValues[propertyID]
+
+	switch {
+	case relOk:
+		if err := relationValue.SetValueByInterface(value); err != nil {
+			return errors.Wrapf(err, "Can not set value to PropertyValue. Property ID = %v; Value = %v.", propertyID, value)
+		}
+		entity.RelationsValues[propertyID] = relationValue
+	case propOk:
+		if err := propertyValue.SetValue(value, langID); err != nil {
+			return errors.Wrapf(err, "Can not set value to PropertyValue. Property ID = %v; Value = %v.", propertyID, value)
+		}
+		entity.PropertiesValues[propertyID] = propertyValue
+	default:
+		return errors.Errorf("Property ID = %v not found.", propertyID)
+	}
 	return nil
 }
 
@@ -274,7 +304,7 @@ func (s *service) EntitySetRelationValue(entity *Entity, relationValue *Relation
 
 // Удаляет как значения свойств, так и значения связей
 func (s *service) EntityDeletePropertyValue(entity *Entity, propertyID uint) {
-	entity.DeletePropertyValue(propertyID)
+	entity.DeletePropertyValues(propertyID)
 }
 
 func (s *service) BindRelatedEntityID(entity *Entity, relation *entity_type.Relation, relatedEntityID uint) error {
