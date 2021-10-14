@@ -150,6 +150,7 @@ func (r *EntityRepository) updateTx(ctx context.Context, entity *domain_entity.E
 	})
 }
 
+// Сохраняем все значения всех свойств из всех слайсов ...Values
 func (r *EntityRepository) afterSaveTx(ctx context.Context, entity *domain_entity.Entity, langID uint, tx *gorm.DB) error {
 
 	if err := r.valueRepositories.Bool.BatchSaveChangesTx(ctx, entity.ID, entity.BoolValues, langID, tx); err != nil {
@@ -259,7 +260,7 @@ func (r *EntityRepository) Delete(ctx context.Context, id uint) error {
 //	}
 //}
 //
-//// (!) Только если свой-ства устанавливались методом Service.EntitySetValueForProperty() или после изменения PropertiesValuesMap был запущен метод Service.EntityInit(),
+//// (!) Только если свой-ства устанавливались методом Service.SetValueForProperty() или после изменения PropertiesValuesMap был запущен метод Service.EntityInit(),
 //// т.е. состав свойств в PropertiesValues - актуальный
 //func (r *EntityRepository) getTextValuesFromPropertiesValuesMap(entity *domain_entity.Entity) (textPropertiesIDs []uint, textValuesMap map[uint]string, err error) {
 //	textValuesMap = make(map[uint]string)

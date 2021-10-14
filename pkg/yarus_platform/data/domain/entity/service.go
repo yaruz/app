@@ -3,8 +3,6 @@ package entity
 import (
 	"context"
 
-	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
-
 	"github.com/pkg/errors"
 
 	"github.com/minipkg/log"
@@ -12,8 +10,8 @@ import (
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
 	"github.com/yaruz/app/pkg/yarus_platform/search"
+	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 )
 
 // IService encapsulates usecase logic.
@@ -27,11 +25,11 @@ type IService interface {
 	Update(ctx context.Context, entity *Entity, langID uint) error
 	Delete(ctx context.Context, id uint) error
 	EntityInit(ctx context.Context, entity *Entity, langID uint) error
-	EntitySetValueForProperty(entity *Entity, property *property.Property, value interface{}, langID uint) error
-	EntitySetValueForRelation(entity *Entity, relation *entity_type.Relation, value []uint) error
-	EntitySetPropertyValue(entity *Entity, propertyValue *PropertyValue)
-	EntitySetRelationValue(entity *Entity, relationValue *RelationValue)
-	EntityDeletePropertyValue(entity *Entity, propertyID uint)
+	//SetValueForProperty(entity *Entity, property *property.Property, value interface{}, langID uint) error
+	//SetValueForRelation(entity *Entity, relation *entity_type.Relation, value []uint) error
+	//EntitySetPropertyValue(entity *Entity, propertyValue *PropertyValue)
+	//EntitySetRelationValue(entity *Entity, relationValue *RelationValue)
+	//EntityDeletePropertyValue(entity *Entity, propertyID uint)
 	BindRelatedEntity(relation *entity_type.Relation, entity1 *Entity, entity2 *Entity) error
 	BindRelatedEntities(relation *entity_type.Relation, entity *Entity, relatedEntities []*Entity) error
 	UnbindRelatedEntity(relation *entity_type.Relation, entity1 *Entity, entity2 *Entity) error
@@ -151,48 +149,25 @@ func (s *service) Delete(ctx context.Context, id uint) error {
 
 func (s *service) EntityInit(ctx context.Context, entity *Entity, langID uint) error {
 
-	if err := s.tPropertiesInit(ctx, entity, langID); err != nil {
+	if err := s.propertiesInit(ctx, entity, langID); err != nil {
 		return err
 	}
 
-	if err := s.tPropertiesValuesInit(ctx, entity, langID); err != nil {
+	if err := entity.propertiesValuesInit(langID); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (s *service) propertiesInit(ctx context.Context, entity *Entity) error {
-	return s.propsInit(ctx, entity, func(ctx context.Context, ids []interface{}) ([]property.Property, []entity_type.Relation, error) {
-		return s.reference.Relation.Service.PropertyAndRelationQuery(ctx, &selection_condition.SelectionCondition{
-			Where: selection_condition.WhereCondition{
-				Field:     "ID",
-				Condition: selection_condition.ConditionIn,
-				Value:     ids,
-			},
-		})
-	})
-}
-
-func (s *service) tPropertiesInit(ctx context.Context, entity *Entity, langID uint) error {
-	return s.propsInit(ctx, entity, func(ctx context.Context, ids []interface{}) ([]property.Property, []entity_type.Relation, error) {
-		return s.reference.Relation.Service.TPropertyAndRelationQuery(ctx, &selection_condition.SelectionCondition{
-			Where: selection_condition.WhereCondition{
-				Field:     "ID",
-				Condition: selection_condition.ConditionIn,
-				Value:     ids,
-			},
-		}, langID)
-	})
-}
-
-func (s *service) propsInit(ctx context.Context, entity *Entity, propertyAndRelationQuery func(ctx context.Context, ids []interface{}) ([]property.Property, []entity_type.Relation, error)) error {
-	ids := make([]interface{}, 0, len(entity.PropertiesValuesMap))
-	for id := range entity.PropertiesValuesMap {
-		ids = append(ids, id)
-	}
-
-	props, rels, err := propertyAndRelationQuery(ctx, ids)
+func (s *service) propertiesInit(ctx context.Context, entity *Entity, langID uint) error {
+	props, rels, err := s.reference.Relation.Service.TPropertyAndRelationQuery(ctx, &selection_condition.SelectionCondition{
+		Where: selection_condition.WhereCondition{
+			Field:     "ID",
+			Condition: selection_condition.ConditionIn,
+			Value:     entity.GetPropertiesIDs(),
+		},
+	}, langID)
 	if err != nil {
 		return errors.Wrapf(err, "Can not find properties and relations for an entity: %v", entity)
 	}
@@ -210,178 +185,6 @@ func (s *service) propsInit(ctx context.Context, entity *Entity, propertyAndRela
 	return nil
 }
 
-// Инициализация PropertiesValues и RelationsValues из PropertiesValuesMap
-// Запускаем после запуска tPropertiesInit
-func (s *service) tPropertiesValuesInit(ctx context.Context, entity *Entity, langID uint) error {
-
-	for _, propertyValue := range entity.BoolValues {
-		if err := s.setPropertyValue(ctx, entity, propertyValue.PropertyID, propertyValue.Value, langID); err != nil {
-			return err
-		}
-	}
-
-	for _, propertyValue := range entity.IntValues {
-		if err := s.setPropertyValue(ctx, entity, propertyValue.PropertyID, propertyValue.Value, langID); err != nil {
-			return err
-		}
-	}
-
-	for _, propertyValue := range entity.FloatValues {
-		if err := s.setPropertyValue(ctx, entity, propertyValue.PropertyID, propertyValue.Value, langID); err != nil {
-			return err
-		}
-	}
-
-	for _, propertyValue := range entity.DateValues {
-		if err := s.setPropertyValue(ctx, entity, propertyValue.PropertyID, propertyValue.Value, langID); err != nil {
-			return err
-		}
-	}
-
-	for _, propertyValue := range entity.TimeValues {
-		if err := s.setPropertyValue(ctx, entity, propertyValue.PropertyID, propertyValue.Value, langID); err != nil {
-			return err
-		}
-	}
-
-	for _, propertyValue := range entity.TextValues {
-		if err := s.setPropertyValue(ctx, entity, propertyValue.PropertyID, propertyValue.Value, langID); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (s *service) setPropertyValue(ctx context.Context, entity *Entity, propertyID uint, value interface{}, langID uint) error {
-	propertyValue, propOk := entity.PropertiesValues[propertyID]
-	relationValue, relOk := entity.RelationsValues[propertyID]
-
-	switch {
-	case relOk:
-		if err := relationValue.SetValueByInterface(value); err != nil {
-			return errors.Wrapf(err, "Can not set value to PropertyValue. Property ID = %v; Value = %v.", propertyID, value)
-		}
-		entity.RelationsValues[propertyID] = relationValue
-	case propOk:
-		if err := propertyValue.SetValue(value, langID); err != nil {
-			return errors.Wrapf(err, "Can not set value to PropertyValue. Property ID = %v; Value = %v.", propertyID, value)
-		}
-		entity.PropertiesValues[propertyID] = propertyValue
-	default:
-		return errors.Errorf("Property ID = %v not found.", propertyID)
-	}
-	return nil
-}
-
-// value - значение, не ссылка
-func (s *service) EntitySetValueForProperty(entity *Entity, property *property.Property, value interface{}, langID uint) error {
-	propertyValue, err := newPropertyValue(property, value, langID)
-	if err != nil {
-		return err
-	}
-	entity.SetPropertyValue(propertyValue)
-	return nil
-}
-
-func (s *service) EntitySetPropertyValue(entity *Entity, propertyValue *PropertyValue) {
-	entity.SetPropertyValue(propertyValue)
-}
-
-// value - значение, не ссылка, []uint - IDs связанных сущностей
-func (s *service) EntitySetValueForRelation(entity *Entity, relation *entity_type.Relation, value []uint) error {
-	relationValue, err := newRelationValue(relation, value)
-	if err != nil {
-		return err
-	}
-	entity.SetRelationValue(relationValue)
-	return nil
-}
-
-func (s *service) EntitySetRelationValue(entity *Entity, relationValue *RelationValue) {
-	entity.SetRelationValue(relationValue)
-}
-
-// Удаляет как значения свойств, так и значения связей
-func (s *service) EntityDeletePropertyValue(entity *Entity, propertyID uint) {
-	entity.DeletePropertyValues(propertyID)
-}
-
-func (s *service) BindRelatedEntityID(entity *Entity, relation *entity_type.Relation, relatedEntityID uint) error {
-	propertyID := relation.Property.ID
-
-	if _, ok := entity.PropertiesValuesMap[propertyID]; !ok {
-		return s.EntitySetValueForRelation(entity, relation, []uint{relatedEntityID})
-	}
-
-	relationsValues, ok := entity.RelationsValues[propertyID]
-	if !ok {
-		return errors.Wrapf(yaruserror.ErrNotSet, "RelationsValues fo relation ID = %v not init", propertyID)
-	}
-
-	if err := relationsValues.AddValue(relatedEntityID); err != nil {
-		return err
-	}
-
-	s.EntitySetRelationValue(entity, &relationsValues)
-	return nil
-}
-
-func (s *service) BindRelatedEntityIDs(entity *Entity, relation *entity_type.Relation, relatedEntityIDs []uint) error {
-	propertyID := relation.Property.ID
-
-	if _, ok := entity.PropertiesValuesMap[propertyID]; !ok {
-		return s.EntitySetValueForRelation(entity, relation, relatedEntityIDs)
-	}
-
-	relationsValues, ok := entity.RelationsValues[propertyID]
-	if !ok {
-		return errors.Wrapf(yaruserror.ErrNotSet, "RelationsValues fo relation ID = %v not init", propertyID)
-	}
-
-	return relationsValues.AddValues(relatedEntityIDs, false)
-}
-
-func (s *service) UnbindRelatedEntityID(entity *Entity, relation *entity_type.Relation, relatedEntityID uint) error {
-	propertyID := relation.Property.ID
-
-	if _, ok := entity.PropertiesValuesMap[propertyID]; !ok {
-		return errors.Wrapf(yaruserror.ErrNotFound, "related entity with ID = %v not found", relatedEntityID)
-	}
-
-	relationsValues, ok := entity.RelationsValues[propertyID]
-	if !ok {
-		return errors.Wrapf(yaruserror.ErrNotSet, "RelationsValues fo relation ID = %v not init", propertyID)
-	}
-
-	if err := relationsValues.RemoveValue(relatedEntityID); err != nil {
-		return err
-	}
-
-	if len(relationsValues.Value) == 0 {
-		s.EntityDeletePropertyValue(entity, propertyID)
-	} else {
-		s.EntitySetRelationValue(entity, &relationsValues)
-	}
-
-	return nil
-}
-
-func (s *service) UnbindRelatedEntityIDs(entity *Entity, relation *entity_type.Relation, relatedEntityIDs []uint) error {
-	propertyID := relation.Property.ID
-
-	if _, ok := entity.PropertiesValuesMap[propertyID]; !ok {
-		return errors.Wrapf(yaruserror.ErrNotFound, "related entity with ID = %v not found", relatedEntityIDs)
-	}
-
-	relationsValues, ok := entity.RelationsValues[propertyID]
-	if !ok {
-		return errors.Wrapf(yaruserror.ErrNotSet, "RelationsValues fo relation ID = %v not init", propertyID)
-	}
-
-	return relationsValues.RemoveValues(relatedEntityIDs, false)
-}
-
 func (s *service) BindRelatedEntity(relation *entity_type.Relation, entity1 *Entity, entity2 *Entity) error {
 	_, err := s.CheckBindRelatedEntity(relation, entity1, entity2)
 	if err != nil {
@@ -391,9 +194,9 @@ func (s *service) BindRelatedEntity(relation *entity_type.Relation, entity1 *Ent
 	entity1Copy := *entity1
 	entity2Copy := *entity2
 
-	err = s.BindRelatedEntityID(entity1, relation, entity2.ID)
+	err = entity1.BindRelatedEntityID(relation, entity2.ID)
 	if err == nil {
-		err = s.BindRelatedEntityID(entity2, relation, entity1.ID)
+		err = entity2.BindRelatedEntityID(relation, entity1.ID)
 	}
 
 	if err != nil {
@@ -428,9 +231,9 @@ func (s *service) UnbindRelatedEntity(relation *entity_type.Relation, entity1 *E
 	entity1Copy := *entity1
 	entity2Copy := *entity2
 
-	err = s.UnbindRelatedEntityID(entity1, relation, entity2.ID)
+	err = entity1.UnbindRelatedEntityID(relation, entity2.ID)
 	if err == nil {
-		err = s.UnbindRelatedEntityID(entity2, relation, entity1.ID)
+		err = entity2.UnbindRelatedEntityID(relation, entity1.ID)
 	}
 
 	if err != nil {
