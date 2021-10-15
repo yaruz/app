@@ -339,6 +339,67 @@ func (e *Entity) SetValueForRelation(relation *entity_type.Relation, value []uin
 	return nil
 }
 
+func (e *Entity) AddValueForRelation(relation *entity_type.Relation, value uint) error {
+	propertyID := relation.Property.ID
+
+	if len(e.GetRelationValues(propertyID)) == 0 {
+		return e.SetValueForRelation(relation, []uint{value})
+	}
+
+	relationsValues, ok := e.RelationsValues[propertyID]
+	if !ok {
+		return errors.Wrapf(yaruserror.ErrNotSet, "RelationsValues fo relation ID = %v not init", propertyID)
+	}
+
+	if err := relationsValues.AddValue(value); err != nil {
+		return err
+	}
+
+	val, err := property.GetValueInt(value)
+	if err != nil {
+		return err
+	}
+
+	e.IntValues = append(e.IntValues, int_value.IntValue{
+		EntityID:   e.ID,
+		PropertyID: propertyID,
+		Value:      val,
+	})
+	return nil
+}
+
+func (e *Entity) AddValuesForRelation(relation *entity_type.Relation, values []uint) error {
+	propertyID := relation.Property.ID
+
+	if len(e.GetRelationValues(propertyID)) == 0 {
+		return e.SetValueForRelation(relation, values)
+	}
+
+	relationsValues, ok := e.RelationsValues[propertyID]
+	if !ok {
+		return errors.Wrapf(yaruserror.ErrNotSet, "RelationsValues fo relation ID = %v not init", propertyID)
+	}
+
+	if err := relationsValues.AddValues(values, false); err != nil {
+		return err
+	}
+
+	for _, value := range values {
+		val, err := property.GetValueInt(value)
+		if err != nil {
+			return err
+		}
+
+		e.IntValues = append(e.IntValues, int_value.IntValue{
+			EntityID:   e.ID,
+			PropertyID: propertyID,
+			Value:      val,
+		})
+	}
+
+	return nil
+}
+
 // По заданному значению relation привязываем relatedEntityID
 func (e *Entity) BindRelatedEntityID(relation *entity_type.Relation, relatedEntityID uint) error {
 	propertyID := relation.Property.ID
