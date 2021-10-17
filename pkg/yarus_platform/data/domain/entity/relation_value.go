@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"encoding/json"
 	"sort"
 
 	"github.com/pkg/errors"
@@ -77,15 +76,15 @@ func (v *RelationValue) AddValue(value uint) error {
 	return nil
 }
 
-func (v *RelationValue) AddValues(values []uint, isStopIfErrAlreadyExists bool) error {
+func (v *RelationValue) AddValues(values []uint, isStopIfErrAlreadyExists bool) (alreadyExists map[int]uint, err error) {
 	if values == nil || len(values) == 0 {
-		return yaruserror.ErrEmptyParams
+		return nil, yaruserror.ErrEmptyParams
 	}
 
 	if v.Value == nil {
 		v.Value = make([]uint, 0, len(values))
 	}
-	alreadyExists := make(map[int]uint)
+	alreadyExists = make(map[int]uint)
 
 	for i, value := range values {
 		if _, ok := v.SearchValue(value); ok {
@@ -100,7 +99,7 @@ func (v *RelationValue) AddValues(values []uint, isStopIfErrAlreadyExists bool) 
 			}
 			if err := v.AddValue(id); err != nil {
 				if !errors.Is(err, yaruserror.ErrAlreadyExists) {
-					return err
+					return alreadyExists, err
 				}
 				alreadyExists[i] = id
 			}
@@ -108,13 +107,9 @@ func (v *RelationValue) AddValues(values []uint, isStopIfErrAlreadyExists bool) 
 	}
 
 	if len(alreadyExists) > 0 {
-		alreadyExistsB, err := json.Marshal(alreadyExists)
-		if err != nil {
-			return err
-		}
-		return errors.Wrap(yaruserror.ErrAlreadyExists, string(alreadyExistsB))
+		return alreadyExists, yaruserror.ErrAlreadyExists
 	}
-	return nil
+	return nil, nil
 }
 
 func (v *RelationValue) RemoveValue(Value uint) error {
@@ -127,12 +122,12 @@ func (v *RelationValue) RemoveValue(Value uint) error {
 	return nil
 }
 
-func (v *RelationValue) RemoveValues(entityIDs []uint, isStopIfErrNotFound bool) error {
+func (v *RelationValue) RemoveValues(entityIDs []uint, isStopIfErrNotFound bool) (notFound map[int]uint, err error) {
 	if entityIDs == nil || len(entityIDs) == 0 {
-		return yaruserror.ErrEmptyParams
+		return nil, yaruserror.ErrEmptyParams
 	}
 
-	notFound := make(map[int]uint)
+	notFound = make(map[int]uint)
 	for i, id := range entityIDs {
 		if _, ok := v.SearchValue(id); !ok {
 			notFound[i] = id
@@ -145,19 +140,15 @@ func (v *RelationValue) RemoveValues(entityIDs []uint, isStopIfErrNotFound bool)
 				continue
 			}
 			if err := v.RemoveValue(id); err != nil {
-				return err
+				return nil, err
 			}
 		}
 	}
 
 	if len(notFound) > 0 {
-		notFoundB, err := json.Marshal(notFound)
-		if err != nil {
-			return err
-		}
-		return errors.Wrap(yaruserror.ErrNotFound, string(notFoundB))
+		return notFound, yaruserror.ErrNotFound
 	}
-	return nil
+	return nil, nil
 }
 
 func (v *RelationValue) sortValue() {
