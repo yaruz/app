@@ -1,6 +1,8 @@
 package entity
 
 import (
+	"sort"
+
 	"github.com/pkg/errors"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -231,6 +233,26 @@ func (e *Entity) GetPropertiesIDs() []interface{} {
 		propertiesIdsMap[val.PropertyID] = struct{}{}
 	}
 
+	for _, val := range e.IntValues {
+		propertiesIdsMap[val.PropertyID] = struct{}{}
+	}
+
+	for _, val := range e.FloatValues {
+		propertiesIdsMap[val.PropertyID] = struct{}{}
+	}
+
+	for _, val := range e.DateValues {
+		propertiesIdsMap[val.PropertyID] = struct{}{}
+	}
+
+	for _, val := range e.TimeValues {
+		propertiesIdsMap[val.PropertyID] = struct{}{}
+	}
+
+	for _, val := range e.TextValues {
+		propertiesIdsMap[val.PropertyID] = struct{}{}
+	}
+
 	propertiesIds := make([]interface{}, 0, len(propertiesIdsMap))
 	for id := range propertiesIdsMap {
 		propertiesIds = append(propertiesIds, id)
@@ -353,7 +375,7 @@ func (e *Entity) AddValueForRelation(relation *entity_type.Relation, value uint)
 		return e.SetValueForRelation(relation, []uint{value})
 	}
 
-	relationsValues, ok := e.RelationsValues[propertyID]
+	relationsValue, ok := e.RelationsValues[propertyID]
 	if !ok {
 		return errors.Wrapf(yaruserror.ErrNotSet, "RelationsValues fo relation ID = %v not init", propertyID)
 	}
@@ -363,9 +385,10 @@ func (e *Entity) AddValueForRelation(relation *entity_type.Relation, value uint)
 		return err
 	}
 
-	if err := relationsValues.AddValue(value); err != nil {
+	if err := relationsValue.AddValue(value); err != nil {
 		return err
 	}
+	e.SetRelationValue(&relationsValue)
 
 	e.IntValues = append(e.IntValues, int_value.IntValue{
 		EntityID:   e.ID,
@@ -399,14 +422,17 @@ func (e *Entity) AddValuesForRelation(relation *entity_type.Relation, values []u
 		intValues = append(intValues, intValue)
 	}
 
-	alreadyExists, err = relationsValue.AddValues(values, isStopIfErrAlreadyExists)
-	if err != nil {
+	if alreadyExists, err = relationsValue.AddValues(values, isStopIfErrAlreadyExists); err != nil {
 		if !errors.Is(err, yaruserror.ErrAlreadyExists) || isStopIfErrAlreadyExists {
 			return alreadyExists, err
 		}
 	}
+	e.SetRelationValue(&relationsValue)
 
-	for _, intValue := range intValues {
+	for i, intValue := range intValues {
+		if _, ok := alreadyExists[i]; ok {
+			continue
+		}
 
 		e.IntValues = append(e.IntValues, int_value.IntValue{
 			EntityID:   e.ID,
@@ -417,6 +443,106 @@ func (e *Entity) AddValuesForRelation(relation *entity_type.Relation, values []u
 
 	if errors.Is(err, yaruserror.ErrAlreadyExists) {
 		return alreadyExists, err
+	}
+
+	return nil, nil
+}
+
+func (e *Entity) RemoveValueForRelation(relation *entity_type.Relation, value uint) error {
+	if value == 0 {
+		return yaruserror.ErrEmptyParams
+	}
+	propertyID := relation.Property.ID
+
+	if len(e.GetRelationValues(propertyID)) == 0 {
+		return errors.Wrapf(yaruserror.ErrNotFound, "related entity with ID = %v not found", value)
+	}
+
+	relationsValue, ok := e.RelationsValues[propertyID]
+	if !ok {
+		return errors.Wrapf(yaruserror.ErrNotSet, "RelationsValues fo relation ID = %v not init", propertyID)
+	}
+
+	intValue, err := property.GetValueInt(value)
+	if err != nil {
+		return err
+	}
+
+	if err := relationsValue.RemoveValue(value); err != nil {
+		return err
+	}
+
+	if len(relationsValue.Value) == 0 {
+		e.DeletePropertyValues(propertyID)
+	} else {
+		e.SetRelationValue(&relationsValue)
+
+		for i := range e.IntValues {
+			if e.IntValues[i].PropertyID == propertyID && e.IntValues[i].Value == intValue {
+				e.IntValues = append(e.IntValues[:i], e.IntValues[i+1:]...)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (e *Entity) RemoveValuesForRelation(relation *entity_type.Relation, values []uint, isStopIfErrNotFound bool) (notFound map[int]uint, err error) {
+	if values == nil || len(values) == 0 {
+		return nil, yaruserror.ErrEmptyParams
+	}
+	propertyID := relation.Property.ID
+
+	if len(e.GetRelationValues(propertyID)) == 0 {
+		return nil, errors.Wrapf(yaruserror.ErrNotFound, "related entity with ID = %v not found", values)
+	}
+
+	relationsValue, ok := e.RelationsValues[propertyID]
+	if !ok {
+		return nil, errors.Wrapf(yaruserror.ErrNotSet, "RelationsValues fo relation ID = %v not init", propertyID)
+	}
+
+	intValues := make([]int, 0, len(values))
+	for _, value := range values {
+		intValue, err := property.GetValueInt(value)
+		if err != nil {
+			return nil, err
+		}
+		intValues = append(intValues, intValue)
+	}
+
+	notFound, err = relationsValue.RemoveValues(values, false)
+	if err != nil {
+		if !errors.Is(err, yaruserror.ErrNotFound) || isStopIfErrNotFound {
+			return notFound, err
+		}
+	}
+
+	if len(relationsValue.Value) == 0 {
+		e.DeletePropertyValues(propertyID)
+	} else {
+		e.SetRelationValue(&relationsValue)
+
+		foundedIntValues := make([]int, 0, len(intValues)-len(notFound))
+		for i, intValue := range intValues {
+			if _, ok := notFound[i]; !ok {
+				foundedIntValues = append(foundedIntValues, intValue)
+			}
+		}
+		sort.Ints(foundedIntValues)
+
+		for i := range e.IntValues {
+			idx := sort.SearchInts(foundedIntValues, e.IntValues[i].Value)
+			isExists := idx < len(foundedIntValues) && foundedIntValues[idx] == e.IntValues[i].Value
+
+			if e.IntValues[i].PropertyID == propertyID && isExists {
+				e.IntValues = append(e.IntValues[:i], e.IntValues[i+1:]...)
+			}
+		}
+	}
+
+	if errors.Is(err, yaruserror.ErrNotFound) {
+		return notFound, err
 	}
 
 	return nil, nil
@@ -434,42 +560,10 @@ func (e *Entity) BindRelatedEntityIDs(relation *entity_type.Relation, relatedEnt
 
 // По заданному значению relation отвязываем relatedEntityID
 func (e *Entity) UnbindRelatedEntityID(relation *entity_type.Relation, relatedEntityID uint) error {
-	propertyID := relation.Property.ID
-
-	if len(e.GetRelationValues(propertyID)) == 0 {
-		return errors.Wrapf(yaruserror.ErrNotFound, "related entity with ID = %v not found", relatedEntityID)
-	}
-
-	relationsValues, ok := e.RelationsValues[propertyID]
-	if !ok {
-		return errors.Wrapf(yaruserror.ErrNotSet, "RelationsValues fo relation ID = %v not init", propertyID)
-	}
-
-	if err := relationsValues.RemoveValue(relatedEntityID); err != nil {
-		return err
-	}
-
-	if len(relationsValues.Value) == 0 {
-		e.DeletePropertyValues(propertyID)
-	} else {
-		e.SetRelationValue(&relationsValues)
-	}
-
-	return nil
+	return e.RemoveValueForRelation(relation, relatedEntityID)
 }
 
 // По заданному значению relation отвязываем relatedEntityIDs
-func (e *Entity) UnbindRelatedEntityIDs(relation *entity_type.Relation, relatedEntityIDs []uint) error {
-	propertyID := relation.Property.ID
-
-	if len(e.GetRelationValues(propertyID)) == 0 {
-		return errors.Wrapf(yaruserror.ErrNotFound, "related entity with ID = %v not found", relatedEntityIDs)
-	}
-
-	relationsValues, ok := e.RelationsValues[propertyID]
-	if !ok {
-		return errors.Wrapf(yaruserror.ErrNotSet, "RelationsValues fo relation ID = %v not init", propertyID)
-	}
-
-	return relationsValues.RemoveValues(relatedEntityIDs, false)
+func (e *Entity) UnbindRelatedEntityIDs(relation *entity_type.Relation, relatedEntityIDs []uint, isStopIfErrNotFound bool) (notFound map[int]uint, err error) {
+	return e.RemoveValuesForRelation(relation, relatedEntityIDs, isStopIfErrNotFound)
 }
