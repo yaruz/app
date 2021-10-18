@@ -127,32 +127,32 @@ func (c dataTestController) entity(ctx *routing.Context) error {
 	//	propertyTime.ID:     time.Now().Unix(),
 	//}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(entity, propertyNumber, int(158), langRusID)
+	err = entity.SetValueForProperty(propertyNumber, int(158), langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyNumber": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(entity, propertyLen, float64(32.543), langRusID)
+	err = entity.SetValueForProperty(propertyLen, float64(32.543), langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyLen": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(entity, propertyOpt, propertyOpt1Val, langRusID)
+	err = entity.SetValueForProperty(propertyOpt, propertyOpt1Val, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyOpt": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(entity, propertyBool, true, langRusID)
+	err = entity.SetValueForProperty(propertyBool, true, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(entity, propertyDate, time.Now(), langRusID)
+	err = entity.SetValueForProperty(propertyDate, time.Now(), langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyDate": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(entity, propertyTime, time.Now(), langRusID)
+	err = entity.SetValueForProperty(propertyTime, time.Now(), langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyTime": err.Error()})
 	}
@@ -201,7 +201,7 @@ func (c dataTestController) entityText(ctx *routing.Context) error {
 	entity := c.yaruzPlatform.DataSubsystem().Entity.Service.NewEntity()
 	entity.EntityTypeID = entityType.ID
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(entity, propertyName, "Андрей", langRusID)
+	err = entity.SetValueForProperty(propertyName, "Андрей", langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
 	}
@@ -211,7 +211,7 @@ func (c dataTestController) entityText(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"entity.Create()": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(entity, propertyName, "Андрей Калинин", langRusID)
+	err = entity.SetValueForProperty(propertyName, "Андрей Калинин", langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
 	}
@@ -227,7 +227,7 @@ func (c dataTestController) entityText(ctx *routing.Context) error {
 	}
 	res = append(res, map[string]interface{}{"entity1": entity1})
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(entity1, propertyName, "Андрей Калинин 1", langRusID)
+	err = entity1.SetValueForProperty(propertyName, "Андрей Калинин 1", langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
 	}
@@ -243,12 +243,19 @@ func (c dataTestController) entityText(ctx *routing.Context) error {
 	}
 	res = append(res, map[string]interface{}{"entity2": entity2})
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(entity2, propertyName, "Andrey", langEngID)
+	err = entity2.SetValueForProperty(propertyName, "Andrey", langEngID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(entity2, propertyName, "Andrey Kalinin", langEngID)
+	entity2.DeletePropertyValues(propertyName.ID)
+
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, entity2, langEngID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"entity2.Update()": err.Error()})
+	}
+
+	err = entity2.SetValueForProperty(propertyName, "Andrey Kalinin", langEngID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
 	}
