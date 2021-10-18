@@ -61,7 +61,7 @@ func RegisterDataTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platfor
 	r.Get("/entity", c.entity)
 	r.Get("/entity-text", c.entityText)
 	r.Get("/entity-relation", c.entityRelation)
-	r.Get("/entity-properties-search", c.entityPropertiesSearch)
+	//r.Get("/entity-properties-search", c.entityPropertiesSearch)
 }
 
 func (c dataTestController) entity(ctx *routing.Context) error {
@@ -384,51 +384,51 @@ func (c dataTestController) entityRelation(ctx *routing.Context) error {
 	return ctx.Write(res)
 }
 
-func (c dataTestController) entityPropertiesSearch(ctx *routing.Context) error {
-	res := make([]map[string]interface{}, 0, 10)
-	res = append(res, map[string]interface{}{"test": "entity-relation"})
-	cntx := ctx.Request.Context()
-
-	if err := c.propertyUnitsInit(cntx); err != nil {
-		res = append(res, map[string]interface{}{"propertyUnitsInit": err.Error()})
-	}
-
-	if err := c.propertiesInit(cntx); err != nil {
-		res = append(res, map[string]interface{}{"propertiesInit": err.Error()})
-	}
-
-	if err := c.entityTypesInit(cntx); err != nil {
-		res = append(res, map[string]interface{}{"entityTypesInit": err.Error()})
-	}
-
-	entityTypePost, err := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.TFirst(cntx, &entity_type.EntityType{Sysname: entityTypePostSysname}, langRusID)
-	if err != nil {
-		res = append(res, map[string]interface{}{"finding for entityTypePost": err.Error()})
-	}
-
-	propertyLen, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyLenSysname}, langRusID)
-	if err != nil {
-		res = append(res, map[string]interface{}{"finding for propertyLen": err.Error()})
-	}
-
-	for i := 0; i < 1000; i++ {
-		post := c.yaruzPlatform.DataSubsystem().Entity.Service.NewEntity()
-		post.EntityTypeID = entityTypePost.ID
-		err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(post, propertyLen, float64(float64(i)/100), langRusID)
-		if err != nil {
-			res = append(res, map[string]interface{}{"Set propertyLen": err.Error()})
-			break
-		}
-		err = c.yaruzPlatform.DataSubsystem().Entity.Service.Create(cntx, post, langRusID)
-
-		if err != nil {
-			res = append(res, map[string]interface{}{"Create post": err.Error()})
-			break
-		}
-	}
-
-	return ctx.Write(res)
-}
+//func (c dataTestController) entityPropertiesSearch(ctx *routing.Context) error {
+//	res := make([]map[string]interface{}, 0, 10)
+//	res = append(res, map[string]interface{}{"test": "entity-relation"})
+//	cntx := ctx.Request.Context()
+//
+//	if err := c.propertyUnitsInit(cntx); err != nil {
+//		res = append(res, map[string]interface{}{"propertyUnitsInit": err.Error()})
+//	}
+//
+//	if err := c.propertiesInit(cntx); err != nil {
+//		res = append(res, map[string]interface{}{"propertiesInit": err.Error()})
+//	}
+//
+//	if err := c.entityTypesInit(cntx); err != nil {
+//		res = append(res, map[string]interface{}{"entityTypesInit": err.Error()})
+//	}
+//
+//	entityTypePost, err := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.TFirst(cntx, &entity_type.EntityType{Sysname: entityTypePostSysname}, langRusID)
+//	if err != nil {
+//		res = append(res, map[string]interface{}{"finding for entityTypePost": err.Error()})
+//	}
+//
+//	propertyLen, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyLenSysname}, langRusID)
+//	if err != nil {
+//		res = append(res, map[string]interface{}{"finding for propertyLen": err.Error()})
+//	}
+//
+//	for i := 0; i < 1000; i++ {
+//		post := c.yaruzPlatform.DataSubsystem().Entity.Service.NewEntity()
+//		post.EntityTypeID = entityTypePost.ID
+//		err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(post, propertyLen, float64(float64(i)/100), langRusID)
+//		if err != nil {
+//			res = append(res, map[string]interface{}{"Set propertyLen": err.Error()})
+//			break
+//		}
+//		err = c.yaruzPlatform.DataSubsystem().Entity.Service.Create(cntx, post, langRusID)
+//
+//		if err != nil {
+//			res = append(res, map[string]interface{}{"Create post": err.Error()})
+//			break
+//		}
+//	}
+//
+//	return ctx.Write(res)
+//}
 
 func (c dataTestController) propertyUnitsInit(ctx context.Context) error {
 

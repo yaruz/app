@@ -8,12 +8,14 @@ import (
 
 type PropertyValue struct {
 	*property.Property
-	Value interface{} //	<simple type> || []<simple type>
+	LangID uint
+	Value  interface{} //	<simple type> || []<simple type>
 }
 
 func newPropertyValue(property *property.Property, value interface{}, langID uint) (*PropertyValue, error) {
 	propertyValue := &PropertyValue{
 		Property: property,
+		LangID:   langID,
 	}
 
 	if err := propertyValue.SetValue(value, langID); err != nil {

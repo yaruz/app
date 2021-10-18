@@ -110,6 +110,7 @@ func (e *Entity) SetPropertyValue(propertyValue *PropertyValue) {
 		value, _ := property.GetValueText(propertyValue.Value)
 		e.TextValues = append(e.TextValues, text_value.TextValue{
 			EntityID:   e.ID,
+			LangID:     propertyValue.LangID,
 			PropertyID: propertyID,
 			Value:      value,
 		})
