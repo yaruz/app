@@ -62,7 +62,6 @@ func (e Entity) Validate() error {
 // Присваивает PropertyValue
 func (e *Entity) setPropertyValue(propertyValue *PropertyValue) {
 	propertyID := propertyValue.Property.ID
-	e.DeletePropertyValues(propertyID)
 
 	if e.PropertiesValues == nil {
 		e.PropertiesValues = make(map[uint]PropertyValue, 1)
@@ -74,7 +73,6 @@ func (e *Entity) setPropertyValue(propertyValue *PropertyValue) {
 // Присваивает RelationValue
 func (e *Entity) setRelationValue(relationValue *RelationValue) {
 	propertyID := relationValue.Property.ID
-	e.DeletePropertyValues(propertyID)
 
 	if e.RelationsValues == nil {
 		e.RelationsValues = make(map[uint]RelationValue, 1)
