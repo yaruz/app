@@ -76,15 +76,15 @@ func (v *RelationValue) AddValue(value uint) error {
 	return nil
 }
 
-func (v *RelationValue) AddValues(values []uint, isStopIfErrAlreadyExists bool) (alreadyExists map[int]uint, err error) {
+func (v *RelationValue) AddValues(values []uint) error {
 	if values == nil || len(values) == 0 {
-		return nil, yaruserror.ErrEmptyParams
+		return yaruserror.ErrEmptyParams
 	}
 
 	if v.Value == nil {
 		v.Value = make([]uint, 0, len(values))
 	}
-	alreadyExists = make(map[int]uint)
+	alreadyExists := make(map[int]interface{})
 
 	for i, value := range values {
 		if _, ok := v.SearchValue(value); ok {
@@ -92,24 +92,22 @@ func (v *RelationValue) AddValues(values []uint, isStopIfErrAlreadyExists bool) 
 		}
 	}
 
-	if len(alreadyExists) == 0 || !isStopIfErrAlreadyExists {
-		for i, id := range values {
-			if _, ok := alreadyExists[i]; ok {
-				continue
+	for i, id := range values {
+		if _, ok := alreadyExists[i]; ok {
+			continue
+		}
+		if err := v.AddValue(id); err != nil {
+			if !errors.Is(err, yaruserror.ErrAlreadyExists) {
+				return err
 			}
-			if err := v.AddValue(id); err != nil {
-				if !errors.Is(err, yaruserror.ErrAlreadyExists) {
-					return alreadyExists, err
-				}
-				alreadyExists[i] = id
-			}
+			alreadyExists[i] = id
 		}
 	}
 
 	if len(alreadyExists) > 0 {
-		return alreadyExists, yaruserror.ErrAlreadyExists
+		return yaruserror.NewErrAlreadyExistsList("", alreadyExists)
 	}
-	return nil, nil
+	return nil
 }
 
 func (v *RelationValue) RemoveValue(Value uint) error {
@@ -122,33 +120,34 @@ func (v *RelationValue) RemoveValue(Value uint) error {
 	return nil
 }
 
-func (v *RelationValue) RemoveValues(entityIDs []uint, isStopIfErrNotFound bool) (notFound map[int]uint, err error) {
+func (v *RelationValue) RemoveValues(entityIDs []uint) error {
 	if entityIDs == nil || len(entityIDs) == 0 {
-		return nil, yaruserror.ErrEmptyParams
+		return yaruserror.ErrEmptyParams
 	}
 
-	notFound = make(map[int]uint)
+	notFound := make(map[int]interface{})
 	for i, id := range entityIDs {
 		if _, ok := v.SearchValue(id); !ok {
 			notFound[i] = id
 		}
 	}
 
-	if len(notFound) == 0 || !isStopIfErrNotFound {
-		for i, id := range entityIDs {
-			if _, ok := notFound[i]; ok {
-				continue
+	for i, id := range entityIDs {
+		if _, ok := notFound[i]; ok {
+			continue
+		}
+		if err := v.RemoveValue(id); err != nil {
+			if !errors.Is(err, yaruserror.ErrNotFound) {
+				return err
 			}
-			if err := v.RemoveValue(id); err != nil {
-				return nil, err
-			}
+			notFound[i] = id
 		}
 	}
 
 	if len(notFound) > 0 {
-		return notFound, yaruserror.ErrNotFound
+		return yaruserror.NewErrNotFoundList("", notFound)
 	}
-	return nil, nil
+	return nil
 }
 
 func (v *RelationValue) sortValue() {

@@ -1,6 +1,8 @@
 package yaruserror
 
 import (
+	"encoding/json"
+
 	"github.com/pkg/errors"
 )
 
@@ -26,3 +28,60 @@ var ErrBadRequest error = errors.New("Bad request.")
 var ErrInternal error = errors.New("Internal error.")
 
 var ErrTokenHasExpired error = errors.New("Token has expired.")
+
+type ErrList struct {
+	list     map[int]interface{}
+	listJSON []byte
+	message  string
+}
+
+func NewErrList(message string, list map[int]interface{}) *ErrList {
+	if list == nil || len(list) == 0 {
+		return nil
+	}
+
+	listJSON, err := json.Marshal(list)
+	if err != nil {
+		listJSON = make([]byte, 0)
+	}
+
+	if message == "" {
+		message = "Error list: "
+	}
+
+	return &ErrList{
+		message:  message,
+		list:     list,
+		listJSON: listJSON,
+	}
+}
+
+func (e *ErrList) Error() string {
+	return e.message + string(e.listJSON)
+}
+
+func (e *ErrList) List() map[int]interface{} {
+	return e.list
+}
+
+type ErrAlreadyExistsList struct {
+	*ErrList
+}
+
+func NewErrAlreadyExistsList(message string, list map[int]interface{}) *ErrAlreadyExistsList {
+	if message == "" {
+		message = "Already exists: "
+	}
+	return &ErrAlreadyExistsList{NewErrList(message, list)}
+}
+
+type ErrNotFoundList struct {
+	*ErrList
+}
+
+func NewErrNotFoundList(message string, list map[int]interface{}) *ErrNotFoundList {
+	if message == "" {
+		message = "Not found: "
+	}
+	return &ErrNotFoundList{NewErrList(message, list)}
+}
