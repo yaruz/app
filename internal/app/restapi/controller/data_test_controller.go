@@ -111,6 +111,11 @@ func (c dataTestController) entity(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"finding for propertyTS": err.Error()})
 	}
 
+	propertyName, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyNameSysname}, langRusID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"finding for propertyName": err.Error()})
+	}
+
 	entityType, err := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.TFirst(cntx, &entity_type.EntityType{Sysname: entityTypeBloggerSysname}, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"finding for entityType": err.Error()})
@@ -162,11 +167,32 @@ func (c dataTestController) entity(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"entity.Create()": err.Error()})
 	}
 
-	entityG, err := c.yaruzPlatform.DataSubsystem().Entity.Service.Get(cntx, entity.ID, langRusID)
+	entity2, err := c.yaruzPlatform.DataSubsystem().Entity.Service.Get(cntx, entity.ID, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity.Get()": err.Error()})
 	}
-	res = append(res, map[string]interface{}{"entity": entityG})
+	res = append(res, map[string]interface{}{"entity2": entity2})
+
+	err = entity2.SetValueForProperty(propertyLen, float64(64.789), langRusID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"Set propertyLen": err.Error()})
+	}
+
+	err = entity2.SetValueForProperty(propertyName, "Андрей", langRusID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"Set propertyName": err.Error()})
+	}
+
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, entity2, langRusID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"entity2.Create()": err.Error()})
+	}
+
+	entity3, err := c.yaruzPlatform.DataSubsystem().Entity.Service.Get(cntx, entity.ID, langRusID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"entity.Get()": err.Error()})
+	}
+	res = append(res, map[string]interface{}{"entity3": entity3})
 
 	return ctx.Write(res)
 }

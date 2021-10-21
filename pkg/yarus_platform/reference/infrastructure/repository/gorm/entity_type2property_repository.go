@@ -58,7 +58,7 @@ func (r *EntityType2PropertyRepository) Query(ctx context.Context, cond *selecti
 
 func (r *EntityType2PropertyRepository) QueryTx(ctx context.Context, tx *gorm.DB, cond *selection_condition.SelectionCondition) ([]entity_type2property.EntityType2Property, error) {
 	items := []entity_type2property.EntityType2Property{}
-	db := minipkg_gorm.Conditions(tx, cond)
+	db := minipkg_gorm.Conditions(r.db.GormTx(tx), cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -109,7 +109,7 @@ func (r *EntityType2PropertyRepository) Create(ctx context.Context, entity *enti
 	return r.db.DB().Create(entity).Error
 }
 func (r *EntityType2PropertyRepository) CreateTx(ctx context.Context, tx *gorm.DB, entity *entity_type2property.EntityType2Property) error {
-	return tx.Create(entity).Error
+	return r.db.GormTx(tx).Create(entity).Error
 }
 
 // Delete (soft) deletes a Maintenance record in the database.
@@ -126,7 +126,7 @@ func (r *EntityType2PropertyRepository) Delete(ctx context.Context, entity *enti
 
 func (r *EntityType2PropertyRepository) DeleteTx(ctx context.Context, tx *gorm.DB, entity *entity_type2property.EntityType2Property) error {
 
-	err := tx.Delete(r.model, entity).Error
+	err := r.db.GormTx(tx).Delete(r.model, entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apperror.ErrNotFound

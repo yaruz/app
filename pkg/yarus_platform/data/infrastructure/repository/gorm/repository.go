@@ -1,6 +1,8 @@
 package gorm
 
 import (
+	"context"
+
 	"github.com/pkg/errors"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/bool_value"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/date_value"
@@ -25,6 +27,7 @@ type repository struct {
 	db         minipkg_gorm.IDB
 	logger     log.ILogger
 	Conditions *selection_condition.SelectionCondition
+	model      interface{}
 }
 
 const DefaultLimit = 1000
@@ -32,9 +35,9 @@ const DefaultLimit = 1000
 // GetRepository return a repository
 func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string) (repo IRepository, err error) {
 	r := &repository{
-		db:     dbase,
 		logger: logger,
 	}
+	ctx := context.Background()
 
 	switch entityName {
 	case entity.EntityName:
@@ -42,18 +45,60 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 		if err != nil {
 			return nil, err
 		}
+
+		r.model = entity.New()
+
+		if r.db, err = dbase.SchemeInitWithContext(ctx, r.model); err != nil {
+			return nil, err
+		}
 		repo, err = NewEntityRepository(r, valueRepositories)
 	case text_value.EntityName:
+
+		r.model = text_value.New()
+
+		if r.db, err = dbase.SchemeInitWithContext(ctx, r.model); err != nil {
+			return nil, err
+		}
 		repo, err = NewTextValueRepository(r)
 	case bool_value.EntityName:
+
+		r.model = bool_value.New()
+
+		if r.db, err = dbase.SchemeInitWithContext(ctx, r.model); err != nil {
+			return nil, err
+		}
 		repo, err = NewBoolValueRepository(r)
 	case int_value.EntityName:
+
+		r.model = int_value.New()
+
+		if r.db, err = dbase.SchemeInitWithContext(ctx, r.model); err != nil {
+			return nil, err
+		}
 		repo, err = NewIntValueRepository(r)
 	case float_value.EntityName:
+
+		r.model = float_value.New()
+
+		if r.db, err = dbase.SchemeInitWithContext(ctx, r.model); err != nil {
+			return nil, err
+		}
 		repo, err = NewFloatValueRepository(r)
 	case date_value.EntityName:
+
+		r.model = date_value.New()
+
+		if r.db, err = dbase.SchemeInitWithContext(ctx, r.model); err != nil {
+			return nil, err
+		}
 		repo, err = NewDateValueRepository(r)
 	case time_value.EntityName:
+
+		r.model = time_value.New()
+
+		if r.db, err = dbase.SchemeInitWithContext(ctx, r.model); err != nil {
+			return nil, err
+		}
 		repo, err = NewTimeValueRepository(r)
 	default:
 		err = errors.Errorf("Text for entity %q not found", entityName)

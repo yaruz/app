@@ -164,7 +164,7 @@ func (r *RelationRepository) TPropertyAndRelationQuery(ctx context.Context, cond
 func (r *RelationRepository) tPropertyAndRelationQueryTx(ctx context.Context, tx *gorm.DB, cond *selection_condition.SelectionCondition, langID uint) ([]property.Property, []entity_type.Relation, error) {
 	var rels []entity_type.Relation
 	var props []property.Property
-	err := tx.Transaction(func(tx *gorm.DB) error {
+	err := r.db.GormTx(tx).Transaction(func(tx *gorm.DB) error {
 		var err error
 		props, rels, err = r.propertyAndRelationQueryTx(ctx, tx, cond)
 		if err != nil {
@@ -191,7 +191,7 @@ func (r *RelationRepository) tPropertyAndRelationQueryTx(ctx context.Context, tx
 
 func (r *RelationRepository) propertyAndRelationQueryTx(ctx context.Context, tx *gorm.DB, cond *selection_condition.SelectionCondition) ([]property.Property, []entity_type.Relation, error) {
 	items := []property.Property{}
-	db := minipkg_gorm.Conditions(tx, cond)
+	db := minipkg_gorm.Conditions(r.db.GormTx(tx), cond)
 	if db.Error != nil {
 		return nil, nil, db.Error
 	}
@@ -443,7 +443,7 @@ func (r *RelationRepository) saveTx(ctx context.Context, tx *gorm.DB, entity *en
 		return err
 	}
 
-	return tx.Transaction(func(tx *gorm.DB) error {
+	return r.db.GormTx(tx).Transaction(func(tx *gorm.DB) error {
 		if err := r.deleteAllLinksTx(ctx, tx, entity.ID); err != nil {
 			return err
 		}
@@ -520,7 +520,7 @@ func (r *RelationRepository) validateLinks(entity *entity_type.Relation) error {
 }
 
 func (r *RelationRepository) propertyTypeRelationTx(tx *gorm.DB) *gorm.DB {
-	return tx.Where(&property.Property{
+	return r.db.GormTx(tx).Where(&property.Property{
 		PropertyTypeID: property_type.IDRelation,
 	})
 }

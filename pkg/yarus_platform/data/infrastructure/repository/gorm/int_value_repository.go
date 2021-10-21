@@ -48,7 +48,7 @@ func (r *IntValueRepository) Query(ctx context.Context, cond *selection_conditio
 }
 
 func (r *IntValueRepository) BatchDeleteTx(ctx context.Context, cond *selection_condition.SelectionCondition, tx *gorm.DB) error {
-	db := minipkg_gorm.Conditions(tx, cond)
+	db := minipkg_gorm.Conditions(r.db.GormTx(tx), cond)
 	if db.Error != nil {
 		return db.Error
 	}
@@ -63,7 +63,7 @@ func (r *IntValueRepository) BatchDeleteTx(ctx context.Context, cond *selection_
 }
 
 func (r *IntValueRepository) BatchSaveChangesTx(ctx context.Context, entityID uint, values []int_value.IntValue, langID uint, tx *gorm.DB) error {
-	return tx.Transaction(func(tx *gorm.DB) error {
+	return r.db.GormTx(tx).Transaction(func(tx *gorm.DB) error {
 		oldValues, err := r.Query(ctx, &selection_condition.SelectionCondition{
 			Where: &int_value.IntValue{
 				EntityID: entityID,
@@ -92,9 +92,9 @@ func (r *IntValueRepository) BatchSaveChangesTx(ctx context.Context, entityID ui
 		if len(oldValuesIds) > 0 {
 			if err := r.BatchDeleteTx(ctx, &selection_condition.SelectionCondition{
 				Where: selection_condition.WhereCondition{
-					Field:     "id",
+					Field:     "ID",
 					Condition: selection_condition.ConditionIn,
-					Value:     oldValuesIds,
+					Value:     selection_condition.IntSlice2EmptyInterfaceSlice(oldValuesIds),
 				},
 			}, tx); err != nil {
 				return err

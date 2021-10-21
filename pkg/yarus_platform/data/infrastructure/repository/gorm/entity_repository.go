@@ -140,7 +140,7 @@ func (r *EntityRepository) updateTx(ctx context.Context, entity *domain_entity.E
 		return err
 	}
 
-	return tx.Transaction(func(tx *gorm.DB) (err error) {
+	return r.db.GormTx(tx).Transaction(func(tx *gorm.DB) (err error) {
 
 		if err := tx.Save(entity).Error; err != nil {
 			return err

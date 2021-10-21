@@ -56,7 +56,7 @@ func (r *PropertyTypeRepository) entityNameAndDescriptionInitTx(ctx context.Cont
 func (r *PropertyTypeRepository) getTx(ctx context.Context, tx *gorm.DB, id uint) (*property_type.PropertyType, error) {
 	entity := &property_type.PropertyType{}
 
-	err := tx.First(entity, id).Error
+	err := r.db.GormTx(tx).First(entity, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruserror.ErrNotFound
@@ -81,7 +81,7 @@ func (r *PropertyTypeRepository) TFirst(ctx context.Context, entity *property_ty
 }
 
 func (r *PropertyTypeRepository) firstTx(ctx context.Context, tx *gorm.DB, entity *property_type.PropertyType) (*property_type.PropertyType, error) {
-	err := tx.Where(entity).First(entity).Error
+	err := r.db.GormTx(tx).Where(entity).First(entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity, yaruserror.ErrNotFound
@@ -118,7 +118,7 @@ func (r *PropertyTypeRepository) TQuery(ctx context.Context, cond *selection_con
 
 func (r *PropertyTypeRepository) queryTx(ctx context.Context, tx *gorm.DB, cond *selection_condition.SelectionCondition) ([]property_type.PropertyType, error) {
 	items := []property_type.PropertyType{}
-	db := minipkg_gorm.Conditions(tx, cond)
+	db := minipkg_gorm.Conditions(r.db.GormTx(tx), cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -204,7 +204,7 @@ func (r *PropertyTypeRepository) TUpdate(ctx context.Context, entity *property_t
 
 // saveTx update value in database, if the value doesn't have primary key, will insert it
 func (r *PropertyTypeRepository) saveTx(ctx context.Context, tx *gorm.DB, entity *property_type.PropertyType) error {
-	return tx.Save(entity).Error
+	return r.db.GormTx(tx).Save(entity).Error
 }
 
 // Delete (soft) deletes a record in the database.

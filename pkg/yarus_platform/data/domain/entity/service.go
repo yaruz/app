@@ -118,7 +118,7 @@ func (s *service) Create(ctx context.Context, entity *Entity, langID uint) error
 	if err != nil {
 		return errors.Wrapf(err, "Can not create an entity: %v", entity)
 	}
-
+	// в принципе, не обязательно
 	if err = s.EntityInit(ctx, entity, langID); err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (s *service) Update(ctx context.Context, entity *Entity, langID uint) error
 	if err != nil {
 		return errors.Wrapf(err, "Can not update an entity: %v", entity)
 	}
-
+	// наверное, не обязательно
 	if err = s.EntityInit(ctx, entity, langID); err != nil {
 		return err
 	}
