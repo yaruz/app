@@ -28,6 +28,7 @@ func (v *PropertyValue) SetValue(value interface{}, langID uint) (err error) {
 	if v.Property.PropertyTypeID == 0 {
 		return errors.Errorf("Can not set value to PropertyValue: Property does not set.")
 	}
+	v.LangID = langID
 
 	switch v.Property.PropertyTypeID {
 	case property_type.IDBoolean:

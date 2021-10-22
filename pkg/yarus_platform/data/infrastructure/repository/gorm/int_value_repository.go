@@ -63,6 +63,9 @@ func (r *IntValueRepository) BatchDeleteTx(ctx context.Context, cond *selection_
 }
 
 func (r *IntValueRepository) BatchSaveChangesTx(ctx context.Context, entityID uint, values []int_value.IntValue, langID uint, tx *gorm.DB) error {
+	for i := range values {
+		values[i].EntityID = entityID
+	}
 	return r.db.GormTx(tx).Transaction(func(tx *gorm.DB) error {
 		oldValues, err := r.Query(ctx, &selection_condition.SelectionCondition{
 			Where: &int_value.IntValue{

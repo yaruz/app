@@ -63,6 +63,9 @@ func (r *TimeValueRepository) BatchDeleteTx(ctx context.Context, cond *selection
 }
 
 func (r *TimeValueRepository) BatchSaveChangesTx(ctx context.Context, entityID uint, values []time_value.TimeValue, langID uint, tx *gorm.DB) error {
+	for i := range values {
+		values[i].EntityID = entityID
+	}
 	return r.db.GormTx(tx).Transaction(func(tx *gorm.DB) error {
 		oldValues, err := r.Query(ctx, &selection_condition.SelectionCondition{
 			Where: &time_value.TimeValue{

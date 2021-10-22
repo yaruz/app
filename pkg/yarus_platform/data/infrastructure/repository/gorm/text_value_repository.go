@@ -139,6 +139,9 @@ func (r *TextValueRepository) BatchDeleteTx(ctx context.Context, cond *selection
 }
 
 func (r *TextValueRepository) BatchSaveChangesTx(ctx context.Context, entityID uint, values []text_value.TextValue, langID uint, tx *gorm.DB) error {
+	for i := range values {
+		values[i].EntityID = entityID
+	}
 	return r.db.GormTx(tx).Transaction(func(tx *gorm.DB) error {
 		oldValues, err := r.Query(ctx, &selection_condition.SelectionCondition{
 			Where: &text_value.TextValue{

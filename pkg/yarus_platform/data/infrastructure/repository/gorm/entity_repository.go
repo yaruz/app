@@ -3,6 +3,8 @@ package gorm
 import (
 	"context"
 
+	"gorm.io/gorm/clause"
+
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/bool_value"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/date_value"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/float_value"
@@ -117,7 +119,7 @@ func (r *EntityRepository) Create(ctx context.Context, entity *domain_entity.Ent
 
 	return r.db.DB().Transaction(func(tx *gorm.DB) (err error) {
 
-		if err := tx.Create(entity).Error; err != nil {
+		if err := tx.Omit(clause.Associations).Create(entity).Error; err != nil {
 			return err
 		}
 
@@ -142,7 +144,7 @@ func (r *EntityRepository) updateTx(ctx context.Context, entity *domain_entity.E
 
 	return r.db.GormTx(tx).Transaction(func(tx *gorm.DB) (err error) {
 
-		if err := tx.Save(entity).Error; err != nil {
+		if err := tx.Omit(clause.Associations).Save(entity).Error; err != nil {
 			return err
 		}
 
