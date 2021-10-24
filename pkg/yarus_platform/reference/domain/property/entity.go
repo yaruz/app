@@ -140,10 +140,16 @@ func GetValueInt(value interface{}) (int, error) {
 	var res int
 
 	valInt, okInt := value.(int)
+	valUint, okUint := value.(uint)
 	valFloat, okFloat := value.(float64) // после анмаршаллинга из JSON тип float64
 
 	if okInt {
 		res = valInt
+	} else if okUint {
+		if uint(int(valUint)) != valUint {
+			return res, errors.Errorf("Can not cast value of PropertyValue to int from uint. Value = %v.", value)
+		}
+		res = int(valUint)
 	} else if okFloat {
 		if float64(int(valFloat)) != valFloat {
 			return res, errors.Errorf("Can not cast value of PropertyValue to int from float64. Value = %v.", value)
@@ -152,6 +158,35 @@ func GetValueInt(value interface{}) (int, error) {
 	} else {
 		return res, errors.Errorf("Can not cast value of PropertyValue to int. Value = %v.", value)
 	}
+	return res, nil
+}
+
+func GetRelationItemValue(value interface{}) (uint, error) {
+	var res uint
+
+	valInt, okInt := value.(int)
+	valUint, okUint := value.(uint)
+	valFloat, okFloat := value.(float64) // на всякий..
+
+	switch {
+	case okUint:
+		res = valUint
+	case okInt:
+		if int(uint(valInt)) != valInt {
+			return res, errors.Errorf("Can not cast value of Relation to uint from int. Value = %v.", value)
+		}
+
+		res = uint(valInt)
+	case okFloat:
+		if float64(uint(valFloat)) != valFloat {
+			return res, errors.Errorf("Can not cast value of Relation to uint from float64. Value = %v.", value)
+		}
+
+		res = uint(valInt)
+	default:
+		return res, errors.Errorf("Can not cast value of Relation to uint. Value = %v.", value)
+	}
+
 	return res, nil
 }
 

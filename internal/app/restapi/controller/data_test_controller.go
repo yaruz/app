@@ -356,50 +356,50 @@ func (c dataTestController) entityRelation(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"Create post2": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.BindRelatedEntities(rel2Post, blogger, []*entity.Entity{post1, post2})
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.BindRelatedEntities(cntx, rel2Post, blogger, []*entity.Entity{post1, post2}, langRusID, true)
 	if err != nil {
 		res = append(res, map[string]interface{}{"BindRelatedEntities": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, blogger, langRusID)
-	if err != nil {
-		res = append(res, map[string]interface{}{"Update blogger": err.Error()})
-	}
-
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, post1, langRusID)
-	if err != nil {
-		res = append(res, map[string]interface{}{"Update post1": err.Error()})
-	}
-
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, post2, langRusID)
-	if err != nil {
-		res = append(res, map[string]interface{}{"Update post2": err.Error()})
-	}
+	//err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, blogger, langRusID)
+	//if err != nil {
+	//	res = append(res, map[string]interface{}{"Update blogger": err.Error()})
+	//}
+	//
+	//err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, post1, langRusID)
+	//if err != nil {
+	//	res = append(res, map[string]interface{}{"Update post1": err.Error()})
+	//}
+	//
+	//err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, post2, langRusID)
+	//if err != nil {
+	//	res = append(res, map[string]interface{}{"Update post2": err.Error()})
+	//}
 
 	blogger2, err := c.yaruzPlatform.DataSubsystem().Entity.Service.Get(cntx, blogger.ID, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Get": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.UnbindRelatedEntities(rel2Post, blogger2, []*entity.Entity{post1})
+	err = c.yaruzPlatform.DataSubsystem().Entity.Service.UnbindRelatedEntities(cntx, rel2Post, blogger2, []*entity.Entity{post1}, langRusID, true)
 	if err != nil {
 		res = append(res, map[string]interface{}{"UnbindRelatedEntities": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, blogger2, langRusID)
-	if err != nil {
-		res = append(res, map[string]interface{}{"Update blogger2": err.Error()})
-	}
-
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, post1, langRusID)
-	if err != nil {
-		res = append(res, map[string]interface{}{"Update post1": err.Error()})
-	}
-
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, post2, langRusID)
-	if err != nil {
-		res = append(res, map[string]interface{}{"Update post2": err.Error()})
-	}
+	//err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, blogger2, langRusID)
+	//if err != nil {
+	//	res = append(res, map[string]interface{}{"Update blogger2": err.Error()})
+	//}
+	//
+	//err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, post1, langRusID)
+	//if err != nil {
+	//	res = append(res, map[string]interface{}{"Update post1": err.Error()})
+	//}
+	//
+	//err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, post2, langRusID)
+	//if err != nil {
+	//	res = append(res, map[string]interface{}{"Update post2": err.Error()})
+	//}
 
 	blogger3, err := c.yaruzPlatform.DataSubsystem().Entity.Service.Get(cntx, blogger.ID, langRusID)
 	if err != nil {

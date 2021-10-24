@@ -49,6 +49,14 @@ func (v *RelationValue) SetValueByInterface(value interface{}) (err error) {
 	return v.SetValue(valueUint)
 }
 
+func (v *RelationValue) AddValueByInterface(value interface{}) (err error) {
+	valueUint, err := property.GetRelationItemValue(value)
+	if err != nil {
+		return err
+	}
+	return v.AddValue(valueUint)
+}
+
 func (v *RelationValue) SetValue(value []uint) error {
 	v.Value = value
 	v.sortValue()

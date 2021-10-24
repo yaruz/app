@@ -30,10 +30,10 @@ type IService interface {
 	//EntitySetPropertyValue(entity *Entity, propertyValue *PropertyValue)
 	//EntitySetRelationValue(entity *Entity, relationValue *RelationValue)
 	//EntityDeletePropertyValue(entity *Entity, propertyID uint)
-	BindRelatedEntity(relation *entity_type.Relation, entity1 *Entity, entity2 *Entity) error
-	BindRelatedEntities(relation *entity_type.Relation, entity *Entity, relatedEntities []*Entity) error
-	UnbindRelatedEntity(relation *entity_type.Relation, entity1 *Entity, entity2 *Entity) error
-	UnbindRelatedEntities(relation *entity_type.Relation, entity *Entity, relatedEntities []*Entity) error
+	BindRelatedEntity(ctx context.Context, relation *entity_type.Relation, entity1 *Entity, entity2 *Entity, langID uint, isUpdateEntitiesImmediately bool) error
+	BindRelatedEntities(ctx context.Context, relation *entity_type.Relation, entity *Entity, relatedEntities []*Entity, langID uint, isUpdateEntitiesImmediately bool) error
+	UnbindRelatedEntity(ctx context.Context, relation *entity_type.Relation, entity1 *Entity, entity2 *Entity, langID uint, isUpdateEntitiesImmediately bool) error
+	UnbindRelatedEntities(ctx context.Context, relation *entity_type.Relation, entity *Entity, relatedEntities []*Entity, langID uint, isUpdateEntitiesImmediately bool) error
 	CheckBindRelatedEntity(relation *entity_type.Relation, entity1 *Entity, entity2 *Entity) (firstParamEntityIsDepended bool, err error)
 	CheckBindRelatedEntities(relation *entity_type.Relation, entity *Entity, relatedEntities []*Entity) (firstParamEntityIsDepended bool, err error)
 }
@@ -185,7 +185,7 @@ func (s *service) propertiesInit(ctx context.Context, entity *Entity, langID uin
 	return nil
 }
 
-func (s *service) BindRelatedEntity(relation *entity_type.Relation, entity1 *Entity, entity2 *Entity) error {
+func (s *service) BindRelatedEntity(ctx context.Context, relation *entity_type.Relation, entity1 *Entity, entity2 *Entity, langID uint, isUpdateEntitiesImmediately bool) error {
 	_, err := s.CheckBindRelatedEntity(relation, entity1, entity2)
 	if err != nil {
 		return err
@@ -202,19 +202,16 @@ func (s *service) BindRelatedEntity(relation *entity_type.Relation, entity1 *Ent
 	if err != nil {
 		*entity1 = entity1Copy
 		*entity2 = entity2Copy
-	}
-
-	return err
-}
-
-func (s *service) BindRelatedEntities(relation *entity_type.Relation, entity *Entity, relatedEntities []*Entity) error {
-	_, err := s.CheckBindRelatedEntities(relation, entity, relatedEntities)
-	if err != nil {
 		return err
 	}
 
-	for _, relatedEntity := range relatedEntities {
-		if err = s.BindRelatedEntity(relation, entity, relatedEntity); err != nil {
+	if isUpdateEntitiesImmediately {
+		err = s.Update(ctx, entity1, langID)
+		if err != nil {
+			return err
+		}
+		err = s.Update(ctx, entity2, langID)
+		if err != nil {
 			return err
 		}
 	}
@@ -222,7 +219,22 @@ func (s *service) BindRelatedEntities(relation *entity_type.Relation, entity *En
 	return nil
 }
 
-func (s *service) UnbindRelatedEntity(relation *entity_type.Relation, entity1 *Entity, entity2 *Entity) error {
+func (s *service) BindRelatedEntities(ctx context.Context, relation *entity_type.Relation, entity *Entity, relatedEntities []*Entity, langID uint, isUpdateEntitiesImmediately bool) error {
+	_, err := s.CheckBindRelatedEntities(relation, entity, relatedEntities)
+	if err != nil {
+		return err
+	}
+
+	for _, relatedEntity := range relatedEntities {
+		if err = s.BindRelatedEntity(ctx, relation, entity, relatedEntity, langID, isUpdateEntitiesImmediately); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *service) UnbindRelatedEntity(ctx context.Context, relation *entity_type.Relation, entity1 *Entity, entity2 *Entity, langID uint, isUpdateEntitiesImmediately bool) error {
 	_, err := s.CheckBindRelatedEntity(relation, entity1, entity2)
 	if err != nil {
 		return err
@@ -239,19 +251,31 @@ func (s *service) UnbindRelatedEntity(relation *entity_type.Relation, entity1 *E
 	if err != nil {
 		*entity1 = entity1Copy
 		*entity2 = entity2Copy
+		return err
 	}
 
-	return err
+	if isUpdateEntitiesImmediately {
+		err = s.Update(ctx, entity1, langID)
+		if err != nil {
+			return err
+		}
+		err = s.Update(ctx, entity2, langID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-func (s *service) UnbindRelatedEntities(relation *entity_type.Relation, entity *Entity, relatedEntities []*Entity) error {
+func (s *service) UnbindRelatedEntities(ctx context.Context, relation *entity_type.Relation, entity *Entity, relatedEntities []*Entity, langID uint, isUpdateEntitiesImmediately bool) error {
 	_, err := s.CheckBindRelatedEntities(relation, entity, relatedEntities)
 	if err != nil {
 		return err
 	}
 
 	for _, relatedEntity := range relatedEntities {
-		if err = s.UnbindRelatedEntity(relation, entity, relatedEntity); err != nil {
+		if err = s.UnbindRelatedEntity(ctx, relation, entity, relatedEntity, langID, isUpdateEntitiesImmediately); err != nil {
 			return err
 		}
 	}

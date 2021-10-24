@@ -268,8 +268,8 @@ func (e *Entity) setValueToExistingPropertyValue(propertyID uint, value interfac
 
 	switch {
 	case relOk:
-		if err := relationValue.SetValueByInterface(value); err != nil {
-			return errors.Wrapf(err, "Can not set value to PropertyValue. Property ID = %v; Value = %v.", propertyID, value)
+		if err := relationValue.AddValueByInterface(value); err != nil {
+			return errors.Wrapf(err, "Can not add value to RelationValue. Property ID = %v; Value = %v.", propertyID, value)
 		}
 		e.RelationsValues[propertyID] = relationValue
 	case propOk:
@@ -520,6 +520,7 @@ func (e *Entity) RemoveValueForRelation(relation *entity_type.Relation, value ui
 		for i := range e.IntValues {
 			if e.IntValues[i].PropertyID == propertyID && e.IntValues[i].Value == intValue {
 				e.IntValues = append(e.IntValues[:i], e.IntValues[i+1:]...)
+				break
 			}
 		}
 	}
