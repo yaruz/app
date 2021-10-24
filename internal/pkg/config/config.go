@@ -19,8 +19,9 @@ type Configuration struct {
 	Server struct {
 		HTTPListen string
 	}
-	Log log.Config
-	DB  DB
+	Log  log.Config
+	DB   DB
+	Lang yaruz_platform_config.Languages
 	// JWT signing key. required.
 	JWTSigningKey string
 	// JWT expiration in hours. Defaults to 72 hours (3 days)
@@ -39,7 +40,7 @@ type DB struct {
 
 func (c *Configuration) YaruzPlatformConfig() yaruz_platform_config.Configuration {
 	return yaruz_platform_config.Configuration{
-		Infra: yaruz_platform_config.Infrastructure{
+		Infrastructure: yaruz_platform_config.Infrastructure{
 			Log:           c.Log,
 			ReferenceDB:   c.DB.Reference,
 			DataDB:        c.DB.Data,
@@ -47,6 +48,7 @@ func (c *Configuration) YaruzPlatformConfig() yaruz_platform_config.Configuratio
 			Redis:         c.DB.Redis,
 			CacheLifeTime: c.CacheLifeTime,
 		},
+		Lang: c.Lang,
 	}
 }
 

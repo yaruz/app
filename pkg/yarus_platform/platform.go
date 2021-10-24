@@ -26,12 +26,12 @@ type Platform struct {
 }
 
 func NewPlatform(cfg config.Configuration) (*Platform, error) {
-	logger, err := log.New(cfg.Infra.Log)
+	logger, err := log.New(cfg.Infrastructure.Log)
 	if err != nil {
 		return nil, err
 	}
 
-	infra, err := infrastructure.NewInfra(logger, cfg.Infra)
+	infra, err := infrastructure.NewInfra(logger, cfg.Infrastructure)
 	if err != nil {
 		return nil, err
 	}

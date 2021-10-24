@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	EntityName = "user"
+	EntityType = "user"
 	TableName  = "user"
 )
 

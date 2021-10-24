@@ -42,6 +42,12 @@ db:
     password: ""
     dbname:   0
 
+lang:
+  - code: "eng"
+    name: "english"
+  - code: "rus"
+    name: "русский"
+
 jwtsigningkey: "LxsKJywDL5O5PvgODZhBH12KE6k2yL8E"
 jwtexpiration: 72
 sessionlifetime: 96
