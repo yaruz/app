@@ -35,8 +35,8 @@ type Language struct {
 type PropertyUnits []PropertyUnit
 
 type PropertyUnit struct {
-	Sysname                 string
-	NameAndDescriptionTexts map[string]NameAndDescriptionText
+	Sysname string
+	Texts   map[string]NameAndDescriptionText
 }
 
 type NameAndDescriptionText struct {

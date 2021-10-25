@@ -5,6 +5,8 @@ import (
 	"fmt"
 	golog "log"
 
+	"github.com/yaruz/app/pkg/yarus_platform/config"
+
 	"github.com/yaruz/app/pkg/yarus_platform/infrastructure"
 
 	"github.com/minipkg/selection_condition"
@@ -101,21 +103,25 @@ type ReferenceDomainTextLang struct {
 	Repository text_lang.Repository
 }
 
-func NewReferenceSubsystem(infra *infrastructure.Infrastructure) (*ReferenceSubsystem, error) {
-	d := &ReferenceSubsystem{}
-	if err := d.setupRepositories(infra); err != nil {
+func NewReferenceSubsystem(infra *infrastructure.Infrastructure, referenceData config.ReferenceData) (*ReferenceSubsystem, error) {
+	s := &ReferenceSubsystem{}
+	if err := s.setupRepositories(infra); err != nil {
 		return nil, err
 	}
-	d.setupServices(infra.Logger)
+	s.setupServices(infra.Logger)
 
-	if err := d.autoMigrate(infra.ReferenceDB); err != nil {
+	if err := s.autoMigrate(infra.ReferenceDB); err != nil {
 		return nil, err
 	}
 
-	return d, nil
+	if err := s.dbDataInit(referenceData); err != nil {
+		return nil, err
+	}
+
+	return s, nil
 }
 
-func (d *ReferenceSubsystem) autoMigrate(db minipkg_gorm.IDB) error {
+func (s *ReferenceSubsystem) autoMigrate(db minipkg_gorm.IDB) error {
 	if db.IsAutoMigrate() {
 		err := db.DB().SetupJoinTable(&entity_type.EntityType{}, "Properties", &entity_type2property.EntityType2Property{})
 		if err != nil {
@@ -137,10 +143,10 @@ func (d *ReferenceSubsystem) autoMigrate(db minipkg_gorm.IDB) error {
 			return err
 		}
 
-		if err = d.dbStructFix(db); err != nil {
+		if err = s.dbStructFix(db); err != nil {
 			return err
 		}
-		return d.dbDataInit()
+		return s.dbDataInit()
 	}
 	return nil
 }
@@ -295,19 +301,19 @@ func (d *ReferenceSubsystem) dbStructFix(db minipkg_gorm.IDB) error {
 	return nil
 }
 
-func (d *ReferenceSubsystem) dbDataInit() error {
+func (d *ReferenceSubsystem) dbDataInit(referenceData config.ReferenceData) error {
 	ctx := context.Background()
 	err := d.PropertyTypeDataInit(ctx)
 	if err != nil {
 		return err
 	}
 
-	err = d.PropertyUnitDataInit(ctx)
+	err = d.PropertyUnitDataInit(ctx, referenceData.PropertyUnits)
 	if err != nil {
 		return err
 	}
 
-	err = d.LangDataInit(ctx)
+	err = d.LangDataInit(ctx, referenceData.Languages)
 	if err != nil {
 		return err
 	}
@@ -356,7 +362,7 @@ func (d *ReferenceSubsystem) PropertyTypeDataInit(ctx context.Context) error {
 	return nil
 }
 
-func (d *ReferenceSubsystem) PropertyUnitDataInit(ctx context.Context) error {
+func (d *ReferenceSubsystem) PropertyUnitDataInit(ctx context.Context, unitsConfig config.PropertyUnits) error {
 	count, err := d.PropertyUnit.Service.Count(ctx, &selection_condition.SelectionCondition{})
 	if err != nil {
 		return err
@@ -379,7 +385,7 @@ func (d *ReferenceSubsystem) PropertyUnitDataInit(ctx context.Context) error {
 	return nil
 }
 
-func (d *ReferenceSubsystem) LangDataInit(ctx context.Context) error {
+func (d *ReferenceSubsystem) LangDataInit(ctx context.Context, langsConfig config.Languages) error {
 	count, err := d.TextLang.Service.Count(ctx, &selection_condition.SelectionCondition{})
 	if err != nil {
 		return err

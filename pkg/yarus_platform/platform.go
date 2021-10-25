@@ -36,7 +36,7 @@ func NewPlatform(cfg config.Configuration) (*Platform, error) {
 		return nil, err
 	}
 
-	reference, err := reference.NewReferenceSubsystem(infra)
+	reference, err := reference.NewReferenceSubsystem(infra, cfg.ReferenceData)
 	if err != nil {
 		return nil, err
 	}

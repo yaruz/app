@@ -21,7 +21,6 @@ import (
 
 	"github.com/yaruz/app/internal/domain/task"
 	"github.com/yaruz/app/internal/domain/user"
-	gormrep "github.com/yaruz/app/internal/infrastructure/repository/gorm"
 	redisrep "github.com/yaruz/app/internal/infrastructure/repository/redis"
 )
 
@@ -123,15 +122,15 @@ func (app *App) Init() (err error) {
 func (app *App) SetupRepositories() (err error) {
 	var ok bool
 
-	gormRepo, err := gormrep.GetRepository(app.Infra.Logger, app.Infra.IdentityDB, user.EntityName)
-	if err != nil {
-		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", user.EntityName, err)
-	}
-
-	app.Domain.User.Repository, ok = gormRepo.(user.Repository)
-	if !ok {
-		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", user.EntityName, user.EntityName, gormRepo)
-	}
+	//gormRepo, err := gormrep.GetRepository(app.Infra.Logger, app.Infra.IdentityDB, user.EntityName)
+	//if err != nil {
+	//	golog.Fatalf("Can not get db repository for entity %q, error happened: %v", user.EntityName, err)
+	//}
+	//
+	//app.Domain.User.Repository, ok = gormRepo.(user.Repository)
+	//if !ok {
+	//	return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", user.EntityName, user.EntityName, gormRepo)
+	//}
 	//	Example
 	yarRepo, err := yaruzplatform.GetRepository(app.Infra.Logger, app.Infra.YaruzRepository, task.EntityName)
 	if err != nil {
@@ -154,7 +153,7 @@ func (app *App) SetupRepositories() (err error) {
 }
 
 func (app *App) SetupServices() {
-	app.Domain.User.Service = user.NewService(app.Infra.Logger, app.Domain.User.Repository)
+	//app.Domain.User.Service = user.NewService(app.Infra.Logger, app.Domain.User.Repository)
 	app.Auth.Service = auth.NewService(app.Cfg.JWTSigningKey, app.Cfg.JWTExpiration, app.Domain.User.Service, app.Infra.Logger, app.Auth.SessionRepository, app.Auth.TokenRepository)
 	//	Example
 	app.Domain.Task.Service = task.NewService(app.Infra.Logger, app.Domain.Task.Repository)
