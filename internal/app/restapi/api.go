@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/yaruz/app/internal/pkg/auth"
-
 	"github.com/minipkg/log/accesslog"
 
 	"github.com/go-ozzo/ozzo-routing/v2/content"
@@ -80,12 +78,15 @@ func (app *App) buildHandler() *routing.Router {
 		ozzo_routing.SetHeader("Content-Type", "application/json; charset=UTF-8"),
 	)
 
-	authMiddleware := auth.Middleware(app.Infra.Logger, app.Auth.Service)
-
-	auth.RegisterHandlers(api.Group(""),
-		app.Auth.Service,
-		app.Infra.Logger,
-	)
+	authMiddleware := routing.Handler(func(context *routing.Context) error {
+		return nil
+	})
+	//authMiddleware := auth.Middleware(app.Infra.Logger, app.Auth.Service)
+	//
+	//auth.RegisterHandlers(api.Group(""),
+	//	app.Auth.Service,
+	//	app.Infra.Logger,
+	//)
 
 	app.RegisterHandlers(api, authMiddleware)
 

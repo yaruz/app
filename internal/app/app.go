@@ -9,19 +9,15 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/yaruz/app/internal/pkg/apperror"
-	"github.com/yaruz/app/internal/pkg/auth"
-	"github.com/yaruz/app/internal/pkg/config"
-	"github.com/yaruz/app/internal/pkg/jwt"
-
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/db/redis"
 	"github.com/minipkg/db/redis/cache"
 	"github.com/minipkg/log"
+	"github.com/yaruz/app/internal/pkg/apperror"
+	"github.com/yaruz/app/internal/pkg/config"
 
 	"github.com/yaruz/app/internal/domain/task"
 	"github.com/yaruz/app/internal/domain/user"
-	redisrep "github.com/yaruz/app/internal/infrastructure/repository/redis"
 )
 
 // App struct is the common part of all applications
@@ -41,9 +37,9 @@ type Infrastructure struct {
 }
 
 type Auth struct {
-	SessionRepository auth.SessionRepository
-	TokenRepository   auth.TokenRepository
-	Service           auth.Service
+	//SessionRepository auth.SessionRepository
+	//TokenRepository   auth.TokenRepository
+	//Service           auth.Service
 }
 
 // Domain is a Domain Layer Entry Point
@@ -142,10 +138,10 @@ func (app *App) SetupRepositories() (err error) {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", task.EntityName, task.EntityName, yarRepo)
 	}
 
-	if app.Auth.SessionRepository, err = redisrep.NewSessionRepository(app.Infra.Redis, app.Cfg.SessionLifeTime, app.Domain.User.Repository); err != nil {
-		return errors.Errorf("Can not get new SessionRepository err: %v", err)
-	}
-	app.Auth.TokenRepository = jwt.NewRepository()
+	//if app.Auth.SessionRepository, err = redisrep.NewSessionRepository(app.Infra.Redis, app.Cfg.SessionLifeTime, app.Domain.User.Repository); err != nil {
+	//	return errors.Errorf("Can not get new SessionRepository err: %v", err)
+	//}
+	//app.Auth.TokenRepository = jwt.NewRepository()
 
 	app.Infra.Cache = cache.NewService(app.Infra.Redis, app.Cfg.CacheLifeTime)
 
@@ -154,7 +150,7 @@ func (app *App) SetupRepositories() (err error) {
 
 func (app *App) SetupServices() {
 	//app.Domain.User.Service = user.NewService(app.Infra.Logger, app.Domain.User.Repository)
-	app.Auth.Service = auth.NewService(app.Cfg.JWTSigningKey, app.Cfg.JWTExpiration, app.Domain.User.Service, app.Infra.Logger, app.Auth.SessionRepository, app.Auth.TokenRepository)
+	//app.Auth.Service = auth.NewService(app.Cfg.JWTSigningKey, app.Cfg.JWTExpiration, app.Domain.User.Service, app.Infra.Logger, app.Auth.SessionRepository, app.Auth.TokenRepository)
 	//	Example
 	app.Domain.Task.Service = task.NewService(app.Infra.Logger, app.Domain.Task.Repository)
 }

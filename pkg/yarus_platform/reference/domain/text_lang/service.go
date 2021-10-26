@@ -20,6 +20,10 @@ type IService interface {
 	Update(ctx context.Context, entity *TextLang) error
 	Save(ctx context.Context, entity *TextLang) error
 	Delete(ctx context.Context, id uint) error
+	GetCodes(ctx context.Context) ([]string, error)
+	GetCodesEmptyInterfaceSlice(ctx context.Context) ([]interface{}, error)
+	GetMapCodeID(ctx context.Context) (map[string]uint, error)
+	GetMapIDCode(ctx context.Context) (map[uint]string, error)
 }
 
 type service struct {
@@ -64,6 +68,58 @@ func (s *service) Query(ctx context.Context, cond *selection_condition.Selection
 		return nil, errors.Wrapf(err, "Can not find a list of items by query: %v", cond)
 	}
 	return items, nil
+}
+
+func (s *service) GetCodes(ctx context.Context) ([]string, error) {
+	items, err := s.Query(ctx, &selection_condition.SelectionCondition{})
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]string, len(items))
+	for i, item := range items {
+		res[i] = item.Code
+	}
+	return res, nil
+}
+
+func (s *service) GetCodesEmptyInterfaceSlice(ctx context.Context) ([]interface{}, error) {
+	items, err := s.Query(ctx, &selection_condition.SelectionCondition{})
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]interface{}, len(items))
+	for i, item := range items {
+		res[i] = item.Code
+	}
+	return res, nil
+}
+
+func (s *service) GetMapCodeID(ctx context.Context) (map[string]uint, error) {
+	items, err := s.Query(ctx, &selection_condition.SelectionCondition{})
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[string]uint, len(items))
+	for _, item := range items {
+		res[item.Code] = item.ID
+	}
+	return res, nil
+}
+
+func (s *service) GetMapIDCode(ctx context.Context) (map[uint]string, error) {
+	items, err := s.Query(ctx, &selection_condition.SelectionCondition{})
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[uint]string, len(items))
+	for _, item := range items {
+		res[item.ID] = item.Code
+	}
+	return res, nil
 }
 
 func (s *service) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error) {

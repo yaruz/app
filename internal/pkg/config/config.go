@@ -3,7 +3,7 @@ package config
 import (
 	"flag"
 
-	yaruz_platform_config "github.com/yaruz/app/pkg/yarus_platform/config"
+	yaruz_config "github.com/yaruz/app/pkg/yarus_platform/config"
 
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/db/redis"
@@ -19,9 +19,9 @@ type Configuration struct {
 	Server struct {
 		HTTPListen string
 	}
-	Log  log.Config
-	DB   DB
-	Lang yaruz_platform_config.Languages
+	Log           log.Config
+	DB            DB
+	ReferenceData yaruz_config.ReferenceData
 	// JWT signing key. required.
 	JWTSigningKey string
 	// JWT expiration in hours. Defaults to 72 hours (3 days)
@@ -38,9 +38,9 @@ type DB struct {
 	Redis     redis.Config
 }
 
-func (c *Configuration) YaruzPlatformConfig() yaruz_platform_config.Configuration {
-	return yaruz_platform_config.Configuration{
-		Infrastructure: yaruz_platform_config.Infrastructure{
+func (c *Configuration) YaruzPlatformConfig() yaruz_config.Configuration {
+	return yaruz_config.Configuration{
+		Infrastructure: yaruz_config.Infrastructure{
 			Log:           c.Log,
 			ReferenceDB:   c.DB.Reference,
 			DataDB:        c.DB.Data,
@@ -48,7 +48,7 @@ func (c *Configuration) YaruzPlatformConfig() yaruz_platform_config.Configuratio
 			Redis:         c.DB.Redis,
 			CacheLifeTime: c.CacheLifeTime,
 		},
-		Lang: c.Lang,
+		ReferenceData: c.ReferenceData,
 	}
 }
 

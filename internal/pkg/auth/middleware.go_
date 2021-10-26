@@ -1,10 +1,11 @@
 package auth
 
 import (
-	"github.com/yaruz/app/internal/pkg/session"
 	"context"
 	"net/http"
 	"strings"
+
+	"github.com/yaruz/app/internal/pkg/session"
 
 	"github.com/minipkg/log"
 

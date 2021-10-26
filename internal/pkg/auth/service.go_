@@ -2,11 +2,12 @@ package auth
 
 import (
 	"bytes"
-	"github.com/yaruz/app/internal/pkg/session"
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"time"
+
+	"github.com/yaruz/app/internal/pkg/session"
 
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/pbkdf2"
