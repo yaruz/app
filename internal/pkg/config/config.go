@@ -14,6 +14,11 @@ import (
 	"github.com/spf13/viper"
 )
 
+const (
+	LangEng = "eng"
+	LangRus = "rus"
+)
+
 // Configuration is the struct for app configuration
 type Configuration struct {
 	Server struct {
