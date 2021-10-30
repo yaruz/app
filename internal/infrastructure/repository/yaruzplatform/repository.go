@@ -3,6 +3,7 @@ package yaruzplatform
 import (
 	"github.com/minipkg/selection_condition"
 	"github.com/yaruz/app/internal/domain/task"
+	"github.com/yaruz/app/internal/domain/user"
 
 	"github.com/yaruz/app/pkg/yarus_platform"
 
@@ -31,7 +32,9 @@ func GetRepository(logger log.ILogger, yaruzRepository yarus_platform.IPlatform,
 	}
 
 	switch entity {
-	case task.EntityName:
+	case user.EntityType:
+		repo, err = NewUserRepository(r)
+	case task.EntityType:
 		repo, err = NewTaskRepository(r)
 	default:
 		err = errors.Errorf("Text for entity %q not found", entity)

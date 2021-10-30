@@ -19,7 +19,7 @@ type Infrastructure struct {
 	Cache       cache.Service
 }
 
-func NewInfra(logger log.ILogger, cfg config.Infrastructure) (*Infrastructure, error) {
+func NewInfra(logger log.ILogger, cfg *config.Infrastructure) (*Infrastructure, error) {
 
 	DataDB, err := minipkg_gorm.New(logger, cfg.DataDB)
 	if err != nil {

@@ -105,7 +105,7 @@ type ReferenceDomainTextLang struct {
 	Repository text_lang.Repository
 }
 
-func NewReferenceSubsystem(infra *infrastructure.Infrastructure, referenceData config.ReferenceData) (*ReferenceSubsystem, error) {
+func NewReferenceSubsystem(infra *infrastructure.Infrastructure, metadata *config.Metadata) (*ReferenceSubsystem, error) {
 	s := &ReferenceSubsystem{}
 	if err := s.setupRepositories(infra); err != nil {
 		return nil, err
@@ -116,7 +116,7 @@ func NewReferenceSubsystem(infra *infrastructure.Infrastructure, referenceData c
 		return nil, err
 	}
 
-	if err := s.dbDataInit(referenceData); err != nil {
+	if err := s.dbDataInit(metadata); err != nil {
 		return nil, err
 	}
 
@@ -302,10 +302,10 @@ func (s *ReferenceSubsystem) dbStructFix(db minipkg_gorm.IDB) error {
 	return nil
 }
 
-func (s *ReferenceSubsystem) dbDataInit(referenceData config.ReferenceData) error {
+func (s *ReferenceSubsystem) dbDataInit(metadata *config.Metadata) error {
 	ctx := context.Background()
 
-	err := s.LangDataInit(ctx, referenceData.Languages)
+	err := s.LangDataInit(ctx, metadata.Languages)
 	if err != nil {
 		return err
 	}
@@ -315,7 +315,12 @@ func (s *ReferenceSubsystem) dbDataInit(referenceData config.ReferenceData) erro
 		return err
 	}
 
-	err = s.PropertyUnitDataInit(ctx, referenceData.PropertyUnits)
+	err = s.PropertyUnitInit(ctx, metadata.PropertyUnits)
+	if err != nil {
+		return err
+	}
+
+	err = s.EntityTypeInit(ctx, metadata.EntityTypes)
 	if err != nil {
 		return err
 	}
@@ -332,10 +337,10 @@ func (s *ReferenceSubsystem) LangDataInit(ctx context.Context, langsConfig confi
 		return nil
 	}
 
-	for _, langConfig := range langsConfig {
+	for code, name := range langsConfig {
 		item := text_lang.New()
-		item.Code = langConfig.Code
-		item.Name = langConfig.Name
+		item.Code = code
+		item.Name = name
 		s.TextLang.Service.Create(ctx, item)
 	}
 
@@ -384,7 +389,7 @@ func (s *ReferenceSubsystem) PropertyTypeDataInit(ctx context.Context) error {
 	return nil
 }
 
-func (s *ReferenceSubsystem) PropertyUnitDataInit(ctx context.Context, unitsConfig config.PropertyUnits) error {
+func (s *ReferenceSubsystem) PropertyUnitInit(ctx context.Context, unitsConfig config.PropertyUnits) error {
 	count, err := s.PropertyUnit.Service.Count(ctx, &selection_condition.SelectionCondition{})
 	if err != nil {
 		return err
@@ -403,27 +408,173 @@ func (s *ReferenceSubsystem) PropertyUnitDataInit(ctx context.Context, unitsConf
 		return err
 	}
 
-	for _, unitConfig := range unitsConfig {
+	for sysname, unitConfig := range unitsConfig {
 		unit := property_unit.New()
-		unit.Sysname = unitConfig.Sysname
+		unit.Sysname = sysname
 		if err := s.PropertyUnit.Service.TCreate(ctx, unit, 1); err != nil {
 			return err
 		}
 
-		for lang, texts := range unitConfig.Texts {
+		for lang, texts := range unitConfig {
 			if err := validation.Validate(lang, validation.In(langsSl...)); err != nil {
-				return errors.Wrapf(err, "PropertyUnitDataInit error: invalid lang = %q", lang)
+				return errors.Wrapf(err, "PropertyUnitInit error: invalid lang = %q", lang)
 			}
 			langID, ok := langsIDsMap[lang]
 			if !ok {
-				return errors.Errorf("PropertyUnitDataInit error: not found lang = %q", lang)
+				return errors.Errorf("PropertyUnitInit error: not found lang = %q", lang)
 			}
 
-			unitName := texts.Name
-			unitDescription := texts.Description
-			unit.Name = &unitName
-			unit.Description = &unitDescription
+			name := texts.Name
+			description := texts.Description
+			unit.Name = &name
+			unit.Description = &description
 			if err := s.PropertyUnit.Service.TUpdate(ctx, unit, langID); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (s *ReferenceSubsystem) EntityTypeInit(ctx context.Context, EntityTypesConfig config.EntityTypes) error {
+	count, err := s.EntityType.Service.Count(ctx, &selection_condition.SelectionCondition{})
+	if err != nil {
+		return err
+	}
+	if count > 0 {
+		return nil
+	}
+	propertiesCount, err := s.Property.Service.Count(ctx, &selection_condition.SelectionCondition{})
+	if err != nil {
+		return err
+	}
+
+	langsSl, err := s.TextLang.Service.GetCodesEmptyInterfaceSlice(ctx)
+	if err != nil {
+		return err
+	}
+
+	langsIDsMap, err := s.TextLang.Service.GetMapCodeID(ctx)
+	if err != nil {
+		return err
+	}
+
+	for sysname, entityTypeConfig := range EntityTypesConfig {
+		entityType := entity_type.New()
+		entityType.Sysname = sysname
+		if err := s.EntityType.Service.TCreate(ctx, entityType, 1); err != nil {
+			return err
+		}
+
+		for lang, texts := range entityTypeConfig.Texts {
+			if err := validation.Validate(lang, validation.In(langsSl...)); err != nil {
+				return errors.Wrapf(err, "EntityTypeInit error: invalid lang = %q", lang)
+			}
+			langID, ok := langsIDsMap[lang]
+			if !ok {
+				return errors.Errorf("EntityTypeInit error: not found lang = %q", lang)
+			}
+
+			name := texts.Name
+			description := texts.Description
+			entityType.Name = &name
+			entityType.Description = &description
+			if err := s.EntityType.Service.TUpdate(ctx, entityType, langID); err != nil {
+				return err
+			}
+		}
+		if propertiesCount == 0 {
+			err := s.PropertyInit(ctx, entityType, entityTypeConfig.Properties)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (s *ReferenceSubsystem) PropertyInit(ctx context.Context, entityType *entity_type.EntityType, PropertiesConfig config.Properties) error {
+	count, err := s.Property.Service.Count(ctx, &selection_condition.SelectionCondition{})
+	if err != nil {
+		return err
+	}
+	if count > 0 {
+		return nil
+	}
+
+	langsSl, err := s.TextLang.Service.GetCodesEmptyInterfaceSlice(ctx)
+	if err != nil {
+		return err
+	}
+
+	langsIDsMap, err := s.TextLang.Service.GetMapCodeID(ctx)
+	if err != nil {
+		return err
+	}
+
+	for sysname, propertyConfig := range PropertiesConfig {
+		prop := property.New()
+		prop.Sysname = entityType.Sysname + "." + sysname
+
+		if propertyConfig.PropertyType != "" {
+			if prop.PropertyTypeID, err = s.PropertyType.Service.GetIDBySysname(ctx, propertyConfig.PropertyType); err != nil {
+				return err
+			}
+		}
+
+		if propertyConfig.PropertyUnit != "" {
+			propertyUnitID, err := s.PropertyUnit.Service.GetIDBySysname(ctx, propertyConfig.PropertyUnit)
+			if err != nil {
+				return err
+			}
+			prop.PropertyUnitID = &propertyUnitID
+		}
+
+		if propertyConfig.PropertyViewType != "" {
+			propertyViewTypeID, err := s.PropertyViewType.Service.GetIDBySysname(ctx, propertyConfig.PropertyViewType)
+			if err != nil {
+				return err
+			}
+			prop.PropertyViewTypeID = &propertyViewTypeID
+		}
+
+		if propertyConfig.PropertyGroup != "" {
+			propertyGroupID, err := s.PropertyGroup.Service.GetIDBySysname(ctx, propertyConfig.PropertyGroup)
+			if err != nil {
+				return err
+			}
+			prop.PropertyGroupID = &propertyGroupID
+		}
+
+		prop.IsSpecific = propertyConfig.IsSpecific
+		prop.IsRange = propertyConfig.IsRange
+		prop.IsMultiple = propertyConfig.IsMultiple
+		prop.SortOrder = propertyConfig.SortOrder
+		prop.Options = propertyConfig.Options
+		if err := s.Property.Service.TCreate(ctx, prop, 1); err != nil {
+			return err
+		}
+
+		if err := s.EntityType.Service.BindProperty(ctx, entityType.ID, prop.ID); err != nil {
+			return err
+		}
+
+		for lang, texts := range propertyConfig.Texts {
+			if err := validation.Validate(lang, validation.In(langsSl...)); err != nil {
+				return errors.Wrapf(err, "PropertyInit error: invalid lang = %q", lang)
+			}
+			langID, ok := langsIDsMap[lang]
+			if !ok {
+				return errors.Errorf("PropertyInit error: not found lang = %q", lang)
+			}
+
+			name := texts.Name
+			description := texts.Description
+			prop.Name = &name
+			prop.Description = &description
+			if err := s.Property.Service.TUpdate(ctx, prop, langID); err != nil {
 				return err
 			}
 		}

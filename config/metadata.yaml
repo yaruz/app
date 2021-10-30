@@ -1,0 +1,32 @@
+isautomigrate:  true
+languages:
+  eng: "english"
+  rus: "русский"
+
+propertyunits:
+  mm:
+    eng:
+      name: "mm"
+      description: "millimeters"
+    rus:
+      name: "мм"
+      description: "миллиметры"
+
+entitytypes:
+  user:
+    texts:
+      eng:
+        name: "user"
+        description: "user"
+      rus:
+        name: "пользователь"
+        description: "пользователь"
+    properties:
+      name:
+        texts:
+          eng:
+            name: "name"
+            description: "name"
+          rus:
+            name: "имя"
+            description: "имя"

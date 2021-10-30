@@ -42,22 +42,6 @@ db:
     password: ""
     dbname:   0
 
-referencedata:
-  languages:
-    - code: "eng"
-      name: "english"
-    - code: "rus"
-      name: "русский"
-
-  propertyunits:
-    - sysname: "mm"
-      texts:
-        eng:
-          name: "mm"
-          description: "millimeters"
-        rus:
-          name: "мм"
-          description: "миллиметры"
 
 jwtsigningkey: "LxsKJywDL5O5PvgODZhBH12KE6k2yL8E"
 jwtexpiration: 72

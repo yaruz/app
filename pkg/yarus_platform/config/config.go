@@ -7,8 +7,8 @@ import (
 )
 
 type Configuration struct {
-	Infrastructure Infrastructure
-	ReferenceData  ReferenceData
+	Infrastructure *Infrastructure
+	Metadata       *Metadata
 }
 
 type Infrastructure struct {
@@ -18,28 +18,4 @@ type Infrastructure struct {
 	SearchDB      minipkg_gorm.Config
 	Redis         redis.Config
 	CacheLifeTime uint
-}
-
-type ReferenceData struct {
-	Languages     Languages
-	PropertyUnits PropertyUnits
-}
-
-type Languages []Language
-
-type Language struct {
-	Code string
-	Name string
-}
-
-type PropertyUnits []PropertyUnit
-
-type PropertyUnit struct {
-	Sysname string
-	Texts   map[string]NameAndDescriptionText
-}
-
-type NameAndDescriptionText struct {
-	Name        string
-	Description string
 }

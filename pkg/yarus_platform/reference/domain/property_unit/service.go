@@ -3,6 +3,8 @@ package property_unit
 import (
 	"context"
 
+	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
+
 	"github.com/minipkg/selection_condition"
 
 	"github.com/pkg/errors"
@@ -25,6 +27,12 @@ type IService interface {
 	TQuery(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) ([]PropertyUnit, error)
 	TCreate(ctx context.Context, entity *PropertyUnit, langID uint) (err error)
 	TUpdate(ctx context.Context, entity *PropertyUnit, langID uint) (err error)
+	GetSysnames(ctx context.Context) ([]string, error)
+	GetSysnamesEmptyInterfaceSlice(ctx context.Context) ([]interface{}, error)
+	GetMapSysnameID(ctx context.Context) (map[string]uint, error)
+	GetMapIDSysname(ctx context.Context) (map[uint]string, error)
+	GetIDBySysname(ctx context.Context, sysname string) (uint, error)
+	GetSysnameByID(ctx context.Context, id uint) (string, error)
 }
 
 type service struct {
@@ -101,6 +109,86 @@ func (s *service) TQuery(ctx context.Context, cond *selection_condition.Selectio
 		return nil, errors.Wrapf(err, "Can not find a list of items by query: %v", cond)
 	}
 	return items, nil
+}
+
+func (s *service) GetSysnames(ctx context.Context) ([]string, error) {
+	items, err := s.Query(ctx, &selection_condition.SelectionCondition{})
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]string, len(items))
+	for i, item := range items {
+		res[i] = item.Sysname
+	}
+	return res, nil
+}
+
+func (s *service) GetSysnamesEmptyInterfaceSlice(ctx context.Context) ([]interface{}, error) {
+	items, err := s.Query(ctx, &selection_condition.SelectionCondition{})
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]interface{}, len(items))
+	for i, item := range items {
+		res[i] = item.Sysname
+	}
+	return res, nil
+}
+
+func (s *service) GetMapSysnameID(ctx context.Context) (map[string]uint, error) {
+	items, err := s.Query(ctx, &selection_condition.SelectionCondition{})
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[string]uint, len(items))
+	for _, item := range items {
+		res[item.Sysname] = item.ID
+	}
+	return res, nil
+}
+
+func (s *service) GetMapIDSysname(ctx context.Context) (map[uint]string, error) {
+	items, err := s.Query(ctx, &selection_condition.SelectionCondition{})
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[uint]string, len(items))
+	for _, item := range items {
+		res[item.ID] = item.Sysname
+	}
+	return res, nil
+}
+
+func (s *service) GetIDBySysname(ctx context.Context, sysname string) (uint, error) {
+	mapSysnameID, err := s.GetMapSysnameID(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	id, ok := mapSysnameID[sysname]
+	if !ok {
+		return 0, yaruserror.ErrNotFound
+	}
+
+	return id, nil
+}
+
+func (s *service) GetSysnameByID(ctx context.Context, id uint) (string, error) {
+	mapIDSysname, err := s.GetMapIDSysname(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	sysname, ok := mapIDSysname[id]
+	if !ok {
+		return "", yaruserror.ErrNotFound
+	}
+
+	return sysname, nil
 }
 
 func (s *service) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error) {

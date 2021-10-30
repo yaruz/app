@@ -26,7 +26,7 @@ type Configuration struct {
 	}
 	Log           log.Config
 	DB            DB
-	ReferenceData yaruz_config.ReferenceData
+	YaruzMetadata yaruz_config.Metadata
 	// JWT signing key. required.
 	JWTSigningKey string
 	// JWT expiration in hours. Defaults to 72 hours (3 days)
@@ -43,9 +43,9 @@ type DB struct {
 	Redis     redis.Config
 }
 
-func (c *Configuration) YaruzPlatformConfig() yaruz_config.Configuration {
+func (c *Configuration) YaruzConfig() yaruz_config.Configuration {
 	return yaruz_config.Configuration{
-		Infrastructure: yaruz_config.Infrastructure{
+		Infrastructure: &yaruz_config.Infrastructure{
 			Log:           c.Log,
 			ReferenceDB:   c.DB.Reference,
 			DataDB:        c.DB.Data,
@@ -53,42 +53,73 @@ func (c *Configuration) YaruzPlatformConfig() yaruz_config.Configuration {
 			Redis:         c.DB.Redis,
 			CacheLifeTime: c.CacheLifeTime,
 		},
-		ReferenceData: c.ReferenceData,
+		Metadata: &c.YaruzMetadata,
 	}
 }
 
 // defaultPathToConfig is the default path to the app config
 const defaultPathToConfig = "config/config.yaml"
-
-// pathToConfig is a path to the app config
-var pathToConfig string
-
-// config is the app config
-var config Configuration = Configuration{}
+const defaultPathToMetadata = "config/metadata.yaml"
 
 // Get func return the app config
 func Get() (*Configuration, error) {
+	// config is the app config
+	var config Configuration = Configuration{}
+	// pathToConfig is a path to the app config
+	var pathToConfig string
+	var pathToMetadata string
+
 	flag.StringVar(&pathToConfig, "config", defaultPathToConfig, "path to YAML/JSON config file")
+	flag.StringVar(&pathToMetadata, "metadata", defaultPathToMetadata, "path to YAML/JSON metadata file")
 	flag.Parse()
 
 	viper.AutomaticEnv() // read in environment variables that match
 
+	if err := config.readConfig(pathToConfig); err != nil {
+		return &config, err
+	}
+
+	if err := config.readMetadata(pathToMetadata); err != nil {
+		return &config, err
+	}
+
+	return &config, nil
+}
+
+func (c *Configuration) readConfig(pathToConfig string) error {
 	viper.SetConfigFile(pathToConfig)
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			return &config, errors.Errorf("Config file not found in %q", pathToConfig)
+			return errors.Errorf("Config file not found in %q", pathToConfig)
 		} else {
-			return &config, errors.Errorf("Config file was found in %q, but was produced error: %v", pathToConfig, err)
+			return errors.Errorf("Config file was found in %q, but was produced error: %v", pathToConfig, err)
 		}
 	}
 
-	err := viper.Unmarshal(&config)
+	err := viper.Unmarshal(c)
 	if err != nil {
-		return &config, errors.Errorf("Config unmarshal error: %v", err)
+		return errors.Errorf("Config unmarshal error: %v", err)
+	}
+	return nil
+}
+
+func (c *Configuration) readMetadata(pathToMetadata string) error {
+	viper.SetConfigFile(pathToMetadata)
+
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			return errors.Errorf("Metadata file not found in %q", pathToMetadata)
+		} else {
+			return errors.Errorf("Metadata file was found in %q, but was produced error: %v", pathToMetadata, err)
+		}
 	}
 
-	return &config, nil
+	err := viper.Unmarshal(&c.YaruzMetadata)
+	if err != nil {
+		return errors.Errorf("Metadata unmarshal error: %v", err)
+	}
+	return nil
 }
 
 func addition4Test(cfg *Configuration, logAppPostfix string) {

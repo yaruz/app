@@ -15,6 +15,7 @@ type IPlatform interface {
 	DataSubsystem() *data.DataSubsystem
 	ReferenceSubsystem() *reference.ReferenceSubsystem
 	SearchSubsystem() *search.SearchSubsystem
+	AutoMigrate(metadata *config.Metadata) error
 }
 
 type Platform struct {
@@ -36,7 +37,7 @@ func NewPlatform(cfg config.Configuration) (*Platform, error) {
 		return nil, err
 	}
 
-	reference, err := reference.NewReferenceSubsystem(infra, cfg.ReferenceData)
+	reference, err := reference.NewReferenceSubsystem(infra, cfg.Metadata)
 	if err != nil {
 		return nil, err
 	}
@@ -74,4 +75,8 @@ func (r *Platform) SearchSubsystem() *search.SearchSubsystem {
 
 func (r *Platform) Stop() error {
 	return r.infra.Stop()
+}
+
+func (r *Platform) AutoMigrate(metadata *config.Metadata) error {
+	return nil
 }

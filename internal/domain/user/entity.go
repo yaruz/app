@@ -12,7 +12,7 @@ const (
 
 // User is the user entity
 type User struct {
-	entity.Entity
+	*entity.Entity
 	Name      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -20,10 +20,14 @@ type User struct {
 }
 
 // New func is a constructor for the User
-func New(entity entity.Entity) *User {
+func New(entity *entity.Entity) *User {
 	return &User{
 		Entity: entity,
 	}
+}
+
+func (e User) EntityType() string {
+	return EntityType
 }
 
 func (e User) Validate() error {

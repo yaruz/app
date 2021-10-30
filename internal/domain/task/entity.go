@@ -1,7 +1,7 @@
 package task
 
 const (
-	EntityName = "task"
+	EntityType = "task"
 )
 
 // Task ...

@@ -94,7 +94,7 @@ func NewInfra(logger log.ILogger, cfg config.Configuration) (*Infrastructure, er
 		return nil, err
 	}
 
-	yaruzRepository, err := yarus_platform.NewPlatform(cfg.YaruzPlatformConfig())
+	yaruzRepository, err := yarus_platform.NewPlatform(cfg.YaruzConfig())
 	if err != nil {
 		return nil, err
 	}
@@ -118,24 +118,24 @@ func (app *App) Init() (err error) {
 func (app *App) SetupRepositories() (err error) {
 	var ok bool
 
-	//gormRepo, err := gormrep.GetRepository(app.Infra.Logger, app.Infra.IdentityDB, user.EntityName)
-	//if err != nil {
-	//	golog.Fatalf("Can not get db repository for entity %q, error happened: %v", user.EntityName, err)
-	//}
-	//
-	//app.Domain.User.Repository, ok = gormRepo.(user.Repository)
-	//if !ok {
-	//	return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", user.EntityName, user.EntityName, gormRepo)
-	//}
-	//	Example
-	yarRepo, err := yaruzplatform.GetRepository(app.Infra.Logger, app.Infra.YaruzRepository, task.EntityName)
+	userRepo, err := yaruzplatform.GetRepository(app.Infra.Logger, app.Infra.YaruzRepository, user.EntityType)
 	if err != nil {
-		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", task.EntityName, err)
+		golog.Fatalf("Can not get yaruz repository for entity %q, error happened: %v", user.EntityType, err)
 	}
 
-	app.Domain.Task.Repository, ok = yarRepo.(task.Repository)
+	app.Domain.User.Repository, ok = userRepo.(user.Repository)
 	if !ok {
-		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", task.EntityName, task.EntityName, yarRepo)
+		return errors.Errorf("Can not cast yaruz repository for entity %q to %vRepository. Repo: %v", user.EntityType, user.EntityType, userRepo)
+	}
+	//	Example
+	taskRepo, err := yaruzplatform.GetRepository(app.Infra.Logger, app.Infra.YaruzRepository, task.EntityType)
+	if err != nil {
+		golog.Fatalf("Can not get yaruz repository for entity %q, error happened: %v", task.EntityType, err)
+	}
+
+	app.Domain.Task.Repository, ok = taskRepo.(task.Repository)
+	if !ok {
+		return errors.Errorf("Can not cast yaruz repository for entity %q to %vRepository. Repo: %v", task.EntityType, task.EntityType, userRepo)
 	}
 
 	//if app.Auth.SessionRepository, err = redisrep.NewSessionRepository(app.Infra.Redis, app.Cfg.SessionLifeTime, app.Domain.User.Repository); err != nil {

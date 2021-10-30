@@ -3,6 +3,10 @@ package yaruzplatform
 import (
 	"context"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
+
+	"github.com/yaruz/app/pkg/yarus_platform"
+
 	"github.com/yaruz/app/internal/pkg/config"
 	yaruz_config "github.com/yaruz/app/pkg/yarus_platform/config"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
@@ -10,25 +14,40 @@ import (
 
 	"github.com/yaruz/app/internal/domain/user"
 
-	"github.com/yaruz/app/internal/domain/task"
-
 	"github.com/minipkg/selection_condition"
 )
 
-// TaskRepository is a repository for the model entity
+// UserRepository is a repository for the model entity
 type UserRepository struct {
 	repository
 }
 
 var _ user.Repository = (*UserRepository)(nil)
+var _ yarus_platform.RepositoryAutomigrator = (*UserRepository)(nil)
 
 // New creates a new UserRepository
 func NewUserRepository(repository *repository) (*UserRepository, error) {
 	return &UserRepository{repository: *repository}, nil
 }
 
-func (r *UserRepository) PropertiesConfig(ctx context.Context) property.Configs {
-	return property.Configs{
+func (r *UserRepository) EntityTypeConfig() *entity_type.Config {
+	return &entity_type.Config{
+		Sysname: user.EntityType,
+		Texts: map[string]yaruz_config.NameAndDescriptionText{
+			config.LangEng: {
+				Name:        "User",
+				Description: "User",
+			},
+			config.LangRus: {
+				Name:        "Пользователь",
+				Description: "Пользователь",
+			},
+		},
+	}
+}
+
+func (r *UserRepository) PropertiesConfig() *property.Configs {
+	return &property.Configs{
 		"Name": property.Config{
 			PropertyTypeID: property_type.IDText,
 			Texts: map[string]yaruz_config.NameAndDescriptionText{
@@ -46,8 +65,8 @@ func (r *UserRepository) PropertiesConfig(ctx context.Context) property.Configs 
 }
 
 // Get reads the album with the specified ID from the database.
-func (r *UserRepository) Get(ctx context.Context, id uint) (*task.Task, error) {
-	entity := &task.Task{}
+func (r *UserRepository) Get(ctx context.Context, id uint) (*user.User, error) {
+	entity := &user.User{}
 
 	//err := r.DB().First(entity, id).Error
 	//if err != nil {
@@ -59,7 +78,7 @@ func (r *UserRepository) Get(ctx context.Context, id uint) (*task.Task, error) {
 	return entity, nil
 }
 
-func (r *UserRepository) First(ctx context.Context, entity *task.Task) (*task.Task, error) {
+func (r *UserRepository) First(ctx context.Context, entity *user.User) (*user.User, error) {
 	//err := r.DB().Where(entity).First(entity).Error
 	//if err != nil {
 	//	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -71,8 +90,8 @@ func (r *UserRepository) First(ctx context.Context, entity *task.Task) (*task.Ta
 }
 
 // Query retrieves the album records with the specified offset and limit from the database.
-func (r *UserRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]task.Task, error) {
-	items := []task.Task{}
+func (r *UserRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]user.User, error) {
+	items := []user.User{}
 	//db := minipkg_gorm.Conditions(r.DB(), cond)
 	//if db.Error != nil {
 	//	return nil, db.Error
@@ -103,7 +122,7 @@ func (r *UserRepository) Count(ctx context.Context, cond *selection_condition.Se
 }
 
 // Create saves a new record in the database.
-func (r *UserRepository) Create(ctx context.Context, entity *task.Task) error {
+func (r *UserRepository) Create(ctx context.Context, entity *user.User) error {
 
 	//if entity.ID > 0 {
 	//	return errors.New("entity is not new")
@@ -113,7 +132,7 @@ func (r *UserRepository) Create(ctx context.Context, entity *task.Task) error {
 }
 
 // Update saves a changed Maintenance record in the database.
-func (r *UserRepository) Update(ctx context.Context, entity *task.Task) error {
+func (r *UserRepository) Update(ctx context.Context, entity *user.User) error {
 
 	//if entity.ID == 0 {
 	//	return errors.New("entity is new")
@@ -124,7 +143,7 @@ func (r *UserRepository) Update(ctx context.Context, entity *task.Task) error {
 }
 
 // Save update value in database, if the value doesn't have primary key, will insert it
-func (r *UserRepository) Save(ctx context.Context, entity *task.Task) error {
+func (r *UserRepository) Save(ctx context.Context, entity *user.User) error {
 	//return r.db.DB().Save(entity).Error
 	return nil
 }
@@ -132,7 +151,7 @@ func (r *UserRepository) Save(ctx context.Context, entity *task.Task) error {
 // Delete (soft) deletes a Maintenance record in the database.
 func (r *UserRepository) Delete(ctx context.Context, id uint) error {
 
-	//err := r.db.DB().Delete(&task.Task{}, id).Error
+	//err := r.db.DB().Delete(&user.User{}, id).Error
 	//if err != nil {
 	//	if errors.Is(err, gorm.ErrRecordNotFound) {
 	//		return apperror.ErrNotFound

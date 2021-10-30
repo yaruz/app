@@ -2,11 +2,14 @@ package user
 
 import (
 	"context"
+
 	"github.com/minipkg/selection_condition"
+	"github.com/yaruz/app/pkg/yarus_platform"
 )
 
 // Repository encapsulates the logic to access albums from the data source.
 type Repository interface {
+	yarus_platform.RepositoryAutomigrator
 	// Get returns the album with the specified album ID.
 	Get(ctx context.Context, id uint) (*User, error)
 	// Count returns the number of albums.
