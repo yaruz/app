@@ -66,7 +66,7 @@ func (e Property) Validate() error {
 		validation.Field(&e.PropertyTypeID, validation.In(property_type.ValidTypesIDs...)),
 		validation.Field(&e.IsRange, validation.When(e.IsMultiple, validation.Empty)),
 		validation.Field(&e.IsMultiple, validation.When(e.IsRange, validation.Empty)),
-		validation.Field(&e.PropertyUnitID, validation.When(e.PropertyTypeID != property_type.IDRelation, validation.Required)),
+		//validation.Field(&e.PropertyUnitID, validation.When(e.PropertyTypeID != property_type.IDRelation, validation.Required)),
 		validation.Field(&e.Options, validation.By(e.optionsValidate)),
 	)
 }

@@ -4,6 +4,13 @@ languages:
   rus: "русский"
 
 propertyunits:
+  item:
+    eng:
+      name: "item"
+      description: "item"
+    rus:
+      name: "шт."
+      description: "штук"
   mm:
     eng:
       name: "mm"
@@ -23,6 +30,7 @@ entitytypes:
         description: "пользователь"
     properties:
       name:
+        propertytype: "text"
         texts:
           eng:
             name: "name"

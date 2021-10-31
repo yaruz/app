@@ -299,8 +299,7 @@ func (r *RelationRepository) Count(ctx context.Context, cond *selection_conditio
 		return 0, db.Error
 	}
 
-	err := db.Count(&count).Error
-	return count, err
+	return count, db.Model(r.model).Count(&count).Error
 }
 
 func (r *RelationRepository) AfterFind(ctx context.Context, entity *entity_type.Relation) error {

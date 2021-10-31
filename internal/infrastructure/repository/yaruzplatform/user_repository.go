@@ -3,15 +3,6 @@ package yaruzplatform
 import (
 	"context"
 
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
-
-	"github.com/yaruz/app/pkg/yarus_platform"
-
-	"github.com/yaruz/app/internal/pkg/config"
-	yaruz_config "github.com/yaruz/app/pkg/yarus_platform/config"
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
-
 	"github.com/yaruz/app/internal/domain/user"
 
 	"github.com/minipkg/selection_condition"
@@ -23,45 +14,10 @@ type UserRepository struct {
 }
 
 var _ user.Repository = (*UserRepository)(nil)
-var _ yarus_platform.RepositoryAutomigrator = (*UserRepository)(nil)
 
 // New creates a new UserRepository
 func NewUserRepository(repository *repository) (*UserRepository, error) {
 	return &UserRepository{repository: *repository}, nil
-}
-
-func (r *UserRepository) EntityTypeConfig() *entity_type.Config {
-	return &entity_type.Config{
-		Sysname: user.EntityType,
-		Texts: map[string]yaruz_config.NameAndDescriptionText{
-			config.LangEng: {
-				Name:        "User",
-				Description: "User",
-			},
-			config.LangRus: {
-				Name:        "Пользователь",
-				Description: "Пользователь",
-			},
-		},
-	}
-}
-
-func (r *UserRepository) PropertiesConfig() *property.Configs {
-	return &property.Configs{
-		"Name": property.Config{
-			PropertyTypeID: property_type.IDText,
-			Texts: map[string]yaruz_config.NameAndDescriptionText{
-				config.LangEng: {
-					Name:        "Name",
-					Description: "Name",
-				},
-				config.LangRus: {
-					Name:        "Имя",
-					Description: "Имя",
-				},
-			},
-		},
-	}
 }
 
 // Get reads the album with the specified ID from the database.

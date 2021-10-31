@@ -96,8 +96,7 @@ func (r *TextSourceRepository) Count(ctx context.Context, cond *selection_condit
 		return 0, db.Error
 	}
 
-	err := db.Count(&count).Error
-	return count, err
+	return count, db.Model(r.model).Count(&count).Error
 }
 
 // Create saves a new record in the database.
