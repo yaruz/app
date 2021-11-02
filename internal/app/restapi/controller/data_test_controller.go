@@ -81,47 +81,47 @@ func (c dataTestController) entity(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"entityTypesInit": err.Error()})
 	}
 
-	propertyNumber, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyNumberSysname}, langRusID)
+	propertyNumber, err := c.yaruzPlatform.ReferenceSubsystem().Property.TFirst(cntx, &property.Property{Sysname: propertyNumberSysname}, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"finding for propertyNumber": err.Error()})
 	}
 
-	propertyLen, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyLenSysname}, langRusID)
+	propertyLen, err := c.yaruzPlatform.ReferenceSubsystem().Property.TFirst(cntx, &property.Property{Sysname: propertyLenSysname}, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"finding for propertyLen": err.Error()})
 	}
 
-	propertyOpt, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyOptSysname}, langRusID)
+	propertyOpt, err := c.yaruzPlatform.ReferenceSubsystem().Property.TFirst(cntx, &property.Property{Sysname: propertyOptSysname}, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"finding for propertyOpt": err.Error()})
 	}
 
-	propertyBool, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyBoolSysname}, langRusID)
+	propertyBool, err := c.yaruzPlatform.ReferenceSubsystem().Property.TFirst(cntx, &property.Property{Sysname: propertyBoolSysname}, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"finding for propertyBool": err.Error()})
 	}
 
-	propertyDate, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyDateSysname}, langRusID)
+	propertyDate, err := c.yaruzPlatform.ReferenceSubsystem().Property.TFirst(cntx, &property.Property{Sysname: propertyDateSysname}, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"finding for propertyDate": err.Error()})
 	}
 
-	propertyTime, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyTSSysname}, langRusID)
+	propertyTime, err := c.yaruzPlatform.ReferenceSubsystem().Property.TFirst(cntx, &property.Property{Sysname: propertyTSSysname}, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"finding for propertyTS": err.Error()})
 	}
 
-	propertyName, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyNameSysname}, langRusID)
+	propertyName, err := c.yaruzPlatform.ReferenceSubsystem().Property.TFirst(cntx, &property.Property{Sysname: propertyNameSysname}, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"finding for propertyName": err.Error()})
 	}
 
-	entityType, err := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.TFirst(cntx, &entity_type.EntityType{Sysname: entityTypeBloggerSysname}, langRusID)
+	entityType, err := c.yaruzPlatform.ReferenceSubsystem().EntityType.TFirst(cntx, &entity_type.EntityType{Sysname: entityTypeBloggerSysname}, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"finding for entityType": err.Error()})
 	}
 
-	entity := c.yaruzPlatform.DataSubsystem().Entity.Service.NewEntity()
+	entity := c.yaruzPlatform.DataSubsystem().Entity.NewEntity()
 	entity.EntityTypeID = entityType.ID
 	//entity.PropertiesValuesMap = map[uint]interface{}{
 	//	propertyNumber.ID: int(158),
@@ -162,12 +162,12 @@ func (c dataTestController) entity(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"Set propertyTime": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Create(cntx, entity, langRusID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Create(cntx, entity, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity.Create()": err.Error()})
 	}
 
-	entity2, err := c.yaruzPlatform.DataSubsystem().Entity.Service.Get(cntx, entity.ID, langRusID)
+	entity2, err := c.yaruzPlatform.DataSubsystem().Entity.Get(cntx, entity.ID, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity.Get()": err.Error()})
 	}
@@ -183,12 +183,12 @@ func (c dataTestController) entity(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"Set propertyName": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, entity2, langRusID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Update(cntx, entity2, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity2.Create()": err.Error()})
 	}
 
-	entity3, err := c.yaruzPlatform.DataSubsystem().Entity.Service.Get(cntx, entity.ID, langRusID)
+	entity3, err := c.yaruzPlatform.DataSubsystem().Entity.Get(cntx, entity.ID, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity.Get()": err.Error()})
 	}
@@ -214,17 +214,17 @@ func (c dataTestController) entityText(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"entityTypesInit": err.Error()})
 	}
 
-	propertyName, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyNameSysname}, langRusID)
+	propertyName, err := c.yaruzPlatform.ReferenceSubsystem().Property.TFirst(cntx, &property.Property{Sysname: propertyNameSysname}, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"finding for propertyName": err.Error()})
 	}
 
-	entityType, err := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.TFirst(cntx, &entity_type.EntityType{Sysname: entityTypeBloggerSysname}, langRusID)
+	entityType, err := c.yaruzPlatform.ReferenceSubsystem().EntityType.TFirst(cntx, &entity_type.EntityType{Sysname: entityTypeBloggerSysname}, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"finding for entityType": err.Error()})
 	}
 
-	entity := c.yaruzPlatform.DataSubsystem().Entity.Service.NewEntity()
+	entity := c.yaruzPlatform.DataSubsystem().Entity.NewEntity()
 	entity.EntityTypeID = entityType.ID
 
 	err = entity.SetValueForProperty(propertyName, "Андрей", langRusID)
@@ -232,7 +232,7 @@ func (c dataTestController) entityText(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Create(cntx, entity, langRusID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Create(cntx, entity, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity.Create()": err.Error()})
 	}
@@ -242,12 +242,12 @@ func (c dataTestController) entityText(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, entity, langRusID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Update(cntx, entity, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity.Update()": err.Error()})
 	}
 
-	entity1, err := c.yaruzPlatform.DataSubsystem().Entity.Service.Get(cntx, entity.ID, langRusID)
+	entity1, err := c.yaruzPlatform.DataSubsystem().Entity.Get(cntx, entity.ID, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity1.Get()": err.Error()})
 	}
@@ -258,12 +258,12 @@ func (c dataTestController) entityText(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, entity1, langRusID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Update(cntx, entity1, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity.Update()": err.Error()})
 	}
 
-	entity2, err := c.yaruzPlatform.DataSubsystem().Entity.Service.Get(cntx, entity.ID, langEngID)
+	entity2, err := c.yaruzPlatform.DataSubsystem().Entity.Get(cntx, entity.ID, langEngID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity2.Get()": err.Error()})
 	}
@@ -276,7 +276,7 @@ func (c dataTestController) entityText(ctx *routing.Context) error {
 
 	entity2.DeletePropertyValues(propertyName.ID)
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, entity2, langEngID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Update(cntx, entity2, langEngID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity2.Update()": err.Error()})
 	}
@@ -286,12 +286,12 @@ func (c dataTestController) entityText(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"Set propertyBool": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, entity2, langEngID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Update(cntx, entity2, langEngID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity2.Update()": err.Error()})
 	}
 
-	entity3, err := c.yaruzPlatform.DataSubsystem().Entity.Service.Get(cntx, entity.ID, langEngID)
+	entity3, err := c.yaruzPlatform.DataSubsystem().Entity.Get(cntx, entity.ID, langEngID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity3.Get()": err.Error()})
 	}
@@ -317,91 +317,91 @@ func (c dataTestController) entityRelation(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"entityTypesInit": err.Error()})
 	}
 
-	rel2Post, err := c.yaruzPlatform.ReferenceSubsystem().Relation.Service.TFirst(cntx, &entity_type.Relation{Property: property.Property{Sysname: relationBlogger2PostSysname}}, langRusID)
+	rel2Post, err := c.yaruzPlatform.ReferenceSubsystem().Relation.TFirst(cntx, &entity_type.Relation{Property: property.Property{Sysname: relationBlogger2PostSysname}}, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"finding for propertyName": err.Error()})
 	}
 
-	entityTypeBlogger, err := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.TFirst(cntx, &entity_type.EntityType{Sysname: entityTypeBloggerSysname}, langRusID)
+	entityTypeBlogger, err := c.yaruzPlatform.ReferenceSubsystem().EntityType.TFirst(cntx, &entity_type.EntityType{Sysname: entityTypeBloggerSysname}, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"finding for entityTypeBlogger": err.Error()})
 	}
 
-	entityTypePost, err := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.TFirst(cntx, &entity_type.EntityType{Sysname: entityTypePostSysname}, langRusID)
+	entityTypePost, err := c.yaruzPlatform.ReferenceSubsystem().EntityType.TFirst(cntx, &entity_type.EntityType{Sysname: entityTypePostSysname}, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"finding for entityTypePost": err.Error()})
 	}
 
-	blogger := c.yaruzPlatform.DataSubsystem().Entity.Service.NewEntity()
+	blogger := c.yaruzPlatform.DataSubsystem().Entity.NewEntity()
 	blogger.EntityTypeID = entityTypeBlogger.ID
 
-	post1 := c.yaruzPlatform.DataSubsystem().Entity.Service.NewEntity()
+	post1 := c.yaruzPlatform.DataSubsystem().Entity.NewEntity()
 	post1.EntityTypeID = entityTypePost.ID
 
-	post2 := c.yaruzPlatform.DataSubsystem().Entity.Service.NewEntity()
+	post2 := c.yaruzPlatform.DataSubsystem().Entity.NewEntity()
 	post2.EntityTypeID = entityTypePost.ID
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Create(cntx, blogger, langRusID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Create(cntx, blogger, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Create blogger": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Create(cntx, post1, langRusID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Create(cntx, post1, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Create post1": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.Create(cntx, post2, langRusID)
+	err = c.yaruzPlatform.DataSubsystem().Entity.Create(cntx, post2, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Create post2": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.BindRelatedEntities(cntx, rel2Post, blogger, []*entity.Entity{post1, post2}, langRusID, true)
+	err = c.yaruzPlatform.DataSubsystem().Entity.BindRelatedEntities(cntx, rel2Post, blogger, []*entity.Entity{post1, post2}, langRusID, true)
 	if err != nil {
 		res = append(res, map[string]interface{}{"BindRelatedEntities": err.Error()})
 	}
 
-	//err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, blogger, langRusID)
+	//err = c.yaruzPlatform.DataSubsystem().Entity.Update(cntx, blogger, langRusID)
 	//if err != nil {
 	//	res = append(res, map[string]interface{}{"Update blogger": err.Error()})
 	//}
 	//
-	//err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, post1, langRusID)
+	//err = c.yaruzPlatform.DataSubsystem().Entity.Update(cntx, post1, langRusID)
 	//if err != nil {
 	//	res = append(res, map[string]interface{}{"Update post1": err.Error()})
 	//}
 	//
-	//err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, post2, langRusID)
+	//err = c.yaruzPlatform.DataSubsystem().Entity.Update(cntx, post2, langRusID)
 	//if err != nil {
 	//	res = append(res, map[string]interface{}{"Update post2": err.Error()})
 	//}
 
-	blogger2, err := c.yaruzPlatform.DataSubsystem().Entity.Service.Get(cntx, blogger.ID, langRusID)
+	blogger2, err := c.yaruzPlatform.DataSubsystem().Entity.Get(cntx, blogger.ID, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Get": err.Error()})
 	}
 
-	err = c.yaruzPlatform.DataSubsystem().Entity.Service.UnbindRelatedEntities(cntx, rel2Post, blogger2, []*entity.Entity{post1}, langRusID, true)
+	err = c.yaruzPlatform.DataSubsystem().Entity.UnbindRelatedEntities(cntx, rel2Post, blogger2, []*entity.Entity{post1}, langRusID, true)
 	if err != nil {
 		res = append(res, map[string]interface{}{"UnbindRelatedEntities": err.Error()})
 	}
 
-	//err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, blogger2, langRusID)
+	//err = c.yaruzPlatform.DataSubsystem().Entity.Update(cntx, blogger2, langRusID)
 	//if err != nil {
 	//	res = append(res, map[string]interface{}{"Update blogger2": err.Error()})
 	//}
 	//
-	//err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, post1, langRusID)
+	//err = c.yaruzPlatform.DataSubsystem().Entity.Update(cntx, post1, langRusID)
 	//if err != nil {
 	//	res = append(res, map[string]interface{}{"Update post1": err.Error()})
 	//}
 	//
-	//err = c.yaruzPlatform.DataSubsystem().Entity.Service.Update(cntx, post2, langRusID)
+	//err = c.yaruzPlatform.DataSubsystem().Entity.Update(cntx, post2, langRusID)
 	//if err != nil {
 	//	res = append(res, map[string]interface{}{"Update post2": err.Error()})
 	//}
 
-	blogger3, err := c.yaruzPlatform.DataSubsystem().Entity.Service.Get(cntx, blogger.ID, langRusID)
+	blogger3, err := c.yaruzPlatform.DataSubsystem().Entity.Get(cntx, blogger.ID, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Get": err.Error()})
 	}
@@ -427,25 +427,25 @@ func (c dataTestController) entityRelation(ctx *routing.Context) error {
 //		res = append(res, map[string]interface{}{"entityTypesInit": err.Error()})
 //	}
 //
-//	entityTypePost, err := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.TFirst(cntx, &entity_type.EntityType{Sysname: entityTypePostSysname}, langRusID)
+//	entityTypePost, err := c.yaruzPlatform.ReferenceSubsystem().EntityType.TFirst(cntx, &entity_type.EntityType{Sysname: entityTypePostSysname}, langRusID)
 //	if err != nil {
 //		res = append(res, map[string]interface{}{"finding for entityTypePost": err.Error()})
 //	}
 //
-//	propertyLen, err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TFirst(cntx, &property.Property{Sysname: propertyLenSysname}, langRusID)
+//	propertyLen, err := c.yaruzPlatform.ReferenceSubsystem().Property.TFirst(cntx, &property.Property{Sysname: propertyLenSysname}, langRusID)
 //	if err != nil {
 //		res = append(res, map[string]interface{}{"finding for propertyLen": err.Error()})
 //	}
 //
 //	for i := 0; i < 1000; i++ {
-//		post := c.yaruzPlatform.DataSubsystem().Entity.Service.NewEntity()
+//		post := c.yaruzPlatform.DataSubsystem().Entity.NewEntity()
 //		post.EntityTypeID = entityTypePost.ID
 //		err = c.yaruzPlatform.DataSubsystem().Entity.Service.EntitySetValueForProperty(post, propertyLen, float64(float64(i)/100), langRusID)
 //		if err != nil {
 //			res = append(res, map[string]interface{}{"Set propertyLen": err.Error()})
 //			break
 //		}
-//		err = c.yaruzPlatform.DataSubsystem().Entity.Service.Create(cntx, post, langRusID)
+//		err = c.yaruzPlatform.DataSubsystem().Entity.Create(cntx, post, langRusID)
 //
 //		if err != nil {
 //			res = append(res, map[string]interface{}{"Create post": err.Error()})
@@ -458,14 +458,14 @@ func (c dataTestController) entityRelation(ctx *routing.Context) error {
 
 func (c dataTestController) propertyUnitsInit(ctx context.Context) error {
 
-	propertyUnitMM := c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Service.NewEntity()
+	propertyUnitMM := c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.NewEntity()
 	propertyUnitMM.Sysname = propertyUnitMMSysname
 	propertyUnitLenName := "мм"
 	propertyUnitLenDesc := "миллиметры"
 	propertyUnitMM.Name = &propertyUnitLenName
 	propertyUnitMM.Description = &propertyUnitLenDesc
 
-	err := c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Service.TCreate(ctx, propertyUnitMM, langRusID)
+	err := c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.TCreate(ctx, propertyUnitMM, langRusID)
 	if err != nil {
 		return err
 	}
@@ -474,12 +474,12 @@ func (c dataTestController) propertyUnitsInit(ctx context.Context) error {
 
 func (c dataTestController) propertiesInit(ctx context.Context) error {
 
-	propertyUnitItem, err := c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Service.TFirst(ctx, &property_unit.PropertyUnit{Sysname: property_unit.SysnameItem}, langRusID)
+	propertyUnitItem, err := c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.TFirst(ctx, &property_unit.PropertyUnit{Sysname: property_unit.SysnameItem}, langRusID)
 	if err != nil {
 		return err
 	}
 
-	propertyNumber := c.yaruzPlatform.ReferenceSubsystem().Property.Service.NewEntity()
+	propertyNumber := c.yaruzPlatform.ReferenceSubsystem().Property.NewEntity()
 	propertyNumber.Sysname = propertyNumberSysname
 	propertyNumber.PropertyTypeID = property_type.IDInt
 	propertyNumber.PropertyUnitID = &propertyUnitItem.ID
@@ -488,16 +488,16 @@ func (c dataTestController) propertiesInit(ctx context.Context) error {
 	propertyNumber.Name = &propertyNumberName
 	propertyNumber.Description = &propertyNumberDesc
 
-	if err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TCreate(ctx, propertyNumber, langRusID); err != nil {
+	if err := c.yaruzPlatform.ReferenceSubsystem().Property.TCreate(ctx, propertyNumber, langRusID); err != nil {
 		return err
 	}
 
-	propertyUnitMM, err := c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.Service.TFirst(ctx, &property_unit.PropertyUnit{Sysname: "mm"}, langRusID)
+	propertyUnitMM, err := c.yaruzPlatform.ReferenceSubsystem().PropertyUnit.TFirst(ctx, &property_unit.PropertyUnit{Sysname: "mm"}, langRusID)
 	if err != nil {
 		return err
 	}
 
-	propertyLen := c.yaruzPlatform.ReferenceSubsystem().Property.Service.NewEntity()
+	propertyLen := c.yaruzPlatform.ReferenceSubsystem().Property.NewEntity()
 	propertyLen.Sysname = propertyLenSysname
 	propertyLen.PropertyTypeID = property_type.IDFloat
 	propertyLen.PropertyUnitID = &propertyUnitMM.ID
@@ -506,11 +506,11 @@ func (c dataTestController) propertiesInit(ctx context.Context) error {
 	propertyLen.Name = &propertyLenName
 	propertyLen.Description = &propertyLenDesc
 
-	if err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.TCreate(ctx, propertyLen, langRusID); err != nil {
+	if err = c.yaruzPlatform.ReferenceSubsystem().Property.TCreate(ctx, propertyLen, langRusID); err != nil {
 		return err
 	}
 
-	propertyBool := c.yaruzPlatform.ReferenceSubsystem().Property.Service.NewEntity()
+	propertyBool := c.yaruzPlatform.ReferenceSubsystem().Property.NewEntity()
 	propertyBool.Sysname = propertyBoolSysname
 	propertyBool.PropertyTypeID = property_type.IDBoolean
 	propertyBool.PropertyUnitID = &propertyUnitMM.ID
@@ -519,11 +519,11 @@ func (c dataTestController) propertiesInit(ctx context.Context) error {
 	propertyBool.Name = &propertyBoolName
 	propertyBool.Description = &propertyBoolDesc
 
-	if err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.TCreate(ctx, propertyBool, langRusID); err != nil {
+	if err = c.yaruzPlatform.ReferenceSubsystem().Property.TCreate(ctx, propertyBool, langRusID); err != nil {
 		return err
 	}
 
-	propertyDate := c.yaruzPlatform.ReferenceSubsystem().Property.Service.NewEntity()
+	propertyDate := c.yaruzPlatform.ReferenceSubsystem().Property.NewEntity()
 	propertyDate.Sysname = propertyDateSysname
 	propertyDate.PropertyTypeID = property_type.IDDate
 	propertyDate.PropertyUnitID = &propertyUnitMM.ID
@@ -532,11 +532,11 @@ func (c dataTestController) propertiesInit(ctx context.Context) error {
 	propertyDate.Name = &propertyDateName
 	propertyDate.Description = &propertyDateDesc
 
-	if err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.TCreate(ctx, propertyDate, langRusID); err != nil {
+	if err = c.yaruzPlatform.ReferenceSubsystem().Property.TCreate(ctx, propertyDate, langRusID); err != nil {
 		return err
 	}
 
-	propertyTS := c.yaruzPlatform.ReferenceSubsystem().Property.Service.NewEntity()
+	propertyTS := c.yaruzPlatform.ReferenceSubsystem().Property.NewEntity()
 	propertyTS.Sysname = propertyTSSysname
 	propertyTS.PropertyTypeID = property_type.IDTime
 	propertyTS.PropertyUnitID = &propertyUnitMM.ID
@@ -545,11 +545,11 @@ func (c dataTestController) propertiesInit(ctx context.Context) error {
 	propertyTS.Name = &propertyTSName
 	propertyTS.Description = &propertyTSDesc
 
-	if err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.TCreate(ctx, propertyTS, langRusID); err != nil {
+	if err = c.yaruzPlatform.ReferenceSubsystem().Property.TCreate(ctx, propertyTS, langRusID); err != nil {
 		return err
 	}
 
-	propertyName := c.yaruzPlatform.ReferenceSubsystem().Property.Service.NewEntity()
+	propertyName := c.yaruzPlatform.ReferenceSubsystem().Property.NewEntity()
 	propertyName.Sysname = propertyNameSysname
 	propertyName.PropertyTypeID = property_type.IDText
 	propertyName.PropertyUnitID = &propertyUnitMM.ID
@@ -558,11 +558,11 @@ func (c dataTestController) propertiesInit(ctx context.Context) error {
 	propertyName.Name = &propertyNameName
 	propertyName.Description = &propertyNameDesc
 
-	if err = c.yaruzPlatform.ReferenceSubsystem().Property.Service.TCreate(ctx, propertyName, langRusID); err != nil {
+	if err = c.yaruzPlatform.ReferenceSubsystem().Property.TCreate(ctx, propertyName, langRusID); err != nil {
 		return err
 	}
 
-	propertyOpts := c.yaruzPlatform.ReferenceSubsystem().Property.Service.NewEntity()
+	propertyOpts := c.yaruzPlatform.ReferenceSubsystem().Property.NewEntity()
 	propertyOpts.Sysname = propertyOptSysname
 	propertyOpts.PropertyTypeID = property_type.IDInt
 	propertyOpts.PropertyUnitID = &propertyUnitItem.ID
@@ -576,7 +576,7 @@ func (c dataTestController) propertiesInit(ctx context.Context) error {
 	propertyOpts.Name = &propertyOptsName
 	propertyOpts.Description = &propertyOptsDesc
 
-	if err := c.yaruzPlatform.ReferenceSubsystem().Property.Service.TCreate(ctx, propertyOpts, langRusID); err != nil {
+	if err := c.yaruzPlatform.ReferenceSubsystem().Property.TCreate(ctx, propertyOpts, langRusID); err != nil {
 		return err
 	}
 
@@ -584,40 +584,40 @@ func (c dataTestController) propertiesInit(ctx context.Context) error {
 }
 
 func (c dataTestController) entityTypesInit(ctx context.Context) error {
-	entityTypeBlogger := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.NewEntity()
+	entityTypeBlogger := c.yaruzPlatform.ReferenceSubsystem().EntityType.NewEntity()
 	entityTypeBlogger.Sysname = entityTypeBloggerSysname
 	entityTypeBloggerName := "блогер"
 	entityTypeBloggerDesc := "блогер"
 	entityTypeBlogger.Name = &entityTypeBloggerName
 	entityTypeBlogger.Description = &entityTypeBloggerDesc
 
-	if err := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.TCreate(ctx, entityTypeBlogger, langRusID); err != nil {
+	if err := c.yaruzPlatform.ReferenceSubsystem().EntityType.TCreate(ctx, entityTypeBlogger, langRusID); err != nil {
 		return err
 	}
 
-	entityTypePost := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.NewEntity()
+	entityTypePost := c.yaruzPlatform.ReferenceSubsystem().EntityType.NewEntity()
 	entityTypePost.Sysname = entityTypePostSysname
 	entityTypePostName := "пост"
 	entityTypePostDesc := "публикация типа пост"
 	entityTypePost.Name = &entityTypePostName
 	entityTypePost.Description = &entityTypePostDesc
 
-	if err := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.TCreate(ctx, entityTypePost, langRusID); err != nil {
+	if err := c.yaruzPlatform.ReferenceSubsystem().EntityType.TCreate(ctx, entityTypePost, langRusID); err != nil {
 		return err
 	}
 
-	entityTypeStory := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.NewEntity()
+	entityTypeStory := c.yaruzPlatform.ReferenceSubsystem().EntityType.NewEntity()
 	entityTypeStory.Sysname = entityTypeStorySysname
 	entityTypeStoryName := "стори"
 	entityTypeStoryDesc := "публикация типа стори"
 	entityTypeStory.Name = &entityTypeStoryName
 	entityTypeStory.Description = &entityTypeStoryDesc
 
-	if err := c.yaruzPlatform.ReferenceSubsystem().EntityType.Service.TCreate(ctx, entityTypeStory, langRusID); err != nil {
+	if err := c.yaruzPlatform.ReferenceSubsystem().EntityType.TCreate(ctx, entityTypeStory, langRusID); err != nil {
 		return err
 	}
 
-	relBlogger2Post := c.yaruzPlatform.ReferenceSubsystem().Relation.Service.NewEntity()
+	relBlogger2Post := c.yaruzPlatform.ReferenceSubsystem().Relation.NewEntity()
 	relBlogger2Post.Sysname = relationBlogger2PostSysname
 	relBlogger2PostName := "блогер-пост"
 	relBlogger2PostDesc := "блогер-пост"
@@ -626,11 +626,11 @@ func (c dataTestController) entityTypesInit(ctx context.Context) error {
 	relBlogger2Post.SetDependedEntityType(entityTypeBlogger)
 	relBlogger2Post.SetUndependedEntityType(entityTypePost)
 
-	if err := c.yaruzPlatform.ReferenceSubsystem().Relation.Service.TCreate(ctx, relBlogger2Post, langRusID); err != nil {
+	if err := c.yaruzPlatform.ReferenceSubsystem().Relation.TCreate(ctx, relBlogger2Post, langRusID); err != nil {
 		return err
 	}
 
-	relBlogger2Story := c.yaruzPlatform.ReferenceSubsystem().Relation.Service.NewEntity()
+	relBlogger2Story := c.yaruzPlatform.ReferenceSubsystem().Relation.NewEntity()
 	relBlogger2Story.Sysname = relationBlogger2StorySysname
 	relBlogger2StoryName := "блогер-стори"
 	relBlogger2StoryDesc := "блогер-стори"
@@ -639,7 +639,7 @@ func (c dataTestController) entityTypesInit(ctx context.Context) error {
 	relBlogger2Story.SetDependedEntityType(entityTypeBlogger)
 	relBlogger2Story.SetUndependedEntityType(entityTypeStory)
 
-	if err := c.yaruzPlatform.ReferenceSubsystem().Relation.Service.TCreate(ctx, relBlogger2Story, langRusID); err != nil {
+	if err := c.yaruzPlatform.ReferenceSubsystem().Relation.TCreate(ctx, relBlogger2Story, langRusID); err != nil {
 		return err
 	}
 

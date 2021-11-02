@@ -71,6 +71,10 @@ func (r *PropertyRepository) First(ctx context.Context, entity *property.Propert
 	return r.firstTx(ctx, r.db.DB(), entity)
 }
 
+func (r *PropertyRepository) GetBySysname(ctx context.Context, sysname string, langID uint) (*property.Property, error) {
+	return r.TFirst(ctx, &property.Property{Sysname: sysname}, langID)
+}
+
 func (r *PropertyRepository) TFirst(ctx context.Context, entity *property.Property, langID uint) (*property.Property, error) {
 	err := r.db.DB().Transaction(func(tx *gorm.DB) error {
 		var err error

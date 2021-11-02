@@ -32,77 +32,29 @@ import (
 )
 
 type ReferenceSubsystem struct {
-	EntityType                    ReferenceDomainEntityType
-	EntityType2Property           ReferenceDomainEntityType2Property
-	Property                      ReferenceDomainProperty
-	Relation                      ReferenceDomainRelation
-	PropertyGroup                 ReferenceDomainPropertyGroup
-	PropertyType                  ReferenceDomainPropertyType
-	PropertyType2PropertyViewType ReferenceDomainPropertyType2PropertyViewType
-	PropertyUnit                  ReferenceDomainPropertyUnit
-	PropertyViewType              ReferenceDomainPropertyViewType
-	TextSource                    ReferenceDomainTextSource
-	TextValue                     ReferenceDomainTextValue
-	TextLang                      ReferenceDomainTextLang
-}
-
-type ReferenceDomainEntityType struct {
-	Service    entity_type.IService
-	Repository entity_type.Repository
-}
-
-type ReferenceDomainEntityType2Property struct {
-	Service    entity_type2property.IService
-	Repository entity_type2property.Repository
-}
-
-type ReferenceDomainProperty struct {
-	Service    property.IService
-	Repository property.Repository
-}
-
-type ReferenceDomainRelation struct {
-	Service    entity_type.RelationService
-	Repository entity_type.RelationRepository
-}
-
-type ReferenceDomainPropertyGroup struct {
-	Service    property_group.IService
-	Repository property_group.Repository
-}
-
-type ReferenceDomainPropertyType struct {
-	Service    property_type.IService
-	Repository property_type.Repository
-}
-
-type ReferenceDomainPropertyType2PropertyViewType struct {
-	Repository property_type2property_view_type.Repository
-}
-
-type ReferenceDomainPropertyUnit struct {
-	Service    property_unit.IService
-	Repository property_unit.Repository
-}
-
-type ReferenceDomainPropertyViewType struct {
-	Service    property_view_type.IService
-	Repository property_view_type.Repository
-}
-
-type ReferenceDomainTextSource struct {
-	Service    text_source.IService
-	Repository text_source.Repository
-}
-
-type ReferenceDomainTextValue struct {
-	Service    text_value.IService
-	Repository text_value.Repository
-}
-
-type ReferenceDomainTextLang struct {
-	Service    text_lang.IService
-	Repository text_lang.Repository
+	EntityType                              entity_type.IService
+	entityTypeRepository                    entity_type.Repository
+	EntityType2Property                     entity_type2property.IService
+	entityType2PropertyRepository           entity_type2property.Repository
+	Property                                property.IService
+	propertyRepository                      property.Repository
+	Relation                                entity_type.RelationService
+	relationRepository                      entity_type.RelationRepository
+	PropertyGroup                           property_group.IService
+	propertyGroupRepository                 property_group.Repository
+	PropertyType                            property_type.IService
+	propertyTypeRepository                  property_type.Repository
+	propertyType2PropertyViewTypeRepository property_type2property_view_type.Repository
+	PropertyUnit                            property_unit.IService
+	propertyUnitRepository                  property_unit.Repository
+	PropertyViewType                        property_view_type.IService
+	propertyViewTypeRepository              property_view_type.Repository
+	TextSource                              text_source.IService
+	textSourceRepository                    text_source.Repository
+	TextValue                               text_value.IService
+	textValueRepository                     text_value.Repository
+	TextLang                                text_lang.IService
+	textLangRepository                      text_lang.Repository
 }
 
 func NewReferenceSubsystem(infra *infrastructure.Infrastructure, metadata *config.Metadata) (*ReferenceSubsystem, error) {
@@ -159,7 +111,7 @@ func (s *ReferenceSubsystem) setupRepositories(infra *infrastructure.Infrastruct
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", text_source.EntityName, err)
 	}
-	s.TextSource.Repository, ok = repo.(text_source.Repository)
+	s.textSourceRepository, ok = repo.(text_source.Repository)
 	if !ok {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", text_source.EntityName, text_source.EntityName, repo)
 	}
@@ -168,7 +120,7 @@ func (s *ReferenceSubsystem) setupRepositories(infra *infrastructure.Infrastruct
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", property_type.EntityName, err)
 	}
-	s.PropertyType.Repository, ok = repo.(property_type.Repository)
+	s.propertyTypeRepository, ok = repo.(property_type.Repository)
 	if !ok {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", property_type.EntityName, property_type.EntityName, repo)
 	}
@@ -177,7 +129,7 @@ func (s *ReferenceSubsystem) setupRepositories(infra *infrastructure.Infrastruct
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", property_view_type.EntityName, err)
 	}
-	s.PropertyViewType.Repository, ok = repo.(property_view_type.Repository)
+	s.propertyViewTypeRepository, ok = repo.(property_view_type.Repository)
 	if !ok {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", property_view_type.EntityName, property_view_type.EntityName, repo)
 	}
@@ -186,7 +138,7 @@ func (s *ReferenceSubsystem) setupRepositories(infra *infrastructure.Infrastruct
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", entity_type.EntityName, err)
 	}
-	s.EntityType.Repository, ok = repo.(entity_type.Repository)
+	s.entityTypeRepository, ok = repo.(entity_type.Repository)
 	if !ok {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", entity_type.EntityName, entity_type.EntityName, repo)
 	}
@@ -195,7 +147,7 @@ func (s *ReferenceSubsystem) setupRepositories(infra *infrastructure.Infrastruct
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", property_unit.EntityName, err)
 	}
-	s.PropertyUnit.Repository, ok = repo.(property_unit.Repository)
+	s.propertyUnitRepository, ok = repo.(property_unit.Repository)
 	if !ok {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", property_unit.EntityName, property_unit.EntityName, repo)
 	}
@@ -204,7 +156,7 @@ func (s *ReferenceSubsystem) setupRepositories(infra *infrastructure.Infrastruct
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", property_group.EntityName, err)
 	}
-	s.PropertyGroup.Repository, ok = repo.(property_group.Repository)
+	s.propertyGroupRepository, ok = repo.(property_group.Repository)
 	if !ok {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", property_group.EntityName, property_group.EntityName, repo)
 	}
@@ -213,7 +165,7 @@ func (s *ReferenceSubsystem) setupRepositories(infra *infrastructure.Infrastruct
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", property_type2property_view_type.EntityName, err)
 	}
-	s.PropertyType2PropertyViewType.Repository, ok = repo.(property_type2property_view_type.Repository)
+	s.propertyType2PropertyViewTypeRepository, ok = repo.(property_type2property_view_type.Repository)
 	if !ok {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", property_type2property_view_type.EntityName, property_type2property_view_type.EntityName, repo)
 	}
@@ -222,7 +174,7 @@ func (s *ReferenceSubsystem) setupRepositories(infra *infrastructure.Infrastruct
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", property.EntityName, err)
 	}
-	s.Property.Repository, ok = repo.(property.Repository)
+	s.propertyRepository, ok = repo.(property.Repository)
 	if !ok {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", property.EntityName, property.EntityName, repo)
 	}
@@ -231,7 +183,7 @@ func (s *ReferenceSubsystem) setupRepositories(infra *infrastructure.Infrastruct
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", text_value.EntityName, err)
 	}
-	s.TextValue.Repository, ok = repo.(text_value.Repository)
+	s.textValueRepository, ok = repo.(text_value.Repository)
 	if !ok {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", text_value.EntityName, text_value.EntityName, repo)
 	}
@@ -240,7 +192,7 @@ func (s *ReferenceSubsystem) setupRepositories(infra *infrastructure.Infrastruct
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", entity_type2property.EntityName, err)
 	}
-	s.EntityType2Property.Repository, ok = repo.(entity_type2property.Repository)
+	s.entityType2PropertyRepository, ok = repo.(entity_type2property.Repository)
 	if !ok {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", entity_type2property.EntityName, entity_type2property.EntityName, repo)
 	}
@@ -249,7 +201,7 @@ func (s *ReferenceSubsystem) setupRepositories(infra *infrastructure.Infrastruct
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", entity_type.RelationEntityName, err)
 	}
-	s.Relation.Repository, ok = repo.(entity_type.RelationRepository)
+	s.relationRepository, ok = repo.(entity_type.RelationRepository)
 	if !ok {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", entity_type.RelationEntityName, entity_type.RelationEntityName, repo)
 	}
@@ -258,7 +210,7 @@ func (s *ReferenceSubsystem) setupRepositories(infra *infrastructure.Infrastruct
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", text_lang.EntityName, err)
 	}
-	s.TextLang.Repository, ok = repo.(text_lang.Repository)
+	s.textLangRepository, ok = repo.(text_lang.Repository)
 	if !ok {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", text_lang.EntityName, text_lang.EntityName, repo)
 	}
@@ -267,17 +219,17 @@ func (s *ReferenceSubsystem) setupRepositories(infra *infrastructure.Infrastruct
 }
 
 func (s *ReferenceSubsystem) setupServices(logger log.ILogger) {
-	s.EntityType2Property.Service = entity_type2property.NewService(logger, s.EntityType2Property.Repository)
-	s.Relation.Service = entity_type.NewRelationService(logger, s.Relation.Repository)
-	s.EntityType.Service = entity_type.NewService(logger, s.EntityType.Repository, s.Relation.Service)
-	s.PropertyGroup.Service = property_group.NewService(logger, s.PropertyGroup.Repository)
-	s.Property.Service = property.NewService(logger, s.Property.Repository)
-	s.PropertyType.Service = property_type.NewService(logger, s.PropertyType.Repository, s.PropertyType2PropertyViewType.Repository)
-	s.PropertyUnit.Service = property_unit.NewService(logger, s.PropertyUnit.Repository)
-	s.PropertyViewType.Service = property_view_type.NewService(logger, s.PropertyViewType.Repository)
-	s.TextSource.Service = text_source.NewService(logger, s.TextSource.Repository)
-	s.TextValue.Service = text_value.NewService(logger, s.TextValue.Repository)
-	s.TextLang.Service = text_lang.NewService(logger, s.TextLang.Repository)
+	s.EntityType2Property = entity_type2property.NewService(logger, s.entityType2PropertyRepository)
+	s.Relation = entity_type.NewRelationService(logger, s.relationRepository)
+	s.EntityType = entity_type.NewService(logger, s.entityTypeRepository, s.Relation)
+	s.PropertyGroup = property_group.NewService(logger, s.propertyGroupRepository)
+	s.Property = property.NewService(logger, s.propertyRepository)
+	s.PropertyType = property_type.NewService(logger, s.propertyTypeRepository, s.propertyType2PropertyViewTypeRepository)
+	s.PropertyUnit = property_unit.NewService(logger, s.propertyUnitRepository)
+	s.PropertyViewType = property_view_type.NewService(logger, s.propertyViewTypeRepository)
+	s.TextSource = text_source.NewService(logger, s.textSourceRepository)
+	s.TextValue = text_value.NewService(logger, s.textValueRepository)
+	s.TextLang = text_lang.NewService(logger, s.textLangRepository)
 }
 
 func (s *ReferenceSubsystem) dbStructFix(db minipkg_gorm.IDB) error {
@@ -329,7 +281,7 @@ func (s *ReferenceSubsystem) dbDataInit(metadata *config.Metadata) error {
 }
 
 func (s *ReferenceSubsystem) LangDataInit(ctx context.Context, langsConfig config.Languages) error {
-	count, err := s.TextLang.Service.Count(ctx, &selection_condition.SelectionCondition{})
+	count, err := s.TextLang.Count(ctx, &selection_condition.SelectionCondition{})
 	if err != nil {
 		return err
 	}
@@ -341,14 +293,14 @@ func (s *ReferenceSubsystem) LangDataInit(ctx context.Context, langsConfig confi
 		item := text_lang.New()
 		item.Code = code
 		item.Name = name
-		s.TextLang.Service.Create(ctx, item)
+		s.TextLang.Create(ctx, item)
 	}
 
 	return nil
 }
 
 func (s *ReferenceSubsystem) PropertyTypeDataInit(ctx context.Context) error {
-	count, err := s.PropertyType.Service.Count(ctx, &selection_condition.SelectionCondition{})
+	count, err := s.PropertyType.Count(ctx, &selection_condition.SelectionCondition{})
 	if err != nil {
 		return err
 	}
@@ -380,7 +332,7 @@ func (s *ReferenceSubsystem) PropertyTypeDataInit(ctx context.Context) error {
 		},
 	}
 	for _, i := range items {
-		err = s.PropertyType.Service.Create(ctx, &i)
+		err = s.PropertyType.Create(ctx, &i)
 		if err != nil {
 			return err
 		}
@@ -390,7 +342,7 @@ func (s *ReferenceSubsystem) PropertyTypeDataInit(ctx context.Context) error {
 }
 
 func (s *ReferenceSubsystem) PropertyUnitInit(ctx context.Context, unitsConfig config.PropertyUnits) error {
-	count, err := s.PropertyUnit.Service.Count(ctx, &selection_condition.SelectionCondition{})
+	count, err := s.PropertyUnit.Count(ctx, &selection_condition.SelectionCondition{})
 	if err != nil {
 		return err
 	}
@@ -398,12 +350,12 @@ func (s *ReferenceSubsystem) PropertyUnitInit(ctx context.Context, unitsConfig c
 		return nil
 	}
 
-	langsSl, err := s.TextLang.Service.GetCodesEmptyInterfaceSlice(ctx)
+	langsSl, err := s.TextLang.GetCodesEmptyInterfaceSlice(ctx)
 	if err != nil {
 		return err
 	}
 
-	langsIDsMap, err := s.TextLang.Service.GetMapCodeID(ctx)
+	langsIDsMap, err := s.TextLang.GetMapCodeID(ctx)
 	if err != nil {
 		return err
 	}
@@ -411,7 +363,7 @@ func (s *ReferenceSubsystem) PropertyUnitInit(ctx context.Context, unitsConfig c
 	for sysname, unitConfig := range unitsConfig {
 		unit := property_unit.New()
 		unit.Sysname = sysname
-		if err := s.PropertyUnit.Service.TCreate(ctx, unit, 1); err != nil {
+		if err := s.PropertyUnit.TCreate(ctx, unit, 1); err != nil {
 			return err
 		}
 
@@ -428,7 +380,7 @@ func (s *ReferenceSubsystem) PropertyUnitInit(ctx context.Context, unitsConfig c
 			description := texts.Description
 			unit.Name = &name
 			unit.Description = &description
-			if err := s.PropertyUnit.Service.TUpdate(ctx, unit, langID); err != nil {
+			if err := s.PropertyUnit.TUpdate(ctx, unit, langID); err != nil {
 				return err
 			}
 		}
@@ -438,24 +390,24 @@ func (s *ReferenceSubsystem) PropertyUnitInit(ctx context.Context, unitsConfig c
 }
 
 func (s *ReferenceSubsystem) EntityTypeInit(ctx context.Context, EntityTypesConfig config.EntityTypes) error {
-	count, err := s.EntityType.Service.Count(ctx, &selection_condition.SelectionCondition{})
+	count, err := s.EntityType.Count(ctx, &selection_condition.SelectionCondition{})
 	if err != nil {
 		return err
 	}
 	if count > 0 {
 		return nil
 	}
-	propertiesCount, err := s.Property.Service.Count(ctx, &selection_condition.SelectionCondition{})
+	propertiesCount, err := s.Property.Count(ctx, &selection_condition.SelectionCondition{})
 	if err != nil {
 		return err
 	}
 
-	langsSl, err := s.TextLang.Service.GetCodesEmptyInterfaceSlice(ctx)
+	langsSl, err := s.TextLang.GetCodesEmptyInterfaceSlice(ctx)
 	if err != nil {
 		return err
 	}
 
-	langsIDsMap, err := s.TextLang.Service.GetMapCodeID(ctx)
+	langsIDsMap, err := s.TextLang.GetMapCodeID(ctx)
 	if err != nil {
 		return err
 	}
@@ -463,7 +415,7 @@ func (s *ReferenceSubsystem) EntityTypeInit(ctx context.Context, EntityTypesConf
 	for sysname, entityTypeConfig := range EntityTypesConfig {
 		entityType := entity_type.New()
 		entityType.Sysname = sysname
-		if err := s.EntityType.Service.TCreate(ctx, entityType, 1); err != nil {
+		if err := s.EntityType.TCreate(ctx, entityType, 1); err != nil {
 			return err
 		}
 
@@ -480,7 +432,7 @@ func (s *ReferenceSubsystem) EntityTypeInit(ctx context.Context, EntityTypesConf
 			description := texts.Description
 			entityType.Name = &name
 			entityType.Description = &description
-			if err := s.EntityType.Service.TUpdate(ctx, entityType, langID); err != nil {
+			if err := s.EntityType.TUpdate(ctx, entityType, langID); err != nil {
 				return err
 			}
 		}
@@ -496,7 +448,7 @@ func (s *ReferenceSubsystem) EntityTypeInit(ctx context.Context, EntityTypesConf
 }
 
 func (s *ReferenceSubsystem) PropertyInit(ctx context.Context, entityType *entity_type.EntityType, PropertiesConfig config.Properties) error {
-	count, err := s.Property.Service.Count(ctx, &selection_condition.SelectionCondition{})
+	count, err := s.Property.Count(ctx, &selection_condition.SelectionCondition{})
 	if err != nil {
 		return err
 	}
@@ -504,12 +456,12 @@ func (s *ReferenceSubsystem) PropertyInit(ctx context.Context, entityType *entit
 		return nil
 	}
 
-	langsSl, err := s.TextLang.Service.GetCodesEmptyInterfaceSlice(ctx)
+	langsSl, err := s.TextLang.GetCodesEmptyInterfaceSlice(ctx)
 	if err != nil {
 		return err
 	}
 
-	langsIDsMap, err := s.TextLang.Service.GetMapCodeID(ctx)
+	langsIDsMap, err := s.TextLang.GetMapCodeID(ctx)
 	if err != nil {
 		return err
 	}
@@ -519,13 +471,13 @@ func (s *ReferenceSubsystem) PropertyInit(ctx context.Context, entityType *entit
 		prop.Sysname = entityType.Sysname + "." + sysname
 
 		if propertyConfig.PropertyType != "" {
-			if prop.PropertyTypeID, err = s.PropertyType.Service.GetIDBySysname(ctx, propertyConfig.PropertyType); err != nil {
+			if prop.PropertyTypeID, err = s.PropertyType.GetIDBySysname(ctx, propertyConfig.PropertyType); err != nil {
 				return err
 			}
 		}
 
 		if propertyConfig.PropertyUnit != "" {
-			propertyUnitID, err := s.PropertyUnit.Service.GetIDBySysname(ctx, propertyConfig.PropertyUnit)
+			propertyUnitID, err := s.PropertyUnit.GetIDBySysname(ctx, propertyConfig.PropertyUnit)
 			if err != nil {
 				return err
 			}
@@ -533,7 +485,7 @@ func (s *ReferenceSubsystem) PropertyInit(ctx context.Context, entityType *entit
 		}
 
 		if propertyConfig.PropertyViewType != "" {
-			propertyViewTypeID, err := s.PropertyViewType.Service.GetIDBySysname(ctx, propertyConfig.PropertyViewType)
+			propertyViewTypeID, err := s.PropertyViewType.GetIDBySysname(ctx, propertyConfig.PropertyViewType)
 			if err != nil {
 				return err
 			}
@@ -541,7 +493,7 @@ func (s *ReferenceSubsystem) PropertyInit(ctx context.Context, entityType *entit
 		}
 
 		if propertyConfig.PropertyGroup != "" {
-			propertyGroupID, err := s.PropertyGroup.Service.GetIDBySysname(ctx, propertyConfig.PropertyGroup)
+			propertyGroupID, err := s.PropertyGroup.GetIDBySysname(ctx, propertyConfig.PropertyGroup)
 			if err != nil {
 				return err
 			}
@@ -553,11 +505,11 @@ func (s *ReferenceSubsystem) PropertyInit(ctx context.Context, entityType *entit
 		prop.IsMultiple = propertyConfig.IsMultiple
 		prop.SortOrder = propertyConfig.SortOrder
 		prop.Options = propertyConfig.Options
-		if err := s.Property.Service.TCreate(ctx, prop, 1); err != nil {
+		if err := s.Property.TCreate(ctx, prop, 1); err != nil {
 			return err
 		}
 
-		if err := s.EntityType.Service.BindProperty(ctx, entityType.ID, prop.ID); err != nil {
+		if err := s.EntityType.BindProperty(ctx, entityType.ID, prop.ID); err != nil {
 			return err
 		}
 
@@ -574,7 +526,7 @@ func (s *ReferenceSubsystem) PropertyInit(ctx context.Context, entityType *entit
 			description := texts.Description
 			prop.Name = &name
 			prop.Description = &description
-			if err := s.Property.Service.TUpdate(ctx, prop, langID); err != nil {
+			if err := s.Property.TUpdate(ctx, prop, langID); err != nil {
 				return err
 			}
 		}

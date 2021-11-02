@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"context"
 	"sort"
 
 	"github.com/pkg/errors"
@@ -24,6 +25,17 @@ const (
 	TableName  = "entity"
 )
 
+type PropertyFinder interface {
+	Get(ctx context.Context, id uint) (*property.Property, error)
+	GetBySysname(ctx context.Context, sysname string, langID uint) (*property.Property, error)
+	GetSysnames(ctx context.Context) ([]string, error)
+	GetSysnamesEmptyInterfaceSlice(ctx context.Context) ([]interface{}, error)
+	GetMapSysnameID(ctx context.Context) (map[string]uint, error)
+	GetMapIDSysname(ctx context.Context) (map[uint]string, error)
+	GetIDBySysname(ctx context.Context, sysname string) (uint, error)
+	GetSysnameByID(ctx context.Context, id uint) (string, error)
+}
+
 // Entity ...
 // Значения свойст:
 // 	пишем в соотв. слайс из ...Values
@@ -42,6 +54,7 @@ type Entity struct {
 	FloatValues      []float_value.FloatValue `json:"-"`
 	DateValues       []date_value.DateValue   `json:"-"`
 	TimeValues       []time_value.TimeValue   `json:"-"`
+	PropertyFinder   PropertyFinder           `gorm:"-" json:"-"`
 }
 
 func (e *Entity) TableName() string {

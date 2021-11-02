@@ -33,6 +33,7 @@ type IService interface {
 	GetMapIDSysname(ctx context.Context) (map[uint]string, error)
 	GetIDBySysname(ctx context.Context, sysname string) (uint, error)
 	GetSysnameByID(ctx context.Context, id uint) (string, error)
+	GetBySysname(ctx context.Context, sysname string, langID uint) (*Property, error)
 }
 
 type service struct {
@@ -68,6 +69,10 @@ func (s *service) Get(ctx context.Context, id uint) (*Property, error) {
 		return nil, err
 	}
 	return entity, nil
+}
+
+func (s *service) GetBySysname(ctx context.Context, sysname string, langID uint) (*Property, error) {
+	return s.repository.GetBySysname(ctx, sysname, langID)
 }
 
 func (s *service) First(ctx context.Context, entity *Property) (*Property, error) {

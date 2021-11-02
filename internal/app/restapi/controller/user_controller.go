@@ -35,7 +35,7 @@ func (c userController) get(ctx *routing.Context) error {
 		return errorshandler.BadRequest("ID is required to be uint")
 	}
 
-	entity, err := c.Service.Get(ctx.Request.Context(), uint(id))
+	entity, err := c.Service.Get(ctx.Request.Context(), uint(id), 1)
 	if err != nil {
 		if err == apperror.ErrNotFound {
 			c.Logger.With(ctx.Request.Context()).Info(err)

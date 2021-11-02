@@ -161,7 +161,7 @@ func (s *service) EntityInit(ctx context.Context, entity *Entity, langID uint) e
 }
 
 func (s *service) propertiesInit(ctx context.Context, entity *Entity, langID uint) error {
-	props, rels, err := s.reference.Relation.Service.TPropertyAndRelationQuery(ctx, &selection_condition.SelectionCondition{
+	props, rels, err := s.reference.Relation.TPropertyAndRelationQuery(ctx, &selection_condition.SelectionCondition{
 		Where: selection_condition.WhereCondition{
 			Field:     "ID",
 			Condition: selection_condition.ConditionIn,

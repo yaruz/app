@@ -1,9 +1,12 @@
 package yaruzplatform
 
 import (
+	"context"
+
 	"github.com/minipkg/selection_condition"
 	"github.com/yaruz/app/internal/domain/task"
 	"github.com/yaruz/app/internal/domain/user"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
 
 	"github.com/yaruz/app/pkg/yarus_platform"
 
@@ -44,4 +47,18 @@ func GetRepository(logger log.ILogger, yaruzRepository yarus_platform.IPlatform,
 
 func (r *repository) SetDefaultConditions(defaultConditions *selection_condition.SelectionCondition) {
 	r.Conditions = defaultConditions
+}
+
+func (r *repository) GetPropertyFinder() entity.PropertyFinder {
+	return r.yaruzRepository.ReferenceSubsystem().Property
+}
+
+func (r *repository) NewByEntityTypeID(ctx context.Context, entityTypeID uint) (*user.User, error) {
+	entity := entity.New()
+	entity.EntityTypeID = entityTypeID
+	entity.PropertyFinder = r.GetPropertyFinder()
+
+	return &user.User{
+		Entity: entity,
+	}, nil
 }

@@ -21,14 +21,10 @@ import (
 )
 
 type DataSubsystem struct {
-	reference *reference.ReferenceSubsystem
-	search    *search.SearchSubsystem
-	Entity    DataDomainEntity
-}
-
-type DataDomainEntity struct {
-	Service    entity.IService
-	Repository entity.Repository
+	reference        *reference.ReferenceSubsystem
+	search           *search.SearchSubsystem
+	Entity           entity.IService
+	entityRepository entity.Repository
 }
 
 func NewDataSubsystem(infra *infrastructure.Infrastructure, reference *reference.ReferenceSubsystem, search *search.SearchSubsystem) (*DataSubsystem, error) {
@@ -73,7 +69,7 @@ func (d *DataSubsystem) setupRepositories(infra *infrastructure.Infrastructure) 
 	if err != nil {
 		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", entity.EntityName, err)
 	}
-	d.Entity.Repository, ok = repo.(entity.Repository)
+	d.entityRepository, ok = repo.(entity.Repository)
 	if !ok {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", entity.EntityName, entity.EntityName, repo)
 	}
@@ -82,5 +78,5 @@ func (d *DataSubsystem) setupRepositories(infra *infrastructure.Infrastructure) 
 }
 
 func (d *DataSubsystem) setupServices(logger log.ILogger) {
-	d.Entity.Service = entity.NewService(logger, d.Entity.Repository, d.reference, d.search)
+	d.Entity = entity.NewService(logger, d.entityRepository, d.reference, d.search)
 }
