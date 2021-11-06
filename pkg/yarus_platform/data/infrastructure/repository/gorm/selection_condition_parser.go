@@ -14,6 +14,7 @@ import (
 
 type SelectionConditionParser struct {
 	propertyFinder    entity.PropertyFinder
+	entityTypeFinder  entity.EntityTypeFinder
 	OriginalCondition *selection_condition.SelectionCondition
 	TargetCondition   *SearchCondition
 }

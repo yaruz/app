@@ -124,37 +124,37 @@ func (b *sqlBuilder) ProcessPropertiesConditions() error {
 		tableAlias := fmt.Sprintf("t%vi%v", typeID, propertyID)
 		b.From = append(b.From, b.JoinPropertyValue(b.GetPropertyValueTable(typeID), tableAlias, propertyID))
 
-		b.ProcessPropertyConditionsWhere(tableAlias, propertyID, propertyCondition.Where)
-		b.ProcessPropertyConditionsSortOrder(tableAlias, propertyID, propertyCondition.SortOrder)
+		b.ProcessPropertyConditionsWhere(tableAlias, propertyCondition.Where)
+		b.ProcessPropertyConditionsSortOrder(tableAlias, propertyCondition.SortOrder)
 	}
 	return nil
 }
 
-func (b *sqlBuilder) ProcessPropertyConditionsWhere(tableAlias string, propertyID uint, wcs selection_condition.WhereConditions) error {
+func (b *sqlBuilder) ProcessPropertyConditionsWhere(tableAlias string, wcs selection_condition.WhereConditions) error {
 	for _, wc := range wcs {
 		switch wc.Condition {
 		case selection_condition.ConditionEq:
 			b.Where.Str = append(b.Where.Str, tableAlias+".value = ?")
-			b.Where.Params = append(b.Where.Params, propertyID, wc.Value)
+			b.Where.Params = append(b.Where.Params, wc.Value)
 		case selection_condition.ConditionGt:
 			b.Where.Str = append(b.Where.Str, tableAlias+".value > ?")
-			b.Where.Params = append(b.Where.Params, propertyID, wc.Value)
+			b.Where.Params = append(b.Where.Params, wc.Value)
 		case selection_condition.ConditionGte:
 			b.Where.Str = append(b.Where.Str, tableAlias+".value >= ?")
-			b.Where.Params = append(b.Where.Params, propertyID, wc.Value)
+			b.Where.Params = append(b.Where.Params, wc.Value)
 		case selection_condition.ConditionLt:
 			b.Where.Str = append(b.Where.Str, tableAlias+".value < ?")
-			b.Where.Params = append(b.Where.Params, propertyID, wc.Value)
+			b.Where.Params = append(b.Where.Params, wc.Value)
 		case selection_condition.ConditionLte:
 			b.Where.Str = append(b.Where.Str, tableAlias+".value <= ?")
-			b.Where.Params = append(b.Where.Params, propertyID, wc.Value)
+			b.Where.Params = append(b.Where.Params, wc.Value)
 		case selection_condition.ConditionIn:
 			value, ok := wc.Value.([]interface{})
 			if !ok {
 				return errors.Errorf("Can not cast into a slice value = %v", wc.Value)
 			}
 			b.Where.Str = append(b.Where.Str, tableAlias+".value IN (?)")
-			b.Where.Params = append(b.Where.Params, propertyID, value)
+			b.Where.Params = append(b.Where.Params, value)
 		case selection_condition.ConditionBt:
 			value, ok := wc.Value.([]interface{})
 			if !ok {
@@ -164,14 +164,14 @@ func (b *sqlBuilder) ProcessPropertyConditionsWhere(tableAlias string, propertyI
 				return errors.Errorf("Length of a slice must be = 2, %v given.", wc.Value)
 			}
 			b.Where.Str = append(b.Where.Str, tableAlias+".value BEETWIN ? AND ?")
-			b.Where.Params = append(b.Where.Params, propertyID, value[0], value[1])
+			b.Where.Params = append(b.Where.Params, value[0], value[1])
 		}
 
 	}
 	return nil
 }
 
-func (b *sqlBuilder) ProcessPropertyConditionsSortOrder(tableAlias string, propertyID uint, sortOrderMaps []map[string]string) {
+func (b *sqlBuilder) ProcessPropertyConditionsSortOrder(tableAlias string, sortOrderMaps []map[string]string) {
 	for _, sortOrderMap := range sortOrderMaps {
 		for _, sortOrder := range sortOrderMap {
 			b.SortOrder = append(b.SortOrder, tableAlias+".value "+sortOrder)

@@ -66,6 +66,7 @@ func (s *SearchService) Count(ctx context.Context, cond *selection_condition.Sel
 func (s *SearchService) ParseSelectionCondition(OriginalCondition *selection_condition.SelectionCondition) (*SearchCondition, error) {
 	parser := SelectionConditionParser{
 		propertyFinder:    s.propertyFinder,
+		entityTypeFinder:  s.entityTypeFinder,
 		OriginalCondition: OriginalCondition,
 		TargetCondition:   &SearchCondition{},
 	}
