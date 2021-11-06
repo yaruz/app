@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	Regexp = "^[a-z0-9_\\.]+$"
+	Regexp = "^[a-zA-Z0-9_\\.]+$"
 )
 
 var ValidationRules = []validation.Rule{

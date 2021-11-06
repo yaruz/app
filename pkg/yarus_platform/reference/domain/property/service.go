@@ -31,8 +31,12 @@ type IService interface {
 	GetSysnamesEmptyInterfaceSlice(ctx context.Context) ([]interface{}, error)
 	GetMapSysnameID(ctx context.Context) (map[string]uint, error)
 	GetMapIDSysname(ctx context.Context) (map[uint]string, error)
+	GetMapSysnameTypeID(ctx context.Context) (map[string]uint, error)
+	GetMapIDTypeID(ctx context.Context) (map[uint]uint, error)
 	GetIDBySysname(ctx context.Context, sysname string) (uint, error)
 	GetSysnameByID(ctx context.Context, id uint) (string, error)
+	GetTypeIDBySysname(ctx context.Context, sysname string) (uint, error)
+	GetTypeIDByID(ctx context.Context, id uint) (uint, error)
 	GetBySysname(ctx context.Context, sysname string, langID uint) (*Property, error)
 }
 
@@ -155,6 +159,32 @@ func (s *service) GetMapSysnameID(ctx context.Context) (map[string]uint, error) 
 	return res, nil
 }
 
+func (s *service) GetMapSysnameTypeID(ctx context.Context) (map[string]uint, error) {
+	items, err := s.Query(ctx, &selection_condition.SelectionCondition{})
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[string]uint, len(items))
+	for _, item := range items {
+		res[item.Sysname] = item.PropertyTypeID
+	}
+	return res, nil
+}
+
+func (s *service) GetMapIDTypeID(ctx context.Context) (map[uint]uint, error) {
+	items, err := s.Query(ctx, &selection_condition.SelectionCondition{})
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[uint]uint, len(items))
+	for _, item := range items {
+		res[item.ID] = item.PropertyTypeID
+	}
+	return res, nil
+}
+
 func (s *service) GetMapIDSysname(ctx context.Context) (map[uint]string, error) {
 	items, err := s.Query(ctx, &selection_condition.SelectionCondition{})
 	if err != nil {
@@ -194,6 +224,34 @@ func (s *service) GetSysnameByID(ctx context.Context, id uint) (string, error) {
 	}
 
 	return sysname, nil
+}
+
+func (s *service) GetTypeIDBySysname(ctx context.Context, sysname string) (uint, error) {
+	mapSysnameTypeID, err := s.GetMapSysnameTypeID(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	typeID, ok := mapSysnameTypeID[sysname]
+	if !ok {
+		return 0, yaruserror.ErrNotFound
+	}
+
+	return typeID, nil
+}
+
+func (s *service) GetTypeIDByID(ctx context.Context, id uint) (uint, error) {
+	mapIDTypeID, err := s.GetMapIDTypeID(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	typeID, ok := mapIDTypeID[id]
+	if !ok {
+		return 0, yaruserror.ErrNotFound
+	}
+
+	return typeID, nil
 }
 
 func (s *service) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error) {

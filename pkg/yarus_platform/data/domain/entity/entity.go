@@ -25,6 +25,17 @@ const (
 	TableName  = "entity"
 )
 
+type EntityTypeFinder interface {
+	Get(ctx context.Context, id uint) (*entity_type.EntityType, error)
+	GetBySysname(ctx context.Context, sysname string, langID uint) (*entity_type.EntityType, error)
+	GetSysnames(ctx context.Context) ([]string, error)
+	GetSysnamesEmptyInterfaceSlice(ctx context.Context) ([]interface{}, error)
+	GetMapSysnameID(ctx context.Context) (map[string]uint, error)
+	GetMapIDSysname(ctx context.Context) (map[uint]string, error)
+	GetIDBySysname(ctx context.Context, sysname string) (uint, error)
+	GetSysnameByID(ctx context.Context, id uint) (string, error)
+}
+
 type PropertyFinder interface {
 	Get(ctx context.Context, id uint) (*property.Property, error)
 	GetBySysname(ctx context.Context, sysname string, langID uint) (*property.Property, error)
@@ -32,8 +43,12 @@ type PropertyFinder interface {
 	GetSysnamesEmptyInterfaceSlice(ctx context.Context) ([]interface{}, error)
 	GetMapSysnameID(ctx context.Context) (map[string]uint, error)
 	GetMapIDSysname(ctx context.Context) (map[uint]string, error)
+	GetMapSysnameTypeID(ctx context.Context) (map[string]uint, error)
+	GetMapIDTypeID(ctx context.Context) (map[uint]uint, error)
 	GetIDBySysname(ctx context.Context, sysname string) (uint, error)
 	GetSysnameByID(ctx context.Context, id uint) (string, error)
+	GetTypeIDBySysname(ctx context.Context, sysname string) (uint, error)
+	GetTypeIDByID(ctx context.Context, id uint) (uint, error)
 }
 
 // Entity ...
