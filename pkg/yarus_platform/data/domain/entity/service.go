@@ -10,7 +10,6 @@ import (
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
-	"github.com/yaruz/app/pkg/yarus_platform/search"
 	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 )
 
@@ -18,9 +17,9 @@ import (
 type IService interface {
 	NewEntity() *Entity
 	Get(ctx context.Context, id uint, langID uint) (*Entity, error)
-	First(ctx context.Context, entity *Entity, langID uint) (*Entity, error)
+	First(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) (*Entity, error)
 	Query(ctx context.Context, query *selection_condition.SelectionCondition, langID uint) ([]Entity, error)
-	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error)
+	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (uint, error)
 	Create(ctx context.Context, entity *Entity, langID uint) error
 	Update(ctx context.Context, entity *Entity, langID uint) error
 	Delete(ctx context.Context, id uint) error
@@ -42,18 +41,18 @@ type service struct {
 	logger     log.ILogger
 	repository Repository
 	reference  *reference.ReferenceSubsystem
-	search     *search.SearchSubsystem
+	search     SearchService
 }
 
 var _ IService = (*service)(nil)
 
 // NewService creates a new service.
-func NewService(logger log.ILogger, repo Repository, reference *reference.ReferenceSubsystem, search *search.SearchSubsystem) IService {
+func NewService(logger log.ILogger, repo Repository, reference *reference.ReferenceSubsystem, searchService SearchService) IService {
 	s := &service{
 		logger:     logger,
 		repository: repo,
 		reference:  reference,
-		search:     search,
+		search:     searchService,
 	}
 	//repo.SetDefaultConditions(s.defaultConditions())
 	return s
@@ -76,8 +75,8 @@ func (s *service) Get(ctx context.Context, id uint, langID uint) (*Entity, error
 	return entity, nil
 }
 
-func (s *service) First(ctx context.Context, entity *Entity, langID uint) (*Entity, error) {
-	entity, err := s.repository.First(ctx, entity, langID)
+func (s *service) First(ctx context.Context, selectionCondition *selection_condition.SelectionCondition, langID uint) (*Entity, error) {
+	entity, err := s.search.First(ctx, selectionCondition, langID)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +89,7 @@ func (s *service) First(ctx context.Context, entity *Entity, langID uint) (*Enti
 
 // Query returns the items with the specified selection condition.
 func (s *service) Query(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) ([]Entity, error) {
-	items, err := s.repository.Query(ctx, cond, langID)
+	items, err := s.search.Query(ctx, cond, langID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Can not find a list of items by query: %v", cond)
 	}
@@ -105,8 +104,8 @@ func (s *service) Query(ctx context.Context, cond *selection_condition.Selection
 	return items, nil
 }
 
-func (s *service) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error) {
-	count, err := s.repository.Count(ctx, cond)
+func (s *service) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (uint, error) {
+	count, err := s.search.Count(ctx, cond)
 	if err != nil {
 		return 0, errors.Wrapf(err, "Can not count a list of items by query: %v", cond)
 	}

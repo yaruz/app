@@ -1,8 +1,6 @@
 package data
 
 import (
-	golog "log"
-
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/log"
 	"github.com/pkg/errors"
@@ -17,20 +15,18 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform/data/infrastructure/repository/gorm"
 	"github.com/yaruz/app/pkg/yarus_platform/infrastructure"
 	"github.com/yaruz/app/pkg/yarus_platform/reference"
-	"github.com/yaruz/app/pkg/yarus_platform/search"
 )
 
 type DataSubsystem struct {
 	reference        *reference.ReferenceSubsystem
-	search           *search.SearchSubsystem
 	Entity           entity.IService
 	entityRepository entity.Repository
+	search           entity.SearchService
 }
 
-func NewDataSubsystem(infra *infrastructure.Infrastructure, reference *reference.ReferenceSubsystem, search *search.SearchSubsystem) (*DataSubsystem, error) {
+func NewDataSubsystem(infra *infrastructure.Infrastructure, reference *reference.ReferenceSubsystem) (*DataSubsystem, error) {
 	d := &DataSubsystem{
 		reference: reference,
-		search:    search,
 	}
 	if err := d.setupRepositories(infra); err != nil {
 		return nil, err
@@ -67,11 +63,15 @@ func (d *DataSubsystem) setupRepositories(infra *infrastructure.Infrastructure) 
 
 	repo, err := gorm.GetRepository(infra.Logger, infra.DataDB, entity.EntityName)
 	if err != nil {
-		golog.Fatalf("Can not get db repository for entity %q, error happened: %v", entity.EntityName, err)
+		return errors.Errorf("Can not get db repository for entity %q, error happened: %v", entity.EntityName, err)
 	}
 	d.entityRepository, ok = repo.(entity.Repository)
 	if !ok {
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", entity.EntityName, entity.EntityName, repo)
+	}
+
+	if d.search, err = gorm.NewSearchService(infra.Logger, infra.DataDB, d.reference.EntityType, d.reference.Property); err != nil {
+		return errors.Errorf("Can not get SearchService for entity, error happened: %v", err)
 	}
 
 	return nil

@@ -14,6 +14,7 @@ type SearchService struct {
 	logger           log.ILogger
 	propertyFinder   entity.PropertyFinder
 	entityTypeFinder entity.EntityTypeFinder
+	model            *entity.Entity
 }
 
 type SearchCondition struct {
@@ -46,8 +47,33 @@ var IDConditionVariants = []interface{}{
 	selection_condition.ConditionIn,
 }
 
-func (s *SearchService) First(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) (*entity.Entity, error) {
+func NewSearchService(logger log.ILogger, dbase minipkg_gorm.IDB, entityTypeFinder entity.EntityTypeFinder, propertyFinder entity.PropertyFinder) (*SearchService, error) {
+	var err error
+	ctx := context.Background()
+	service := &SearchService{
+		logger:           logger,
+		propertyFinder:   propertyFinder,
+		entityTypeFinder: entityTypeFinder,
+		model:            entity.New(),
+	}
+	if service.db, err = dbase.SchemeInitWithContext(ctx, service.model); err != nil {
+		return nil, err
+	}
+	return service, nil
+}
 
+func (s *SearchService) First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*entity.Entity, error) {
+	searchCondition, err := s.ParseSelectionCondition(condition)
+	if err != nil {
+		return nil, err
+	}
+
+	sqlBuilder := s.newSqlBuilder(searchCondition, langID)
+
+	var ids []uint
+	sql, params := sqlBuilder.FirstQuery()
+	s.db.DB().Raw(sql, params...).Scan(ids)
+	return nil, nil
 }
 
 func (s *SearchService) Query(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) ([]entity.Entity, error) {
@@ -57,10 +83,25 @@ func (s *SearchService) Query(ctx context.Context, condition *selection_conditio
 	}
 
 	sqlBuilder := s.newSqlBuilder(searchCondition, langID)
+
+	var ids []uint
+	sql, params := sqlBuilder.SelectQuery()
+	s.db.DB().Raw(sql, params...).Scan(ids)
+	return nil, nil
 }
 
-func (s *SearchService) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error) {
+func (s *SearchService) Count(ctx context.Context, condition *selection_condition.SelectionCondition) (uint, error) {
+	searchCondition, err := s.ParseSelectionCondition(condition)
+	if err != nil {
+		return 0, err
+	}
 
+	sqlBuilder := s.newSqlBuilder(searchCondition, 0)
+
+	var res uint
+	sql, params := sqlBuilder.CountQuery()
+	s.db.DB().Raw(sql, params...).Scan(&res)
+	return res, nil
 }
 
 func (s *SearchService) ParseSelectionCondition(OriginalCondition *selection_condition.SelectionCondition) (*SearchCondition, error) {

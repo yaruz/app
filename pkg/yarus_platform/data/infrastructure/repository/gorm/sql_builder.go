@@ -3,6 +3,7 @@ package gorm
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/pkg/errors"
 
@@ -200,4 +201,40 @@ func (b *sqlBuilder) GetPropertyValueTable(propertyTypeID uint) string {
 
 func (b *sqlBuilder) JoinPropertyValue(tableName string, tableAlias string, propertyID uint) string {
 	return fmt.Sprintf("INNER JOIN %v AS %v ON %v.id = %v.entity_id AND %v.property_id = %v", tableName, tableAlias, entity.TableName, tableAlias, tableAlias, propertyID)
+}
+
+func (b *sqlBuilder) SelectQuery() (string, []interface{}) {
+	strBuilder := strings.Builder{}
+	strBuilder.WriteString("SELECT entity.id")
+	strBuilder.WriteString(" FROM " + strings.Join(b.From, " "))
+	strBuilder.WriteString(" WHERE " + strings.Join(b.Where.Str, " AND "))
+	strBuilder.WriteString(" ORDER BY " + strings.Join(b.SortOrder, ", "))
+
+	if b.Limit > 0 {
+		strBuilder.WriteString(fmt.Sprintf(" Limit %v, OFFSET %v", b.Limit, b.Offset))
+	}
+
+	return strBuilder.String(), b.Where.Params
+}
+
+func (b *sqlBuilder) CountQuery() (string, []interface{}) {
+	strBuilder := strings.Builder{}
+	strBuilder.WriteString("SELECT COUNT(entity.id)")
+	strBuilder.WriteString(" FROM " + strings.Join(b.From, " "))
+	strBuilder.WriteString(" WHERE " + strings.Join(b.Where.Str, " AND "))
+	strBuilder.WriteString(" ORDER BY " + strings.Join(b.SortOrder, ", "))
+
+	return strBuilder.String(), b.Where.Params
+}
+
+func (b *sqlBuilder) FirstQuery() (string, []interface{}) {
+	strBuilder := strings.Builder{}
+	strBuilder.WriteString("SELECT entity.id")
+	strBuilder.WriteString(" FROM " + strings.Join(b.From, " "))
+	strBuilder.WriteString(" WHERE " + strings.Join(b.Where.Str, " AND "))
+	strBuilder.WriteString(" ORDER BY " + strings.Join(b.SortOrder, ", "))
+
+	strBuilder.WriteString(fmt.Sprintf(" Limit %v, OFFSET %v", 1, b.Offset))
+
+	return strBuilder.String(), b.Where.Params
 }

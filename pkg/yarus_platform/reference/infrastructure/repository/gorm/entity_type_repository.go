@@ -80,6 +80,10 @@ func (r *EntityTypeRepository) TFirst(ctx context.Context, entity *entity_type.E
 	return entity, err
 }
 
+func (r *EntityTypeRepository) GetBySysname(ctx context.Context, sysname string, langID uint) (*entity_type.EntityType, error) {
+	return r.TFirst(ctx, &entity_type.EntityType{Sysname: sysname}, langID)
+}
+
 func (r *EntityTypeRepository) firstTx(ctx context.Context, tx *gorm.DB, entity *entity_type.EntityType) (*entity_type.EntityType, error) {
 	err := r.db.GormTx(tx).Where(entity).First(entity).Error
 	if err != nil {

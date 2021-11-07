@@ -61,6 +61,7 @@ func RegisterDataTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platfor
 	r.Get("/entity", c.entity)
 	r.Get("/entity-text", c.entityText)
 	r.Get("/entity-relation", c.entityRelation)
+	r.Get("/user", c.user)
 	//r.Get("/entity-properties-search", c.entityPropertiesSearch)
 }
 

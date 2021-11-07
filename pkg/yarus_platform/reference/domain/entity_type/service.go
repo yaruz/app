@@ -16,6 +16,7 @@ import (
 type IService interface {
 	NewEntity() *EntityType
 	Get(ctx context.Context, id uint) (*EntityType, error)
+	GetBySysname(ctx context.Context, sysname string, langID uint) (*EntityType, error)
 	First(ctx context.Context, entity *EntityType) (*EntityType, error)
 	Query(ctx context.Context, query *selection_condition.SelectionCondition) ([]EntityType, error)
 	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error)
@@ -95,6 +96,14 @@ func (s *service) First(ctx context.Context, entity *EntityType) (*EntityType, e
 
 func (s *service) TGet(ctx context.Context, id uint, langID uint) (*EntityType, error) {
 	entity, err := s.repository.TGet(ctx, id, langID)
+	if err != nil {
+		return nil, err
+	}
+	return entity, s.tInitPropertiesAndRelations(ctx, entity, langID)
+}
+
+func (s *service) GetBySysname(ctx context.Context, sysname string, langID uint) (*EntityType, error) {
+	entity, err := s.repository.GetBySysname(ctx, sysname, langID)
 	if err != nil {
 		return nil, err
 	}
