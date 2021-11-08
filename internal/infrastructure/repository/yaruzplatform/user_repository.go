@@ -63,47 +63,36 @@ func (r *UserRepository) Get(ctx context.Context, id uint, langID uint) (*user.U
 	return r.instantiate(ctx, e)
 }
 
-func (r *UserRepository) First(ctx context.Context, entity *user.User) (*user.User, error) {
-	//err := r.DB().Where(entity).First(entity).Error
-	//if err != nil {
-	//	if errors.Is(err, gorm.ErrRecordNotFound) {
-	//		return entity, yaruserror.ErrNotFound
-	//	}
-	//}
-
-	return entity, nil
+func (r *UserRepository) First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*user.User, error) {
+	e, err := r.yaruzRepository.DataSubsystem().Entity.First(ctx, condition, langID)
+	if err != nil {
+		return nil, err
+	}
+	return r.instantiate(ctx, e)
 }
 
-// Query retrieves the album records with the specified offset and limit from the database.
-func (r *UserRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]user.User, error) {
-	items := []user.User{}
-	//db := minipkg_gorm.Conditions(r.DB(), cond)
-	//if db.Error != nil {
-	//	return nil, db.Error
-	//}
-	//
-	//err := db.Find(&items).Error
-	//if err != nil {
-	//	if err == gorm.ErrRecordNotFound {
-	//		return items, yaruserror.ErrNotFound
-	//	}
-	//}
+// Query retrieves records with the specified offset and limit from the database.
+func (r *UserRepository) Query(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) ([]user.User, error) {
+
+	entities, err := r.yaruzRepository.DataSubsystem().Entity.Query(ctx, condition, langID)
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]user.User, len(entities))
+	for i, e := range entities {
+		obj, err := r.instantiate(ctx, &e)
+		if err != nil {
+			return nil, err
+		}
+		items[i] = *obj
+	}
 
 	return items, nil
 }
 
-func (r *UserRepository) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error) {
-	var count int64
-	//c := cond
-	//c.Limit = 0
-	//c.Offset = 0
-	//db := minipkg_gorm.Conditions(r.DB(), cond)
-	//if db.Error != nil {
-	//	return 0, db.Error
-	//}
-	//
-	//err := db.Count(&count).Error
-	return count, nil
+func (r *UserRepository) Count(ctx context.Context, condition *selection_condition.SelectionCondition) (uint, error) {
+	return r.yaruzRepository.DataSubsystem().Entity.Count(ctx, condition)
 }
 
 // Create saves a new record in the database.

@@ -121,5 +121,5 @@ func (app *App) RegisterHandlers(rg *routing.RouteGroup, authMiddleware routing.
 	//	Example
 	rgTest := rg.Group("/test")
 	controller.RegisterReferenceTestHandlers(rgTest, app.Infra.YaruzRepository, app.Infra.Logger, authMiddleware)
-	controller.RegisterDataTestHandlers(rgTest, app.Infra.YaruzRepository, app.Infra.Logger, authMiddleware)
+	controller.RegisterDataTestHandlers(rgTest, app.Infra.YaruzRepository, app.Domain.User.Service, app.Infra.Logger, authMiddleware)
 }

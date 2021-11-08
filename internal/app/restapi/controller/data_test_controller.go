@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/yaruz/app/internal/domain/user"
+
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
@@ -21,6 +23,7 @@ import (
 
 type dataTestController struct {
 	Logger        log.ILogger
+	user          user.IService
 	yaruzPlatform yarus_platform.IPlatform
 }
 
@@ -52,16 +55,17 @@ var propertyOpt2Val = 3
 // RegisterHandlers sets up the routing of the HTTP handlers.
 //	GET /api/models/ - список всех моделей
 //	GET /api/model/{ID} - детали модели
-func RegisterDataTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platform.IPlatform, logger log.ILogger, authHandler routing.Handler) {
+func RegisterDataTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platform.IPlatform, user user.IService, logger log.ILogger, authHandler routing.Handler) {
 	c := dataTestController{
 		Logger:        logger,
 		yaruzPlatform: yaruzPlatform,
+		user:          user,
 	}
 
 	r.Get("/entity", c.entity)
 	r.Get("/entity-text", c.entityText)
 	r.Get("/entity-relation", c.entityRelation)
-	r.Get("/user", c.user)
+	r.Get("/user", c.userInst)
 	//r.Get("/entity-properties-search", c.entityPropertiesSearch)
 }
 
@@ -409,6 +413,13 @@ func (c dataTestController) entityRelation(ctx *routing.Context) error {
 	res = append(res, map[string]interface{}{"blogger3": blogger3})
 
 	return ctx.Write(res)
+}
+
+func (c dataTestController) userInst(ctx *routing.Context) error {
+	res := make([]map[string]interface{}, 0, 10)
+	res = append(res, map[string]interface{}{"test": "entity"})
+	cntx := ctx.Request.Context()
+
 }
 
 //func (c dataTestController) entityPropertiesSearch(ctx *routing.Context) error {

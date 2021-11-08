@@ -13,13 +13,12 @@ import (
 type IService interface {
 	New(ctx context.Context) (*User, error)
 	Get(ctx context.Context, id uint, langID uint) (*User, error)
-	//Query(ctx context.Context, offset, limit uint) ([]User, error)
-	//List(ctx context.Context) ([]User, error)
-	//Count(ctx context.Context) (uint, error)
+	Query(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) ([]User, error)
+	First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*User, error)
+	Count(ctx context.Context, condition *selection_condition.SelectionCondition) (uint, error)
 	Create(ctx context.Context, obj *User, langID uint) error
 	Update(ctx context.Context, obj *User, langID uint) error
 	Delete(ctx context.Context, id uint) error
-	First(ctx context.Context, user *User) (*User, error)
 }
 
 type service struct {
@@ -58,29 +57,19 @@ func (s *service) Get(ctx context.Context, id uint, langID uint) (*User, error) 
 	return entity, nil
 }
 
-/*
-// Count returns the number of items.
-func (s *service) Count(ctx context.Context) (uint, error) {
-	return s.repository.Count(ctx)
-}*/
-
 // Query returns the items with the specified offset and limit.
-/*func (s *service) Query(ctx context.Context, offset, limit uint) ([]User, error) {
-	items, err := s.repository.Query(ctx, offset, limit)
-	if err != nil {
-		return nil, errors.Wrapf(err, "Can not find a list of users by ctx")
-	}
-	return items, nil
+func (s *service) Query(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) ([]User, error) {
+	return s.repository.Query(ctx, condition, langID)
 }
 
-// List returns the items list.
-func (s *service) List(ctx context.Context) ([]User, error) {
-	items, err := s.repository.Query(ctx, 0, MaxLIstLimit)
-	if err != nil {
-		return nil, errors.Wrapf(err, "Can not find a list of users by ctx")
-	}
-	return items, nil
-}*/
+func (s *service) First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*User, error) {
+	return s.repository.First(ctx, condition, langID)
+}
+
+// Count returns the number of items.
+func (s *service) Count(ctx context.Context, condition *selection_condition.SelectionCondition) (uint, error) {
+	return s.repository.Count(ctx, condition)
+}
 
 func (s *service) Create(ctx context.Context, obj *User, langID uint) error {
 	return s.repository.Create(ctx, obj, langID)
@@ -92,8 +81,4 @@ func (s *service) Update(ctx context.Context, obj *User, langID uint) error {
 
 func (s *service) Delete(ctx context.Context, id uint) error {
 	return s.repository.Delete(ctx, id)
-}
-
-func (s *service) First(ctx context.Context, user *User) (*User, error) {
-	return s.repository.First(ctx, user)
 }
