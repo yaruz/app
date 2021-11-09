@@ -3,6 +3,8 @@ package text_lang
 import (
 	"context"
 
+	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
+
 	"github.com/minipkg/selection_condition"
 
 	"github.com/pkg/errors"
@@ -24,6 +26,7 @@ type IService interface {
 	GetCodesEmptyInterfaceSlice(ctx context.Context) ([]interface{}, error)
 	GetMapCodeID(ctx context.Context) (map[string]uint, error)
 	GetMapIDCode(ctx context.Context) (map[uint]string, error)
+	GetIDByCode(ctx context.Context, code string) (uint, error)
 }
 
 type service struct {
@@ -120,6 +123,20 @@ func (s *service) GetMapIDCode(ctx context.Context) (map[uint]string, error) {
 		res[item.ID] = item.Code
 	}
 	return res, nil
+}
+
+func (s *service) GetIDByCode(ctx context.Context, code string) (uint, error) {
+	mapSysnameID, err := s.GetMapCodeID(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	id, ok := mapSysnameID[code]
+	if !ok {
+		return 0, yaruserror.ErrNotFound
+	}
+
+	return id, nil
 }
 
 func (s *service) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error) {

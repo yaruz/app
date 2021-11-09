@@ -18,6 +18,20 @@ propertyunits:
     rus:
       name: "мм"
       description: "миллиметры"
+  year:
+    eng:
+      name: "year"
+      description: "years"
+    rus:
+      name: "лет"
+      description: "лет"
+  kg:
+    eng:
+      name: "kg"
+      description: "kilogram"
+    rus:
+      name: "кг"
+      description: "килограмм"
 
 entitytypes:
   user:
@@ -38,3 +52,33 @@ entitytypes:
           rus:
             name: "имя"
             description: "имя"
+      age:
+        propertytype: "int"
+        propertyunit: "year"
+        texts:
+          eng:
+            name: "age"
+            description: "age"
+          rus:
+            name: "возраст"
+            description: "возраст"
+      height:
+        propertytype: "float"
+        propertyunit: "mm"
+        texts:
+          eng:
+            name: "height"
+            description: "height"
+          rus:
+            name: "рост"
+            description: "рост"
+      weight:
+        propertytype: "float"
+        propertyunit: "kg"
+        texts:
+          eng:
+            name: "weight"
+            description: "weight"
+          rus:
+            name: "масса"
+            description: "масса"

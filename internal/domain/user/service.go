@@ -76,7 +76,7 @@ func (s *service) Create(ctx context.Context, obj *User, langID uint) error {
 }
 
 func (s *service) Update(ctx context.Context, obj *User, langID uint) error {
-	return s.repository.Create(ctx, obj, langID)
+	return s.repository.Update(ctx, obj, langID)
 }
 
 func (s *service) Delete(ctx context.Context, id uint) error {

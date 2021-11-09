@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/yaruz/app/internal/pkg/config"
+
 	"github.com/yaruz/app/internal/domain/user"
 
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
@@ -415,11 +417,77 @@ func (c dataTestController) entityRelation(ctx *routing.Context) error {
 	return ctx.Write(res)
 }
 
-func (c dataTestController) userInst(ctx *routing.Context) error {
+func (c dataTestController) userInst(cntx *routing.Context) error {
 	res := make([]map[string]interface{}, 0, 10)
 	res = append(res, map[string]interface{}{"test": "entity"})
-	cntx := ctx.Request.Context()
+	ctx := cntx.Request.Context()
 
+	var langRusID uint
+	var langEngID uint
+	var err error
+
+	if langRusID, err = c.yaruzPlatform.ReferenceSubsystem().TextLang.GetIDByCode(ctx, config.LangRus); err != nil {
+		res = append(res, map[string]interface{}{"TextLang.GetIDByCode(rus): ": err.Error()})
+	}
+
+	if langEngID, err = c.yaruzPlatform.ReferenceSubsystem().TextLang.GetIDByCode(ctx, config.LangEng); err != nil {
+		res = append(res, map[string]interface{}{"TextLang.GetIDByCode(eng): ": err.Error()})
+	}
+
+	user, err := c.user.New(ctx)
+	if err != nil {
+		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	}
+
+	if err = user.SetName(ctx, "Андрей", langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.SetName: ": err.Error()})
+	}
+
+	if err = user.SetAge(ctx, 41); err != nil {
+		res = append(res, map[string]interface{}{"user.SetAge: ": err.Error()})
+	}
+
+	if err = user.SetHeight(ctx, 75); err != nil {
+		res = append(res, map[string]interface{}{"user.SetHeight: ": err.Error()})
+	}
+
+	if err := c.user.Create(ctx, user, langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	}
+
+	user1, err := c.user.Get(ctx, user.ID, langEngID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"user.Get: ": err.Error()})
+	}
+
+	if err = user1.SetName(ctx, "Andrey", langEngID); err != nil {
+		res = append(res, map[string]interface{}{"user.SetName: ": err.Error()})
+	}
+
+	if err = user1.SetAge(ctx, 42); err != nil {
+		res = append(res, map[string]interface{}{"user.SetAge: ": err.Error()})
+	}
+
+	if err = user1.SetWeight(ctx, 88); err != nil {
+		res = append(res, map[string]interface{}{"user.SetWeight: ": err.Error()})
+	}
+
+	if err := c.user.Update(ctx, user1, langEngID); err != nil {
+		res = append(res, map[string]interface{}{"user.Update: ": err.Error()})
+	}
+
+	user2, err := c.user.Get(ctx, user.ID, langRusID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"user.Get: ": err.Error()})
+	}
+
+	res = append(res, map[string]interface{}{"user2": user2})
+
+	if err := c.user.Delete(ctx, user2.ID); err != nil {
+		res = append(res, map[string]interface{}{"user.Delete: ": err.Error()})
+	}
+
+	return cntx.Write(res)
 }
 
 //func (c dataTestController) entityPropertiesSearch(ctx *routing.Context) error {

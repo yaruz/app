@@ -50,6 +50,41 @@ func (r *UserRepository) instantiate(ctx context.Context, entity *entity.Entity)
 		}
 	}
 
+	agePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnameAge)
+	if err != nil {
+		return nil, err
+	}
+	ageVal, ok := obj.PropertiesValues[agePropID]
+	if ok {
+		age, err := property.GetValueInt(ageVal.Value)
+		if err != nil {
+			return nil, errors.Wrapf(err, "UserRepository.instantiate error. ")
+		}
+		obj.Age = uint(age)
+	}
+
+	heightPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnameHeight)
+	if err != nil {
+		return nil, err
+	}
+	heightVal, ok := obj.PropertiesValues[heightPropID]
+	if ok {
+		if obj.Height, err = property.GetValueFloat(heightVal.Value); err != nil {
+			return nil, errors.Wrapf(err, "UserRepository.instantiate error. ")
+		}
+	}
+
+	weightPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnameWeight)
+	if err != nil {
+		return nil, err
+	}
+	weightVal, ok := obj.PropertiesValues[weightPropID]
+	if ok {
+		if obj.Weight, err = property.GetValueFloat(weightVal.Value); err != nil {
+			return nil, errors.Wrapf(err, "UserRepository.instantiate error. ")
+		}
+	}
+
 	return obj, nil
 }
 

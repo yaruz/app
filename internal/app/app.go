@@ -149,7 +149,7 @@ func (app *App) SetupRepositories() (err error) {
 }
 
 func (app *App) SetupServices() {
-	//app.Domain.User.Service = user.NewService(app.Infra.Logger, app.Domain.User.Repository)
+	app.Domain.User.Service = user.NewService(app.Infra.Logger, app.Domain.User.Repository)
 	//app.Auth.Service = auth.NewService(app.Cfg.JWTSigningKey, app.Cfg.JWTExpiration, app.Domain.User.Service, app.Infra.Logger, app.Auth.SessionRepository, app.Auth.TokenRepository)
 	//	Example
 	app.Domain.Task.Service = task.NewService(app.Infra.Logger, app.Domain.Task.Repository)

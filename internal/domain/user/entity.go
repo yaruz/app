@@ -2,23 +2,28 @@ package user
 
 import (
 	"context"
-	"time"
 
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
 )
 
 const (
-	EntityType          = "user"
-	PropertySysnameName = "name"
+	EntityType            = "user"
+	PropertySysnameName   = "user.name"
+	PropertySysnameAge    = "user.age"
+	PropertySysnameHeight = "user.height"
+	PropertySysnameWeight = "user.weight"
 )
 
 // User is the user entity
 type User struct {
 	*entity.Entity
-	Name      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt *time.Time
+	Name   string
+	Age    uint
+	Height float64
+	Weight float64
+	//CreatedAt time.Time
+	//UpdatedAt time.Time
+	//DeletedAt *time.Time
 }
 
 func (e User) EntityType() string {
@@ -40,5 +45,47 @@ func (e *User) SetName(ctx context.Context, value string, langID uint) error {
 	}
 
 	e.Name = value
+	return nil
+}
+
+func (e *User) SetAge(ctx context.Context, value uint) error {
+	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameAge, 0)
+	if err != nil {
+		return err
+	}
+
+	if err = e.Entity.SetValueForProperty(prop, value, 0); err != nil {
+		return err
+	}
+
+	e.Age = value
+	return nil
+}
+
+func (e *User) SetHeight(ctx context.Context, value float64) error {
+	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameHeight, 0)
+	if err != nil {
+		return err
+	}
+
+	if err = e.Entity.SetValueForProperty(prop, value, 0); err != nil {
+		return err
+	}
+
+	e.Height = value
+	return nil
+}
+
+func (e *User) SetWeight(ctx context.Context, value float64) error {
+	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameWeight, 0)
+	if err != nil {
+		return err
+	}
+
+	if err = e.Entity.SetValueForProperty(prop, value, 0); err != nil {
+		return err
+	}
+
+	e.Weight = value
 	return nil
 }
