@@ -2,7 +2,10 @@ package controller
 
 import (
 	"context"
+	"strconv"
 	"time"
+
+	"github.com/minipkg/selection_condition"
 
 	"github.com/yaruz/app/internal/pkg/config"
 
@@ -68,6 +71,7 @@ func RegisterDataTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platfor
 	r.Get("/entity-text", c.entityText)
 	r.Get("/entity-relation", c.entityRelation)
 	r.Get("/user", c.userInst)
+	r.Get("/user-search", c.userSearch)
 	//r.Get("/entity-properties-search", c.entityPropertiesSearch)
 }
 
@@ -485,6 +489,69 @@ func (c dataTestController) userInst(cntx *routing.Context) error {
 
 	if err := c.user.Delete(ctx, user2.ID); err != nil {
 		res = append(res, map[string]interface{}{"user.Delete: ": err.Error()})
+	}
+
+	return cntx.Write(res)
+}
+
+func (c dataTestController) userSearch(cntx *routing.Context) error {
+	res := make([]map[string]interface{}, 0, 10)
+	res = append(res, map[string]interface{}{"test": "entity"})
+	ctx := cntx.Request.Context()
+
+	var langRusID uint
+	//var langEngID uint
+	var err error
+
+	if langRusID, err = c.yaruzPlatform.ReferenceSubsystem().TextLang.GetIDByCode(ctx, config.LangRus); err != nil {
+		res = append(res, map[string]interface{}{"TextLang.GetIDByCode(rus): ": err.Error()})
+	}
+
+	//if langEngID, err = c.yaruzPlatform.ReferenceSubsystem().TextLang.GetIDByCode(ctx, config.LangEng); err != nil {
+	//	res = append(res, map[string]interface{}{"TextLang.GetIDByCode(eng): ": err.Error()})
+	//}
+
+	users := make([]*user.User, 20)
+
+	for i := range users {
+		if users[i], err = c.user.New(ctx); err != nil {
+			res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+			break
+		}
+		if err = users[i].SetName(ctx, "Имя-"+strconv.Itoa(i), langRusID); err != nil {
+			res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+			break
+		}
+		if err = users[i].SetAge(ctx, uint(i*2)); err != nil {
+			res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+			break
+		}
+		if err = users[i].SetHeight(ctx, float64(i*2+100)); err != nil {
+			res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+			break
+		}
+		if err = users[i].SetWeight(ctx, float64(i*2+50)); err != nil {
+			res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+			break
+		}
+	}
+
+	c.user.Query(ctx, &selection_condition.SelectionCondition{
+		Where: selection_condition.WhereCondition{
+			Field:     "Age",
+			Condition: ">",
+			Value:     10,
+		},
+		SortOrder: []map[string]string{},
+		Limit:     3,
+		Offset:    2,
+	}, langRusID)
+
+	for i := range users {
+		if err := c.user.Delete(ctx, users[i].ID); err != nil {
+			res = append(res, map[string]interface{}{"user.Delete: ": err.Error()})
+			break
+		}
 	}
 
 	return cntx.Write(res)
