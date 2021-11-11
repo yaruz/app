@@ -534,17 +534,25 @@ func (c dataTestController) userSearch(cntx *routing.Context) error {
 			res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 			break
 		}
+
+		if err = c.user.Create(ctx, users[i], langRusID); err != nil {
+			res = append(res, map[string]interface{}{"user.Create: ": err.Error()})
+			break
+		}
 	}
 
 	c.user.Query(ctx, &selection_condition.SelectionCondition{
 		Where: selection_condition.WhereCondition{
-			Field:     "Age",
-			Condition: ">",
+			Field:     user.PropertySysnameAge,
+			Condition: "gte",
 			Value:     10,
 		},
-		SortOrder: []map[string]string{},
-		Limit:     3,
-		Offset:    2,
+		SortOrder: []map[string]string{
+			{"EntityType": "asc"},
+			{user.PropertySysnameName: "desc"},
+		},
+		Limit:  3,
+		Offset: 2,
 	}, langRusID)
 
 	for i := range users {

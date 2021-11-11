@@ -84,9 +84,18 @@ func (s *SearchService) Query(ctx context.Context, condition *selection_conditio
 
 	sqlBuilder := s.newSqlBuilder(searchCondition, langID)
 
-	var ids []uint
+	ids := make([]uint, 0)
 	sql, params := sqlBuilder.SelectQuery()
-	s.db.DB().Raw(sql, params...).Scan(ids)
+
+	err = s.db.DB().
+		Raw(sql, params...).
+		Scan(&ids).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
 	return nil, nil
 }
 
@@ -120,10 +129,12 @@ func (s *SearchService) ParseSelectionCondition(OriginalCondition *selection_con
 }
 
 func (s *SearchService) newSqlBuilder(condition *SearchCondition, langID uint) *sqlBuilder {
-	return &sqlBuilder{
+	builder := &sqlBuilder{
 		PropertyFinder: s.propertyFinder,
 		Condition:      condition,
 		LangID:         langID,
 		From:           make([]string, 0, 1),
 	}
+	builder.Process()
+	return builder
 }

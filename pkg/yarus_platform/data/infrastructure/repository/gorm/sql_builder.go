@@ -44,9 +44,11 @@ func (b *sqlBuilder) Process() {
 func (b *sqlBuilder) ProcessEntityConditionWhere() {
 	b.From = append(b.From, " "+entity.TableName+" ")
 
-	if len(b.Condition.EntityCondition.Where) > 0 {
-		b.initWhere()
+	if b.Condition.EntityCondition.Where == nil || len(b.Condition.EntityCondition.Where) == 0 {
+		return
 	}
+
+	b.initWhere(len(b.Condition.EntityCondition.Where))
 
 	for _, wc := range b.Condition.EntityCondition.Where {
 		var fieldName string
@@ -72,9 +74,11 @@ func (b *sqlBuilder) ProcessEntityConditionWhere() {
 }
 
 func (b *sqlBuilder) ProcessEntityConditionSortOrder() {
-	if len(b.Condition.EntityCondition.SortOrder) > 0 {
-		b.initSortOrder()
+	if b.Condition.EntityCondition.SortOrder == nil || len(b.Condition.EntityCondition.SortOrder) == 0 {
+		return
 	}
+
+	b.initSortOrder(len(b.Condition.EntityCondition.SortOrder))
 
 	for _, sortOrderMap := range b.Condition.EntityCondition.SortOrder {
 		for field, sortOrder := range sortOrderMap {
@@ -99,18 +103,18 @@ func (b *sqlBuilder) ProcessEntityConditionLimitOffset() {
 	b.Offset = b.Condition.EntityCondition.Offset
 }
 
-func (b *sqlBuilder) initWhere() {
+func (b *sqlBuilder) initWhere(cap int) {
 	if b.Where == nil {
 		b.Where = &whereBuilder{
-			Str:    make([]string, 0, 1),
-			Params: make([]interface{}, 0, 1),
+			Str:    make([]string, 0, cap),
+			Params: make([]interface{}, 0, cap),
 		}
 	}
 }
 
-func (b *sqlBuilder) initSortOrder() {
+func (b *sqlBuilder) initSortOrder(cap int) {
 	if b.SortOrder == nil {
-		b.SortOrder = make([]string, 0, 1)
+		b.SortOrder = make([]string, 0, cap)
 	}
 }
 
@@ -132,6 +136,12 @@ func (b *sqlBuilder) ProcessPropertiesConditions() error {
 }
 
 func (b *sqlBuilder) ProcessPropertyConditionsWhere(tableAlias string, wcs selection_condition.WhereConditions) error {
+	if wcs == nil || len(wcs) == 0 {
+		return nil
+	}
+
+	b.initWhere(len(wcs))
+
 	for _, wc := range wcs {
 		switch wc.Condition {
 		case selection_condition.ConditionEq:
@@ -173,6 +183,12 @@ func (b *sqlBuilder) ProcessPropertyConditionsWhere(tableAlias string, wcs selec
 }
 
 func (b *sqlBuilder) ProcessPropertyConditionsSortOrder(tableAlias string, sortOrderMaps []map[string]string) {
+	if sortOrderMaps == nil || len(sortOrderMaps) == 0 {
+		return
+	}
+
+	b.initSortOrder(len(sortOrderMaps))
+
 	for _, sortOrderMap := range sortOrderMaps {
 		for _, sortOrder := range sortOrderMap {
 			b.SortOrder = append(b.SortOrder, tableAlias+".value "+sortOrder)
@@ -211,7 +227,7 @@ func (b *sqlBuilder) SelectQuery() (string, []interface{}) {
 	strBuilder.WriteString(" ORDER BY " + strings.Join(b.SortOrder, ", "))
 
 	if b.Limit > 0 {
-		strBuilder.WriteString(fmt.Sprintf(" Limit %v, OFFSET %v", b.Limit, b.Offset))
+		strBuilder.WriteString(fmt.Sprintf(" Limit %v OFFSET %v", b.Limit, b.Offset))
 	}
 
 	return strBuilder.String(), b.Where.Params
