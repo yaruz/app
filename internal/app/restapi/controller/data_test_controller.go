@@ -555,12 +555,12 @@ func (c dataTestController) userSearch(cntx *routing.Context) error {
 		Offset: 2,
 	}, langRusID)
 
-	for i := range users {
-		if err := c.user.Delete(ctx, users[i].ID); err != nil {
-			res = append(res, map[string]interface{}{"user.Delete: ": err.Error()})
-			break
-		}
-	}
+	//for i := range users {
+	//	if err := c.user.Delete(ctx, users[i].ID); err != nil {
+	//		res = append(res, map[string]interface{}{"user.Delete: ": err.Error()})
+	//		break
+	//	}
+	//}
 
 	return cntx.Write(res)
 }

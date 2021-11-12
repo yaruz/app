@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -17,6 +18,29 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/time_value"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
 )
+
+type SearchResult struct {
+	ID            uint
+	EntityTypeID  uint
+	BID           uint
+	BPropertyID   uint
+	BValue        bool
+	IID           uint
+	IPropertyID   uint
+	IValue        int
+	FID           uint
+	FPropertyID   uint
+	FValue        float64
+	DID           uint
+	DPropertyID   uint
+	DValue        time.Time
+	TID           uint
+	TPropertyID   uint
+	TValue        time.Time
+	TxtID         uint
+	TxtPropertyID uint
+	TxtValue      string
+}
 
 type sqlBuilder struct {
 	PropertyFinder entity.PropertyFinder
@@ -219,16 +243,12 @@ func (b *sqlBuilder) JoinPropertyValue(tableName string, tableAlias string, prop
 	return fmt.Sprintf("INNER JOIN %v AS %v ON %v.id = %v.entity_id AND %v.property_id = %v", tableName, tableAlias, entity.TableName, tableAlias, tableAlias, propertyID)
 }
 
-func (b *sqlBuilder) SelectQuery() (string, []interface{}) {
+func (b *sqlBuilder) subquery4Select() (string, []interface{}) {
 	strBuilder := strings.Builder{}
 	strBuilder.WriteString("SELECT entity.id")
 	strBuilder.WriteString(" FROM " + strings.Join(b.From, " "))
 	strBuilder.WriteString(" WHERE " + strings.Join(b.Where.Str, " AND "))
 	strBuilder.WriteString(" ORDER BY " + strings.Join(b.SortOrder, ", "))
-
-	if b.Limit > 0 {
-		strBuilder.WriteString(fmt.Sprintf(" Limit %v OFFSET %v", b.Limit, b.Offset))
-	}
 
 	return strBuilder.String(), b.Where.Params
 }
@@ -243,14 +263,44 @@ func (b *sqlBuilder) CountQuery() (string, []interface{}) {
 	return strBuilder.String(), b.Where.Params
 }
 
+func (b *sqlBuilder) mainPartOfQuery(subQuery string, subQueryParams []interface{}) (string, []interface{}) {
+	tpl := `select e.*, b.id as b_id, b.property_id as b_property_id, b.value as b_value,
+i.id as i_id, i.property_id as i_property_id, i.value as i_value,
+f.id as f_id, f.property_id as f_property_id, f.value as f_value,
+d.id as d_id, d.property_id as d_property_id, d.value as d_value,
+t.id as t_id, t.property_id as t_property_id, t.value as t_value,
+txt.id as txt_id, txt.property_id as txt_property_id, txt.value as txt_value
+from entity e 
+left join bool_value b on e.id = b.entity_id 
+left join int_value i on e.id = i.entity_id 
+left join float_value f on e.id = f.entity_id 
+left join date_value d on e.id = d.entity_id 
+left join time_value t on e.id = t.entity_id 
+left join text_value txt on e.id = txt.entity_id and txt.lang_id = ?
+where e.id in (%s)`
+	return fmt.Sprintf(tpl, subQuery), append([]interface{}{b.LangID}, subQueryParams...)
+}
+
+func (b *sqlBuilder) SelectQuery() (string, []interface{}) {
+	str, params := b.mainPartOfQuery(b.subquery4Select())
+
+	if b.Limit > 0 {
+		str += fmt.Sprintf(" Limit %v", b.Limit)
+	}
+
+	if b.Offset > 0 {
+		str += fmt.Sprintf(" OFFSET %v", b.Offset)
+	}
+	return str, params
+}
+
 func (b *sqlBuilder) FirstQuery() (string, []interface{}) {
-	strBuilder := strings.Builder{}
-	strBuilder.WriteString("SELECT entity.id")
-	strBuilder.WriteString(" FROM " + strings.Join(b.From, " "))
-	strBuilder.WriteString(" WHERE " + strings.Join(b.Where.Str, " AND "))
-	strBuilder.WriteString(" ORDER BY " + strings.Join(b.SortOrder, ", "))
+	str, params := b.mainPartOfQuery(b.subquery4Select())
 
-	strBuilder.WriteString(fmt.Sprintf(" Limit %v, OFFSET %v", 1, b.Offset))
+	str += fmt.Sprintf(" Limit %v", 1)
 
-	return strBuilder.String(), b.Where.Params
+	if b.Offset > 0 {
+		str += fmt.Sprintf(" OFFSET %v", b.Offset)
+	}
+	return str, params
 }

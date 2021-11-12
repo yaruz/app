@@ -63,6 +63,8 @@ func NewSearchService(logger log.ILogger, dbase minipkg_gorm.IDB, entityTypeFind
 }
 
 func (s *SearchService) First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*entity.Entity, error) {
+	var searchResult SearchResult
+
 	searchCondition, err := s.ParseSelectionCondition(condition)
 	if err != nil {
 		return nil, err
@@ -70,10 +72,10 @@ func (s *SearchService) First(ctx context.Context, condition *selection_conditio
 
 	sqlBuilder := s.newSqlBuilder(searchCondition, langID)
 
-	var ids []uint
 	sql, params := sqlBuilder.FirstQuery()
-	s.db.DB().Raw(sql, params...).Scan(ids)
-	return nil, nil
+	s.db.DB().Raw(sql, params...).Scan(&searchResult)
+
+	return s.instantiateItem(&searchResult), nil
 }
 
 func (s *SearchService) Query(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) ([]entity.Entity, error) {
@@ -84,19 +86,19 @@ func (s *SearchService) Query(ctx context.Context, condition *selection_conditio
 
 	sqlBuilder := s.newSqlBuilder(searchCondition, langID)
 
-	ids := make([]uint, 0)
+	searchResults := make([]SearchResult, 0)
 	sql, params := sqlBuilder.SelectQuery()
 
 	err = s.db.DB().
 		Raw(sql, params...).
-		Scan(&ids).
+		Scan(&searchResults).
 		Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	return nil, nil
+	return s.instantiateItems(searchResults), nil
 }
 
 func (s *SearchService) Count(ctx context.Context, condition *selection_condition.SelectionCondition) (uint, error) {
@@ -111,6 +113,16 @@ func (s *SearchService) Count(ctx context.Context, condition *selection_conditio
 	sql, params := sqlBuilder.CountQuery()
 	s.db.DB().Raw(sql, params...).Scan(&res)
 	return res, nil
+}
+
+func (s *SearchService) instantiateItem(searchResult *SearchResult) *entity.Entity {
+	e := entity.New()
+	return e
+}
+
+func (s *SearchService) instantiateItems(searchResults []SearchResult) []entity.Entity {
+	entities := make([]entity.Entity, 0, len(searchResults))
+	return entities
 }
 
 func (s *SearchService) ParseSelectionCondition(OriginalCondition *selection_condition.SelectionCondition) (*SearchCondition, error) {
