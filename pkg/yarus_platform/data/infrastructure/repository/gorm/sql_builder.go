@@ -243,12 +243,19 @@ func (b *sqlBuilder) JoinPropertyValue(tableName string, tableAlias string, prop
 	return fmt.Sprintf("INNER JOIN %v AS %v ON %v.id = %v.entity_id AND %v.property_id = %v", tableName, tableAlias, entity.TableName, tableAlias, tableAlias, propertyID)
 }
 
-func (b *sqlBuilder) subquery4Select() (string, []interface{}) {
+func (b *sqlBuilder) subquery4Select(limit uint) (string, []interface{}) {
 	strBuilder := strings.Builder{}
-	strBuilder.WriteString("SELECT entity.id")
+	strBuilder.WriteString("SELECT entity.id, row_number() OVER(ORDER BY " + strings.Join(b.SortOrder, ", ") + ")")
 	strBuilder.WriteString(" FROM " + strings.Join(b.From, " "))
 	strBuilder.WriteString(" WHERE " + strings.Join(b.Where.Str, " AND "))
-	strBuilder.WriteString(" ORDER BY " + strings.Join(b.SortOrder, ", "))
+
+	if limit > 0 {
+		strBuilder.WriteString(fmt.Sprintf(" Limit %v", limit))
+	}
+
+	if b.Offset > 0 {
+		strBuilder.WriteString(fmt.Sprintf(" OFFSET %v", b.Offset))
+	}
 
 	return strBuilder.String(), b.Where.Params
 }
@@ -271,36 +278,21 @@ d.id as d_id, d.property_id as d_property_id, d.value as d_value,
 t.id as t_id, t.property_id as t_property_id, t.value as t_value,
 txt.id as txt_id, txt.property_id as txt_property_id, txt.value as txt_value
 from entity e 
+inner join (%s) as x(id, sort_order) on e.id = x.id
 left join bool_value b on e.id = b.entity_id 
 left join int_value i on e.id = i.entity_id 
 left join float_value f on e.id = f.entity_id 
 left join date_value d on e.id = d.entity_id 
 left join time_value t on e.id = t.entity_id 
 left join text_value txt on e.id = txt.entity_id and txt.lang_id = ?
-where e.id in (%s)`
-	return fmt.Sprintf(tpl, subQuery), append([]interface{}{b.LangID}, subQueryParams...)
+order by x.sort_order`
+	return fmt.Sprintf(tpl, subQuery), append(subQueryParams, b.LangID)
 }
 
 func (b *sqlBuilder) SelectQuery() (string, []interface{}) {
-	str, params := b.mainPartOfQuery(b.subquery4Select())
-
-	if b.Limit > 0 {
-		str += fmt.Sprintf(" Limit %v", b.Limit)
-	}
-
-	if b.Offset > 0 {
-		str += fmt.Sprintf(" OFFSET %v", b.Offset)
-	}
-	return str, params
+	return b.mainPartOfQuery(b.subquery4Select(b.Limit))
 }
 
 func (b *sqlBuilder) FirstQuery() (string, []interface{}) {
-	str, params := b.mainPartOfQuery(b.subquery4Select())
-
-	str += fmt.Sprintf(" Limit %v", 1)
-
-	if b.Offset > 0 {
-		str += fmt.Sprintf(" OFFSET %v", b.Offset)
-	}
-	return str, params
+	return b.mainPartOfQuery(b.subquery4Select(1))
 }

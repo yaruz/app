@@ -26,6 +26,7 @@ const (
 	IDDate          = 5
 	IDTime          = 6
 	IDText          = 7
+	Count           = 6 // для табличной интерпретации
 )
 
 var ValidTypesIDs = []interface{}{
