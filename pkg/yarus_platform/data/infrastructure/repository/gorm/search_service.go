@@ -149,7 +149,6 @@ func (s *SearchService) instantiateItems(searchResults []SearchResult) []entity.
 			e = entity.New()
 			e.ID = searchResult.ID
 			e.EntityTypeID = searchResult.EntityTypeID
-			//entitiesMap[searchResult.ID] = e
 			IDs = append(IDs, e.ID)
 			propValsMap[e.ID] = s.initPropValsMapItem(cap)
 		}
@@ -178,7 +177,7 @@ func (s *SearchService) processBoolValue(e *entity.Entity, propValsMap *map[uint
 			(*propValsMap)[e.ID][property_type.IDBoolean][searchResult.BID] = struct{}{}
 
 			if e.BoolValues == nil {
-				e.BoolValues = make([]bool_value.BoolValue, 1)
+				e.BoolValues = make([]bool_value.BoolValue, 0, 1)
 			}
 
 			e.BoolValues = append(e.BoolValues, bool_value.BoolValue{
@@ -197,7 +196,7 @@ func (s *SearchService) processIntValue(e *entity.Entity, propValsMap *map[uint]
 			(*propValsMap)[e.ID][property_type.IDInt][searchResult.IID] = struct{}{}
 
 			if e.IntValues == nil {
-				e.IntValues = make([]int_value.IntValue, 1)
+				e.IntValues = make([]int_value.IntValue, 0, 1)
 			}
 
 			e.IntValues = append(e.IntValues, int_value.IntValue{
@@ -216,7 +215,7 @@ func (s *SearchService) processFloatValue(e *entity.Entity, propValsMap *map[uin
 			(*propValsMap)[e.ID][property_type.IDFloat][searchResult.FID] = struct{}{}
 
 			if e.FloatValues == nil {
-				e.FloatValues = make([]float_value.FloatValue, 1)
+				e.FloatValues = make([]float_value.FloatValue, 0, 1)
 			}
 
 			e.FloatValues = append(e.FloatValues, float_value.FloatValue{
@@ -235,7 +234,7 @@ func (s *SearchService) processDateValue(e *entity.Entity, propValsMap *map[uint
 			(*propValsMap)[e.ID][property_type.IDDate][searchResult.DID] = struct{}{}
 
 			if e.DateValues == nil {
-				e.DateValues = make([]date_value.DateValue, 1)
+				e.DateValues = make([]date_value.DateValue, 0, 1)
 			}
 
 			e.DateValues = append(e.DateValues, date_value.DateValue{
@@ -254,7 +253,7 @@ func (s *SearchService) processTimeValue(e *entity.Entity, propValsMap *map[uint
 			(*propValsMap)[e.ID][property_type.IDTime][searchResult.TID] = struct{}{}
 
 			if e.TimeValues == nil {
-				e.TimeValues = make([]time_value.TimeValue, 1)
+				e.TimeValues = make([]time_value.TimeValue, 0, 1)
 			}
 
 			e.TimeValues = append(e.TimeValues, time_value.TimeValue{
@@ -273,12 +272,13 @@ func (s *SearchService) processTextValue(e *entity.Entity, propValsMap *map[uint
 			(*propValsMap)[e.ID][property_type.IDText][searchResult.TxtID] = struct{}{}
 
 			if e.TextValues == nil {
-				e.TextValues = make([]text_value.TextValue, 1)
+				e.TextValues = make([]text_value.TextValue, 0, 1)
 			}
 
 			e.TextValues = append(e.TextValues, text_value.TextValue{
 				ID:         searchResult.TxtID,
 				EntityID:   e.ID,
+				LangID:     searchResult.TxtLangID,
 				PropertyID: searchResult.TxtPropertyID,
 				Value:      searchResult.TxtValue,
 			})

@@ -20,26 +20,27 @@ import (
 )
 
 type SearchResult struct {
-	ID            uint
-	EntityTypeID  uint
-	BID           uint
-	BPropertyID   uint
-	BValue        bool
-	IID           uint
-	IPropertyID   uint
-	IValue        int
-	FID           uint
-	FPropertyID   uint
-	FValue        float64
-	DID           uint
-	DPropertyID   uint
-	DValue        time.Time
-	TID           uint
-	TPropertyID   uint
-	TValue        time.Time
-	TxtID         uint
-	TxtPropertyID uint
-	TxtValue      string
+	ID            uint      `gorm:"column:id"`
+	EntityTypeID  uint      `gorm:"column:entity_type_id"`
+	BID           uint      `gorm:"column:b_id"`
+	BPropertyID   uint      `gorm:"column:b_property_id"`
+	BValue        bool      `gorm:"column:b_value"`
+	IID           uint      `gorm:"column:i_id"`
+	IPropertyID   uint      `gorm:"column:i_property_id"`
+	IValue        int       `gorm:"column:i_value"`
+	FID           uint      `gorm:"column:f_id"`
+	FPropertyID   uint      `gorm:"column:f_property_id"`
+	FValue        float64   `gorm:"column:f_value"`
+	DID           uint      `gorm:"column:d_id"`
+	DPropertyID   uint      `gorm:"column:d_property_id"`
+	DValue        time.Time `gorm:"column:d_value"`
+	TID           uint      `gorm:"column:t_id"`
+	TPropertyID   uint      `gorm:"column:t_property_id"`
+	TValue        time.Time `gorm:"column:t_value"`
+	TxtID         uint      `gorm:"column:txt_id"`
+	TxtLangID     uint      `gorm:"column:txt_lang_id"`
+	TxtPropertyID uint      `gorm:"column:txt_property_id"`
+	TxtValue      string    `gorm:"column:txt_value"`
 }
 
 type sqlBuilder struct {
@@ -276,7 +277,7 @@ i.id as i_id, i.property_id as i_property_id, i.value as i_value,
 f.id as f_id, f.property_id as f_property_id, f.value as f_value,
 d.id as d_id, d.property_id as d_property_id, d.value as d_value,
 t.id as t_id, t.property_id as t_property_id, t.value as t_value,
-txt.id as txt_id, txt.property_id as txt_property_id, txt.value as txt_value
+txt.id as txt_id, lang_id as txt_lang_id, txt.property_id as txt_property_id, txt.value as txt_value
 from entity e 
 inner join (%s) as x(id, sort_order) on e.id = x.id
 left join bool_value b on e.id = b.entity_id 
