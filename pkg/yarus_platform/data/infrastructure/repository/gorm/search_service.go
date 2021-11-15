@@ -146,10 +146,10 @@ func (s *SearchService) instantiateItems(searchResults []SearchResult) []entity.
 		var ok bool
 
 		if e, ok = entitiesMap[searchResult.ID]; !ok {
-			e := entity.New()
+			e = entity.New()
 			e.ID = searchResult.ID
 			e.EntityTypeID = searchResult.EntityTypeID
-			entitiesMap[searchResult.ID] = e
+			//entitiesMap[searchResult.ID] = e
 			IDs = append(IDs, e.ID)
 			propValsMap[e.ID] = s.initPropValsMapItem(cap)
 		}
