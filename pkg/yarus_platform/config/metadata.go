@@ -7,7 +7,13 @@ type Metadata struct {
 	EntityTypes   EntityTypes
 }
 
-type Languages map[string]string
+type Languages []Language
+
+type Language struct {
+	Code    string
+	Name    string
+	Cfgname string
+}
 
 type PropertyUnits map[string]PropertyUnit
 

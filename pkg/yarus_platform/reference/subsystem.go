@@ -289,10 +289,11 @@ func (s *ReferenceSubsystem) LangDataInit(ctx context.Context, langsConfig confi
 		return nil
 	}
 
-	for code, name := range langsConfig {
+	for _, langConfig := range langsConfig {
 		item := text_lang.New()
-		item.Code = code
-		item.Name = name
+		item.Code = langConfig.Code
+		item.Name = langConfig.Name
+		item.Cfgname = langConfig.Cfgname
 		s.TextLang.Create(ctx, item)
 	}
 

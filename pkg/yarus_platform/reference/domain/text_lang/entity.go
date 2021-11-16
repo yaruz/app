@@ -18,6 +18,7 @@ type TextLang struct {
 	ID        uint           `gorm:"type:smallserial;primaryKey" json:"id"`
 	Code      string         `gorm:"type:varchar(100) not null;unique;index" json:"code"`
 	Name      string         `gorm:"type:varchar(100) not null" json:"name"`
+	Cfgname   string         `gorm:"type:varchar(100) not null" json:"cfgname"`
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deletedAt,omitempty"`

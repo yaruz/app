@@ -1,7 +1,11 @@
 isautomigrate:  true
 languages:
-  eng: "english"
-  rus: "русский"
+   - code: "eng"
+     name: "english"
+     cfgname: "english"
+   - code: "rus"
+     name: "русский"
+     cfgname: "russian"
 
 propertyunits:
   item:

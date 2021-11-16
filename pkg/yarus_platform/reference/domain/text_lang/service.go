@@ -26,7 +26,9 @@ type IService interface {
 	GetCodesEmptyInterfaceSlice(ctx context.Context) ([]interface{}, error)
 	GetMapCodeID(ctx context.Context) (map[string]uint, error)
 	GetMapIDCode(ctx context.Context) (map[uint]string, error)
+	GetMapIDCfgname(ctx context.Context) (map[uint]string, error)
 	GetIDByCode(ctx context.Context, code string) (uint, error)
+	GetCfgnameByID(ctx context.Context, id uint) (string, error)
 }
 
 type service struct {
@@ -125,6 +127,19 @@ func (s *service) GetMapIDCode(ctx context.Context) (map[uint]string, error) {
 	return res, nil
 }
 
+func (s *service) GetMapIDCfgname(ctx context.Context) (map[uint]string, error) {
+	items, err := s.Query(ctx, &selection_condition.SelectionCondition{})
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[uint]string, len(items))
+	for _, item := range items {
+		res[item.ID] = item.Cfgname
+	}
+	return res, nil
+}
+
 func (s *service) GetIDByCode(ctx context.Context, code string) (uint, error) {
 	mapSysnameID, err := s.GetMapCodeID(ctx)
 	if err != nil {
@@ -138,6 +153,22 @@ func (s *service) GetIDByCode(ctx context.Context, code string) (uint, error) {
 
 	return id, nil
 }
+
+func (s *service) GetCfgnameByID(ctx context.Context, id uint) (string, error) {
+	mapIDCfgname, err := s.GetMapIDCfgname(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	cfgname, ok := mapIDCfgname[id]
+	if !ok {
+		return "", yaruserror.ErrNotFound
+	}
+
+	return cfgname, nil
+}
+
+// GetMapIDCfgname(ctx context.Context) (map[uint]string, error)
 
 func (s *service) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error) {
 	count, err := s.repository.Count(ctx, cond)
