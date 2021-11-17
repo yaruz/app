@@ -46,7 +46,7 @@ func (r *EntityRepository) autoMigrate() {
 	}
 }
 
-// Get reads the album with the specified ID from the database.
+// Get reads items with the specified ID from the database.
 func (r *EntityRepository) Get(ctx context.Context, id uint, langID uint) (*domain_entity.Entity, error) {
 	entity := &domain_entity.Entity{}
 

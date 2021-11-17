@@ -33,7 +33,7 @@ type repository struct {
 const DefaultLimit = 1000
 
 // GetRepository return a repository
-func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string) (repo IRepository, err error) {
+func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string, langFinder entity.LangFinder) (repo IRepository, err error) {
 	r := &repository{
 		logger: logger,
 	}
@@ -41,7 +41,7 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 
 	switch entityName {
 	case entity.EntityName:
-		valueRepositories, err := r.getValueRepositories(logger, dbase)
+		valueRepositories, err := r.getValueRepositories(logger, dbase, langFinder)
 		if err != nil {
 			return nil, err
 		}
@@ -59,7 +59,7 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 		if r.db, err = dbase.SchemeInitWithContext(ctx, r.model); err != nil {
 			return nil, err
 		}
-		repo, err = NewTextValueRepository(r)
+		repo, err = NewTextValueRepository(r, langFinder)
 	case bool_value.EntityName:
 
 		r.model = bool_value.New()
@@ -106,8 +106,8 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 	return repo, err
 }
 
-func (r *repository) getValueRepositories(logger log.ILogger, dbase minipkg_gorm.IDB) (*entity.ValueRepositories, error) {
-	textValueRepo, err := GetRepository(logger, dbase, text_value.EntityName)
+func (r *repository) getValueRepositories(logger log.ILogger, dbase minipkg_gorm.IDB, langFinder entity.LangFinder) (*entity.ValueRepositories, error) {
+	textValueRepo, err := GetRepository(logger, dbase, text_value.EntityName, langFinder)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Can not get db repository for entity %q, error happened: %v", text_value.EntityName, err)
 	}
@@ -116,7 +116,7 @@ func (r *repository) getValueRepositories(logger log.ILogger, dbase minipkg_gorm
 		return nil, errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", text_value.EntityName, text_value.EntityName, textValueRepo)
 	}
 
-	boolValueRepo, err := GetRepository(logger, dbase, bool_value.EntityName)
+	boolValueRepo, err := GetRepository(logger, dbase, bool_value.EntityName, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Can not get db repository for entity %q, error happened: %v", bool_value.EntityName, err)
 	}
@@ -125,7 +125,7 @@ func (r *repository) getValueRepositories(logger log.ILogger, dbase minipkg_gorm
 		return nil, errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", bool_value.EntityName, bool_value.EntityName, boolValueRepo)
 	}
 
-	intValueRepo, err := GetRepository(logger, dbase, int_value.EntityName)
+	intValueRepo, err := GetRepository(logger, dbase, int_value.EntityName, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Can not get db repository for entity %q, error happened: %v", int_value.EntityName, err)
 	}
@@ -134,7 +134,7 @@ func (r *repository) getValueRepositories(logger log.ILogger, dbase minipkg_gorm
 		return nil, errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", int_value.EntityName, int_value.EntityName, intValueRepo)
 	}
 
-	floatValueRepo, err := GetRepository(logger, dbase, float_value.EntityName)
+	floatValueRepo, err := GetRepository(logger, dbase, float_value.EntityName, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Can not get db repository for entity %q, error happened: %v", float_value.EntityName, err)
 	}
@@ -143,7 +143,7 @@ func (r *repository) getValueRepositories(logger log.ILogger, dbase minipkg_gorm
 		return nil, errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", float_value.EntityName, float_value.EntityName, floatValueRepo)
 	}
 
-	dateValueRepo, err := GetRepository(logger, dbase, date_value.EntityName)
+	dateValueRepo, err := GetRepository(logger, dbase, date_value.EntityName, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Can not get db repository for entity %q, error happened: %v", date_value.EntityName, err)
 	}
@@ -152,7 +152,7 @@ func (r *repository) getValueRepositories(logger log.ILogger, dbase minipkg_gorm
 		return nil, errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", date_value.EntityName, date_value.EntityName, dateValueRepo)
 	}
 
-	timeValueRepo, err := GetRepository(logger, dbase, time_value.EntityName)
+	timeValueRepo, err := GetRepository(logger, dbase, time_value.EntityName, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Can not get db repository for entity %q, error happened: %v", time_value.EntityName, err)
 	}

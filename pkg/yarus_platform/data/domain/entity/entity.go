@@ -25,6 +25,16 @@ const (
 	TableName  = "entity"
 )
 
+type LangFinder interface {
+	GetCodes(ctx context.Context) ([]string, error)
+	GetCodesEmptyInterfaceSlice(ctx context.Context) ([]interface{}, error)
+	GetMapCodeID(ctx context.Context) (map[string]uint, error)
+	GetMapIDCode(ctx context.Context) (map[uint]string, error)
+	GetMapIDCfgname(ctx context.Context) (map[uint]string, error)
+	GetIDByCode(ctx context.Context, code string) (uint, error)
+	GetCfgnameByID(ctx context.Context, id uint) (string, error)
+}
+
 type EntityTypeFinder interface {
 	Get(ctx context.Context, id uint) (*entity_type.EntityType, error)
 	GetBySysname(ctx context.Context, sysname string, langID uint) (*entity_type.EntityType, error)

@@ -5,6 +5,8 @@ import (
 	"errors"
 	"sort"
 
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
+
 	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_value"
@@ -20,13 +22,17 @@ import (
 // TextValueRepository is a repository for the model entity
 type TextValueRepository struct {
 	repository
+	langFinder entity.LangFinder
 }
 
 var _ text_value.Repository = (*TextValueRepository)(nil)
 
 // New creates a new TextValueRepository
-func NewTextValueRepository(repository *repository) (*TextValueRepository, error) {
-	return &TextValueRepository{repository: *repository}, nil
+func NewTextValueRepository(repository *repository, langFinder entity.LangFinder) (*TextValueRepository, error) {
+	return &TextValueRepository{
+		repository: *repository,
+		langFinder: langFinder,
+	}, nil
 }
 
 //// Get reads the album with the specified ID from the database.
@@ -139,9 +145,6 @@ func (r *TextValueRepository) BatchDeleteTx(ctx context.Context, cond *selection
 }
 
 func (r *TextValueRepository) BatchSaveChangesTx(ctx context.Context, entityID uint, values []text_value.TextValue, langID uint, tx *gorm.DB) error {
-	for i := range values {
-		values[i].EntityID = entityID
-	}
 	return r.db.GormTx(tx).Transaction(func(tx *gorm.DB) error {
 		oldValues, err := r.Query(ctx, &selection_condition.SelectionCondition{
 			Where: &text_value.TextValue{
@@ -181,10 +184,31 @@ func (r *TextValueRepository) BatchSaveChangesTx(ctx context.Context, entityID u
 			}
 		}
 
-		if len(values) > 0 {
-			return tx.Save(values).Error
+		return r.BatchSaveTx(ctx, entityID, values, langID, tx)
+	})
+}
+
+func (r *TextValueRepository) BatchSaveTx(ctx context.Context, entityID uint, values []text_value.TextValue, langID uint, tx *gorm.DB) error {
+	if len(values) == 0 {
+		return nil
+	}
+
+	cfgname, err := r.langFinder.GetCfgnameByID(ctx, langID)
+	if err != nil {
+		return err
+	}
+
+	for i, value := range values {
+
+		if value.ID == 0 {
+			err = tx.Raw("INSERT INTO "+text_value.TableName+" (entity_id, lang_id, property_id, value, value_tsvector) VALUES (?, ?, ?, ?, ?) RETURNING id", entityID, langID, value.PropertyID, value.Value, gorm.Expr("to_tsvector(?, ?)", cfgname, value.Value)).Scan(&values[i].ID).Error
+		} else {
+			err = tx.Exec("UPDATE "+text_value.TableName+" SET entity_id = ?, lang_id = ?, property_id = ?, value = ?, value_tsvector = ? WHERE id = ?", entityID, langID, value.PropertyID, value.Value, gorm.Expr("to_tsvector(?, ?)", cfgname, value.Value), value.ID).Scan(&values[i].ID).Error
 		}
 
-		return nil
-	})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

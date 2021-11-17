@@ -4,9 +4,10 @@ import (
 	"context"
 
 	minipkg_gorm "github.com/minipkg/db/gorm"
-
 	"github.com/minipkg/log"
 	"github.com/minipkg/selection_condition"
+	"github.com/pkg/errors"
+	"gorm.io/gorm"
 
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/bool_value"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/date_value"
@@ -16,6 +17,7 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_value"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/time_value"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
+	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 )
 
 type SearchService struct {
@@ -70,6 +72,15 @@ func NewSearchService(logger log.ILogger, dbase minipkg_gorm.IDB, entityTypeFind
 	}
 	return service, nil
 }
+func (s *SearchService) Get(ctx context.Context, id uint, langID uint) (*entity.Entity, error) {
+	return s.First(ctx, &selection_condition.SelectionCondition{
+		Where: selection_condition.WhereCondition{
+			Field:     "ID",
+			Condition: "eq",
+			Value:     id,
+		},
+	}, langID)
+}
 
 func (s *SearchService) First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*entity.Entity, error) {
 	searchCondition, err := s.ParseSelectionCondition(condition)
@@ -81,7 +92,13 @@ func (s *SearchService) First(ctx context.Context, condition *selection_conditio
 
 	searchResults := make([]SearchResult, 0)
 	sql, params := sqlBuilder.FirstQuery()
-	s.db.DB().Raw(sql, params...).Scan(&searchResults)
+
+	if err = s.db.DB().Raw(sql, params...).Scan(&searchResults).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, yaruserror.ErrNotFound
+		}
+		return nil, err
+	}
 
 	return s.instantiateItem(searchResults), nil
 }
@@ -97,12 +114,10 @@ func (s *SearchService) Query(ctx context.Context, condition *selection_conditio
 	searchResults := make([]SearchResult, 0)
 	sql, params := sqlBuilder.SelectQuery()
 
-	err = s.db.DB().
-		Raw(sql, params...).
-		Scan(&searchResults).
-		Error
-
-	if err != nil {
+	if err = s.db.DB().Raw(sql, params...).Scan(&searchResults).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, yaruserror.ErrNotFound
+		}
 		return nil, err
 	}
 

@@ -61,7 +61,7 @@ func (d *DataSubsystem) autoMigrate(db minipkg_gorm.IDB) error {
 func (d *DataSubsystem) setupRepositories(infra *infrastructure.Infrastructure) (err error) {
 	var ok bool
 
-	repo, err := gorm.GetRepository(infra.Logger, infra.DataDB, entity.EntityName)
+	repo, err := gorm.GetRepository(infra.Logger, infra.DataDB, entity.EntityName, d.reference.TextLang)
 	if err != nil {
 		return errors.Errorf("Can not get db repository for entity %q, error happened: %v", entity.EntityName, err)
 	}

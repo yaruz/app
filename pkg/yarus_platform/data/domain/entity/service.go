@@ -64,7 +64,7 @@ func (s *service) NewEntity() *Entity {
 
 // Get returns the entity with the specified ID.
 func (s *service) Get(ctx context.Context, id uint, langID uint) (*Entity, error) {
-	entity, err := s.repository.Get(ctx, id, langID)
+	entity, err := s.search.Get(ctx, id, langID)
 	if err != nil {
 		return nil, err
 	}
