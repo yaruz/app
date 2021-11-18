@@ -150,56 +150,68 @@ func (e *Entity) DeletePropertyValues(propertyID uint) {
 
 // Удаляет все значения BoolValues для заданного propertyID
 func (e *Entity) deletePropertyBoolValues(propertyID uint) {
+	items := make([]bool_value.BoolValue, 0, len(e.BoolValues))
 	for i := range e.BoolValues {
-		if e.BoolValues[i].PropertyID == propertyID {
-			e.BoolValues = append(e.BoolValues[:i], e.BoolValues[i+1:]...)
+		if e.BoolValues[i].PropertyID != propertyID {
+			items = append(items, e.BoolValues[i])
 		}
 	}
+	e.BoolValues = items
 }
 
 // Удаляет все значения IntValues для заданного propertyID
 func (e *Entity) deletePropertyIntValues(propertyID uint) {
+	items := make([]int_value.IntValue, 0, len(e.IntValues))
 	for i := range e.IntValues {
-		if e.IntValues[i].PropertyID == propertyID {
-			e.IntValues = append(e.IntValues[:i], e.IntValues[i+1:]...)
+		if e.IntValues[i].PropertyID != propertyID {
+			items = append(items, e.IntValues[i])
 		}
 	}
+	e.IntValues = items
 }
 
 // Удаляет все значения FloatValues для заданного propertyID
 func (e *Entity) deletePropertyFloatValues(propertyID uint) {
+	items := make([]float_value.FloatValue, 0, len(e.FloatValues))
 	for i := range e.FloatValues {
-		if e.FloatValues[i].PropertyID == propertyID {
-			e.FloatValues = append(e.FloatValues[:i], e.FloatValues[i+1:]...)
+		if e.FloatValues[i].PropertyID != propertyID {
+			items = append(items, e.FloatValues[i])
 		}
 	}
+	e.FloatValues = items
 }
 
 // Удаляет все значения DateValues для заданного propertyID
 func (e *Entity) deletePropertyDateValues(propertyID uint) {
+	items := make([]date_value.DateValue, 0, len(e.DateValues))
 	for i := range e.DateValues {
-		if e.DateValues[i].PropertyID == propertyID {
-			e.DateValues = append(e.DateValues[:i], e.DateValues[i+1:]...)
+		if e.DateValues[i].PropertyID != propertyID {
+			items = append(items, e.DateValues[i])
 		}
 	}
+	e.DateValues = items
 }
 
 // Удаляет все значения TimeValues для заданного propertyID
 func (e *Entity) deletePropertyTimeValues(propertyID uint) {
+	items := make([]time_value.TimeValue, 0, len(e.TimeValues))
 	for i := range e.TimeValues {
-		if e.TimeValues[i].PropertyID == propertyID {
-			e.TimeValues = append(e.TimeValues[:i], e.TimeValues[i+1:]...)
+		if e.TimeValues[i].PropertyID != propertyID {
+			items = append(items, e.TimeValues[i])
 		}
 	}
+	e.TimeValues = items
 }
 
 // Удаляет все значения TextValues для заданного propertyID
 func (e *Entity) deletePropertyTextValues(propertyID uint) {
+	items := make([]text_value.TextValue, 0, len(e.TextValues))
 	for i := range e.TextValues {
-		if e.TextValues[i].PropertyID == propertyID {
-			e.TextValues = append(e.TextValues[:i], e.TextValues[i+1:]...)
+		if e.TextValues[i].PropertyID != propertyID {
+			items = append(items, e.TextValues[i])
 		}
 	}
+	e.TextValues = items
 }
 
 // Возвращает количество всех значений всех свойств

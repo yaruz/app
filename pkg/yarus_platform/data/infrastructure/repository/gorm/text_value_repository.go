@@ -203,7 +203,7 @@ func (r *TextValueRepository) BatchSaveTx(ctx context.Context, entityID uint, va
 		if value.ID == 0 {
 			err = tx.Raw("INSERT INTO "+text_value.TableName+" (entity_id, lang_id, property_id, value, value_tsvector) VALUES (?, ?, ?, ?, ?) RETURNING id", entityID, langID, value.PropertyID, value.Value, gorm.Expr("to_tsvector(?, ?)", cfgname, value.Value)).Scan(&values[i].ID).Error
 		} else {
-			err = tx.Exec("UPDATE "+text_value.TableName+" SET entity_id = ?, lang_id = ?, property_id = ?, value = ?, value_tsvector = ? WHERE id = ?", entityID, langID, value.PropertyID, value.Value, gorm.Expr("to_tsvector(?, ?)", cfgname, value.Value), value.ID).Scan(&values[i].ID).Error
+			err = tx.Exec("UPDATE "+text_value.TableName+" SET entity_id = ?, lang_id = ?, property_id = ?, value = ?, value_tsvector = ? WHERE id = ?", entityID, langID, value.PropertyID, value.Value, gorm.Expr("to_tsvector(?, ?)", cfgname, value.Value), value.ID).Error
 		}
 
 		if err != nil {

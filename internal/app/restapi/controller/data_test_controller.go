@@ -541,7 +541,100 @@ func (c dataTestController) userSearch(cntx *routing.Context) error {
 		}
 	}
 
-	c.user.Query(ctx, &selection_condition.SelectionCondition{
+	if err = users[0].SetName(ctx, users[0].Name+" У лукоморья дуб зеленый", langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	}
+
+	if err = users[1].SetName(ctx, users[1].Name+" Златая цепь на дубе том", langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	}
+
+	if err = users[2].SetName(ctx, users[2].Name+" И днем и ночью кот ученый", langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	}
+
+	if err = users[3].SetName(ctx, users[3].Name+" Всё ходит по цепи кругом", langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	}
+
+	if err = users[4].SetName(ctx, users[4].Name+" Идет направо — песнь заводит", langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	}
+
+	if err = users[5].SetName(ctx, users[5].Name+" Идет направо — песнь заводит", langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	}
+
+	if err = users[6].SetName(ctx, users[6].Name+" Там чудеса: там леший бродит", langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	}
+
+	if err = users[7].SetName(ctx, users[7].Name+" Русалка на ветвях сидит", langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	}
+
+	if err = users[8].SetName(ctx, users[8].Name+" Там на неведомых дорожках", langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	}
+
+	if err = users[9].SetName(ctx, users[9].Name+" Следы невиданных зверей", langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	}
+
+	if err = users[10].SetName(ctx, users[10].Name+" Избушка там на курьих ножках", langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	}
+
+	if err = users[11].SetName(ctx, users[11].Name+" Стоит без окон, без дверей", langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	}
+
+	if err = users[12].SetName(ctx, users[12].Name+" Там лес и дол видений полны", langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	}
+
+	if err = users[13].SetName(ctx, users[13].Name+" Там о заре прихлынут волны", langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	}
+
+	if err = users[14].SetName(ctx, users[14].Name+" На брег песчаный и пустой", langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	}
+
+	if err = users[15].SetName(ctx, users[15].Name+" И тридцать витязей прекрасных", langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	}
+
+	if err = users[16].SetName(ctx, users[16].Name+" Чредой из вод выходят ясных", langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	}
+
+	if err = users[17].SetName(ctx, users[17].Name+" И с ними дядька их морской", langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	}
+
+	if err = users[18].SetName(ctx, users[18].Name+" Там королевич мимоходом", langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	}
+
+	if err = users[19].SetName(ctx, users[19].Name+" Пленяет грозного царя", langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	}
+
+	for i := range users {
+
+		if err = users[i].SetHeight(ctx, users[i].Height+10); err != nil {
+			res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+			break
+		}
+
+		if err = c.user.Update(ctx, users[i], langRusID); err != nil {
+			res = append(res, map[string]interface{}{"user.Update: ": err.Error()})
+			break
+		}
+	}
+
+	items, err := c.user.Query(ctx, &selection_condition.SelectionCondition{
 		Where: selection_condition.WhereCondition{
 			Field:     user.PropertySysnameAge,
 			Condition: "gte",
@@ -554,6 +647,10 @@ func (c dataTestController) userSearch(cntx *routing.Context) error {
 		Limit:  3,
 		Offset: 2,
 	}, langRusID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"user.Query: ": err.Error()})
+	}
+	res = append(res, map[string]interface{}{"users: ": items})
 
 	for i := range users {
 		if err := c.user.Delete(ctx, users[i].ID); err != nil {
