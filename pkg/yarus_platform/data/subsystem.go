@@ -70,7 +70,7 @@ func (d *DataSubsystem) setupRepositories(infra *infrastructure.Infrastructure) 
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", entity.EntityName, entity.EntityName, repo)
 	}
 
-	if d.search, err = gorm.NewSearchService(infra.Logger, infra.DataDB, d.reference.EntityType, d.reference.Property); err != nil {
+	if d.search, err = gorm.NewSearchService(infra.Logger, infra.DataDB, d.reference.EntityType, d.reference.Property, d.reference.TextLang); err != nil {
 		return errors.Errorf("Can not get SearchService for entity, error happened: %v", err)
 	}
 

@@ -25,6 +25,7 @@ type SearchService struct {
 	logger           log.ILogger
 	propertyFinder   entity.PropertyFinder
 	entityTypeFinder entity.EntityTypeFinder
+	langFinder       entity.LangFinder
 	model            *entity.Entity
 }
 
@@ -58,13 +59,14 @@ var IDConditionVariants = []interface{}{
 	selection_condition.ConditionIn,
 }
 
-func NewSearchService(logger log.ILogger, dbase minipkg_gorm.IDB, entityTypeFinder entity.EntityTypeFinder, propertyFinder entity.PropertyFinder) (*SearchService, error) {
+func NewSearchService(logger log.ILogger, dbase minipkg_gorm.IDB, entityTypeFinder entity.EntityTypeFinder, propertyFinder entity.PropertyFinder, langFinder entity.LangFinder) (*SearchService, error) {
 	var err error
 	ctx := context.Background()
 	service := &SearchService{
 		logger:           logger,
 		propertyFinder:   propertyFinder,
 		entityTypeFinder: entityTypeFinder,
+		langFinder:       langFinder,
 		model:            entity.New(),
 	}
 	if service.db, err = dbase.SchemeInitWithContext(ctx, service.model); err != nil {
@@ -326,7 +328,9 @@ func (s *SearchService) ParseSelectionCondition(OriginalCondition *selection_con
 
 func (s *SearchService) newSqlBuilder(condition *SearchCondition, langID uint) *sqlBuilder {
 	builder := &sqlBuilder{
+		Ctx:            context.Background(),
 		PropertyFinder: s.propertyFinder,
+		LangFinder:     s.langFinder,
 		Condition:      condition,
 		LangID:         langID,
 		From:           make([]string, 0, 1),

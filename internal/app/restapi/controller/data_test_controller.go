@@ -561,7 +561,7 @@ func (c dataTestController) userSearch(cntx *routing.Context) error {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[5].SetName(ctx, users[5].Name+" Идет направо — песнь заводит", langRusID); err != nil {
+	if err = users[5].SetName(ctx, users[5].Name+" Идет налево — сказку говорит", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
@@ -569,7 +569,7 @@ func (c dataTestController) userSearch(cntx *routing.Context) error {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[7].SetName(ctx, users[7].Name+" Русалка на ветвях сидит", langRusID); err != nil {
+	if err = users[7].SetName(ctx, users[7].Name+" Русалка на ветвях идёт", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
@@ -577,7 +577,7 @@ func (c dataTestController) userSearch(cntx *routing.Context) error {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[9].SetName(ctx, users[9].Name+" Следы невиданных зверей", langRusID); err != nil {
+	if err = users[9].SetName(ctx, users[9].Name+" Следы невиданных зверей идут", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
@@ -605,11 +605,11 @@ func (c dataTestController) userSearch(cntx *routing.Context) error {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[16].SetName(ctx, users[16].Name+" Чредой из вод выходят ясных", langRusID); err != nil {
+	if err = users[16].SetName(ctx, users[16].Name+" Чредой из вод выходят ясных и идут", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[17].SetName(ctx, users[17].Name+" И с ними дядька их морской", langRusID); err != nil {
+	if err = users[17].SetName(ctx, users[17].Name+" И с ними дядька их морской идёт", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
@@ -636,16 +636,14 @@ func (c dataTestController) userSearch(cntx *routing.Context) error {
 
 	items, err := c.user.Query(ctx, &selection_condition.SelectionCondition{
 		Where: selection_condition.WhereCondition{
-			Field:     user.PropertySysnameAge,
-			Condition: "gte",
-			Value:     10,
+			Field:     user.PropertySysnameName,
+			Condition: selection_condition.ConditionTS,
+			Value:     "идёт",
 		},
 		SortOrder: []map[string]string{
 			{"EntityType": "asc"},
-			{user.PropertySysnameName: "desc"},
+			{user.PropertySysnameAge: "desc"},
 		},
-		Limit:  3,
-		Offset: 2,
 	}, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"user.Query: ": err.Error()})

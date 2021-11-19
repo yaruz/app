@@ -397,8 +397,8 @@ github.com/minipkg/pagination v0.0.0-20210401162640-c2a831d2cca4 h1:HdWOt9aqiZuP
 github.com/minipkg/pagination v0.0.0-20210401162640-c2a831d2cca4/go.mod h1:XfKurmXL6RXc2BaiBzaxHixRXsLuSggmVwFrJHtb1GI=
 github.com/minipkg/selection_condition v0.0.1/go.mod h1:Tb9I1xqD7rBBtMHcHKgN3mareh3VwVE4+lffzATo/jY=
 github.com/minipkg/selection_condition v0.0.3/go.mod h1:Tb9I1xqD7rBBtMHcHKgN3mareh3VwVE4+lffzATo/jY=
-github.com/minipkg/selection_condition v0.0.4 h1:4JXEuqqdKBGkNh96JFjzN6rc7szsNfs0zBoieuNL4sQ=
-github.com/minipkg/selection_condition v0.0.4/go.mod h1:Tb9I1xqD7rBBtMHcHKgN3mareh3VwVE4+lffzATo/jY=
+github.com/minipkg/selection_condition v0.0.5 h1:TJXYqsPRxy8uv5DNdZC+mjTB/AcLAu/j+yT0Mo17sAg=
+github.com/minipkg/selection_condition v0.0.5/go.mod h1:Tb9I1xqD7rBBtMHcHKgN3mareh3VwVE4+lffzATo/jY=
 github.com/mitchellh/cli v1.0.0/go.mod h1:hNIlj7HEI86fIcpObd7a0FcrxTWetlwJDGcceTlRvqc=
 github.com/mitchellh/go-homedir v1.0.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
 github.com/mitchellh/go-testing-interface v1.0.0/go.mod h1:kRemZodwjscx+RGhAo8eIhFbs2+BFgRtFPeD/KE+zxI=

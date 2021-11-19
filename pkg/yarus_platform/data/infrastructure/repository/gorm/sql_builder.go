@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"gorm.io/gorm"
+
 	"github.com/pkg/errors"
 
 	"github.com/minipkg/selection_condition"
@@ -44,7 +46,9 @@ type SearchResult struct {
 }
 
 type sqlBuilder struct {
+	Ctx            context.Context
 	PropertyFinder entity.PropertyFinder
+	LangFinder     entity.LangFinder
 	Condition      *SearchCondition
 	LangID         uint
 	From           []string
@@ -201,6 +205,19 @@ func (b *sqlBuilder) ProcessPropertyConditionsWhere(tableAlias string, wcs selec
 			}
 			b.Where.Str = append(b.Where.Str, tableAlias+".value BEETWIN ? AND ?")
 			b.Where.Params = append(b.Where.Params, value[0], value[1])
+		case selection_condition.ConditionTS:
+			b.Where.Str = append(b.Where.Str, tableAlias+".value_tsvector @@ ?")
+			cfgname, err := b.LangFinder.GetCfgnameByID(b.Ctx, b.LangID)
+			if err != nil {
+				return err
+			}
+			stringParam, ok := wc.Value.(string)
+			if !ok {
+				return errors.Errorf("Can not convert to a string ts param = %v.", wc.Value)
+			}
+
+			paramParts := strings.Fields(stringParam)
+			b.Where.Params = append(b.Where.Params, gorm.Expr("to_tsquery(?, ?)", cfgname, strings.Join(paramParts, " & ")))
 		}
 
 	}
