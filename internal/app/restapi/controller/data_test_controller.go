@@ -5,7 +5,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/minipkg/selection_condition"
+	"github.com/minipkg/pagination"
+
+	"github.com/minipkg/ozzo_routing"
+	"github.com/pkg/errors"
+	"github.com/yaruz/app/internal/pkg/apperror"
 
 	"github.com/yaruz/app/internal/pkg/config"
 
@@ -495,13 +499,23 @@ func (c dataTestController) userInst(cntx *routing.Context) error {
 }
 
 func (c dataTestController) userSearch(cntx *routing.Context) error {
+	ctx := cntx.Request.Context()
+
+	struc, err := c.user.New(ctx)
+	if err != nil {
+		errors.Wrapf(err, "Can not get a new user instant.")
+	}
+
+	cond, err := ozzo_routing.ParseQueryParams(cntx, struc)
+	if err != nil {
+		errors.Wrapf(apperror.ErrBadRequest, err.Error())
+	}
+
 	res := make([]map[string]interface{}, 0, 10)
 	res = append(res, map[string]interface{}{"test": "entity"})
-	ctx := cntx.Request.Context()
 
 	var langRusID uint
 	//var langEngID uint
-	var err error
 
 	if langRusID, err = c.yaruzPlatform.ReferenceSubsystem().TextLang.GetIDByCode(ctx, config.LangRus); err != nil {
 		res = append(res, map[string]interface{}{"TextLang.GetIDByCode(rus): ": err.Error()})
@@ -569,7 +583,7 @@ func (c dataTestController) userSearch(cntx *routing.Context) error {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[7].SetName(ctx, users[7].Name+" Русалка на ветвях идёт", langRusID); err != nil {
+	if err = users[7].SetName(ctx, users[7].Name+" Русалка на ветвях идет", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
@@ -609,7 +623,7 @@ func (c dataTestController) userSearch(cntx *routing.Context) error {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[17].SetName(ctx, users[17].Name+" И с ними дядька их морской идёт", langRusID); err != nil {
+	if err = users[17].SetName(ctx, users[17].Name+" И с ними дядька их морской идет", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
@@ -634,17 +648,18 @@ func (c dataTestController) userSearch(cntx *routing.Context) error {
 		}
 	}
 
-	items, err := c.user.Query(ctx, &selection_condition.SelectionCondition{
-		Where: selection_condition.WhereCondition{
-			Field:     user.PropertySysnameName,
-			Condition: selection_condition.ConditionTS,
-			Value:     "идёт",
-		},
-		SortOrder: []map[string]string{
-			{"EntityType": "asc"},
-			{user.PropertySysnameAge: "desc"},
-		},
-	}, langRusID)
+	count, err := c.user.Count(ctx, cond)
+	if err != nil {
+		res = append(res, map[string]interface{}{"user.Count: ": err.Error()})
+	}
+	pages := pagination.NewFromRequest(cntx.Request, int(count))
+	cond.Limit = pages.Limit()
+	cond.Offset = pages.Offset()
+
+	cntx.Response.Header().Add("pages", pages.BuildLinkHeader("/user-search", pages.PerPage))
+
+	items, err := c.user.Query(ctx, cond, langRusID)
+
 	if err != nil {
 		res = append(res, map[string]interface{}{"user.Query: ": err.Error()})
 	}
@@ -657,6 +672,9 @@ func (c dataTestController) userSearch(cntx *routing.Context) error {
 		}
 	}
 
+	pages.Items = items
+	res = append(res, map[string]interface{}{"res: ": pages})
+	//return cntx.Write(pages)
 	return cntx.Write(res)
 }
 
