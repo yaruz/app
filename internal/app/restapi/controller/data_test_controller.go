@@ -5,8 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/minipkg/pagination"
-
 	"github.com/minipkg/ozzo_routing"
 	"github.com/pkg/errors"
 	"github.com/yaruz/app/internal/pkg/apperror"
@@ -652,11 +650,6 @@ func (c dataTestController) userSearch(cntx *routing.Context) error {
 	if err != nil {
 		res = append(res, map[string]interface{}{"user.Count: ": err.Error()})
 	}
-	pages := pagination.NewFromRequest(cntx.Request, int(count))
-	cond.Limit = pages.Limit()
-	cond.Offset = pages.Offset()
-
-	cntx.Response.Header().Add("pages", pages.BuildLinkHeader("/user-search", pages.PerPage))
 
 	items, err := c.user.Query(ctx, cond, langRusID)
 
@@ -672,8 +665,8 @@ func (c dataTestController) userSearch(cntx *routing.Context) error {
 		}
 	}
 
-	pages.Items = items
-	res = append(res, map[string]interface{}{"res: ": pages})
+	res = append(res, map[string]interface{}{"count: ": count})
+	res = append(res, map[string]interface{}{"items: ": items})
 	//return cntx.Write(pages)
 	return cntx.Write(res)
 }

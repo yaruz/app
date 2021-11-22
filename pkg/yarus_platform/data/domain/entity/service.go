@@ -17,9 +17,9 @@ import (
 type IService interface {
 	NewEntity() *Entity
 	Get(ctx context.Context, id uint, langID uint) (*Entity, error)
-	First(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) (*Entity, error)
-	Query(ctx context.Context, query *selection_condition.SelectionCondition, langID uint) ([]Entity, error)
-	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (uint, error)
+	First(ctx context.Context, cond *selection_condition.SelectionCondition, instant Searchable, langID uint) (*Entity, error)
+	Query(ctx context.Context, query *selection_condition.SelectionCondition, instant Searchable, langID uint) ([]Entity, error)
+	Count(ctx context.Context, cond *selection_condition.SelectionCondition, instant Searchable) (uint, error)
 	Create(ctx context.Context, entity *Entity, langID uint) error
 	Update(ctx context.Context, entity *Entity, langID uint) error
 	Delete(ctx context.Context, id uint) error
@@ -75,8 +75,13 @@ func (s *service) Get(ctx context.Context, id uint, langID uint) (*Entity, error
 	return entity, nil
 }
 
-func (s *service) First(ctx context.Context, selectionCondition *selection_condition.SelectionCondition, langID uint) (*Entity, error) {
-	entity, err := s.search.First(ctx, selectionCondition, langID)
+func (s *service) First(ctx context.Context, condition *selection_condition.SelectionCondition, instant Searchable, langID uint) (*Entity, error) {
+	cond, err := s.normalizeCondition(condition, instant)
+	if err != nil {
+		return nil, err
+	}
+
+	entity, err := s.search.First(ctx, cond, langID)
 	if err != nil {
 		return nil, err
 	}
@@ -88,10 +93,15 @@ func (s *service) First(ctx context.Context, selectionCondition *selection_condi
 }
 
 // Query returns the items with the specified selection condition.
-func (s *service) Query(ctx context.Context, cond *selection_condition.SelectionCondition, langID uint) ([]Entity, error) {
+func (s *service) Query(ctx context.Context, condition *selection_condition.SelectionCondition, instant Searchable, langID uint) ([]Entity, error) {
+	cond, err := s.normalizeCondition(condition, instant)
+	if err != nil {
+		return nil, err
+	}
+
 	items, err := s.search.Query(ctx, cond, langID)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Can not find a list of items by query: %v", cond)
+		return nil, errors.Wrapf(err, "Can not find a list of items by query: %v", condition)
 	}
 
 	for i := range items {
@@ -104,10 +114,15 @@ func (s *service) Query(ctx context.Context, cond *selection_condition.Selection
 	return items, nil
 }
 
-func (s *service) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (uint, error) {
+func (s *service) Count(ctx context.Context, condition *selection_condition.SelectionCondition, instant Searchable) (uint, error) {
+	cond, err := s.normalizeCondition(condition, instant)
+	if err != nil {
+		return 0, err
+	}
+
 	count, err := s.search.Count(ctx, cond)
 	if err != nil {
-		return 0, errors.Wrapf(err, "Can not count a list of items by query: %v", cond)
+		return 0, errors.Wrapf(err, "Can not count a list of items by query: %v", condition)
 	}
 	return count, nil
 }
@@ -340,4 +355,9 @@ func (s *service) CheckBindRelatedEntities(relation *entity_type.Relation, entit
 	}
 
 	return false, nil
+}
+
+func (s *service) normalizeCondition(condition *selection_condition.SelectionCondition, instant Searchable) (*selection_condition.SelectionCondition, error) {
+	resCondition := &selection_condition.SelectionCondition{}
+	return resCondition, nil
 }

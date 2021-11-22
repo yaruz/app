@@ -61,6 +61,10 @@ type PropertyFinder interface {
 	GetTypeIDByID(ctx context.Context, id uint) (uint, error)
 }
 
+type Searchable interface {
+	GetMapNameSysname() map[string]string
+}
+
 // Entity ...
 // Значения свойст:
 // 	пишем в соотв. слайс из ...Values

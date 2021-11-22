@@ -99,7 +99,7 @@ func (r *UserRepository) Get(ctx context.Context, id uint, langID uint) (*user.U
 }
 
 func (r *UserRepository) First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*user.User, error) {
-	e, err := r.yaruzRepository.DataSubsystem().Entity.First(ctx, condition, langID)
+	e, err := r.yaruzRepository.DataSubsystem().Entity.First(ctx, condition, &user.User{}, langID)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func (r *UserRepository) First(ctx context.Context, condition *selection_conditi
 // Query retrieves records with the specified offset and limit from the database.
 func (r *UserRepository) Query(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) ([]user.User, error) {
 
-	entities, err := r.yaruzRepository.DataSubsystem().Entity.Query(ctx, condition, langID)
+	entities, err := r.yaruzRepository.DataSubsystem().Entity.Query(ctx, condition, &user.User{}, langID)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (r *UserRepository) Query(ctx context.Context, condition *selection_conditi
 }
 
 func (r *UserRepository) Count(ctx context.Context, condition *selection_condition.SelectionCondition) (uint, error) {
-	return r.yaruzRepository.DataSubsystem().Entity.Count(ctx, condition)
+	return r.yaruzRepository.DataSubsystem().Entity.Count(ctx, condition, &user.User{})
 }
 
 // Create saves a new record in the database.

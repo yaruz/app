@@ -263,9 +263,20 @@ func (b *sqlBuilder) JoinPropertyValue(tableName string, tableAlias string, prop
 
 func (b *sqlBuilder) subquery4Select(limit uint) (string, []interface{}) {
 	strBuilder := strings.Builder{}
-	strBuilder.WriteString("SELECT entity.id, row_number() OVER(ORDER BY " + strings.Join(b.SortOrder, ", ") + ")")
+	params := make([]interface{}, 0)
+
+	sortOrder := "entity.id"
+	if b.SortOrder != nil && len(b.SortOrder) > 0 {
+		sortOrder = strings.Join(b.SortOrder, ", ")
+	}
+
+	strBuilder.WriteString("SELECT entity.id, row_number() OVER(ORDER BY " + sortOrder + ")")
 	strBuilder.WriteString(" FROM " + strings.Join(b.From, " "))
-	strBuilder.WriteString(" WHERE " + strings.Join(b.Where.Str, " AND "))
+
+	if b.Where != nil && len(b.Where.Str) > 0 {
+		strBuilder.WriteString(" WHERE " + strings.Join(b.Where.Str, " AND "))
+		params = b.Where.Params
+	}
 
 	if limit > 0 {
 		strBuilder.WriteString(fmt.Sprintf(" Limit %v", limit))
@@ -275,17 +286,25 @@ func (b *sqlBuilder) subquery4Select(limit uint) (string, []interface{}) {
 		strBuilder.WriteString(fmt.Sprintf(" OFFSET %v", b.Offset))
 	}
 
-	return strBuilder.String(), b.Where.Params
+	return strBuilder.String(), params
 }
 
 func (b *sqlBuilder) CountQuery() (string, []interface{}) {
+	params := make([]interface{}, 0)
 	strBuilder := strings.Builder{}
 	strBuilder.WriteString("SELECT COUNT(entity.id)")
 	strBuilder.WriteString(" FROM " + strings.Join(b.From, " "))
-	strBuilder.WriteString(" WHERE " + strings.Join(b.Where.Str, " AND "))
-	strBuilder.WriteString(" ORDER BY " + strings.Join(b.SortOrder, ", "))
 
-	return strBuilder.String(), b.Where.Params
+	if b.Where != nil && len(b.Where.Str) > 0 {
+		strBuilder.WriteString(" WHERE " + strings.Join(b.Where.Str, " AND "))
+		params = b.Where.Params
+	}
+
+	if b.SortOrder != nil {
+		strBuilder.WriteString(" ORDER BY " + strings.Join(b.SortOrder, ", "))
+	}
+
+	return strBuilder.String(), params
 }
 
 func (b *sqlBuilder) mainPartOfQuery(subQuery string, subQueryParams []interface{}) (string, []interface{}) {

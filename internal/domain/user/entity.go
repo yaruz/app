@@ -26,12 +26,23 @@ type User struct {
 	//DeletedAt *time.Time
 }
 
+var _ entity.Searchable = (*User)(nil)
+
 func (e User) EntityType() string {
 	return EntityType
 }
 
 func (e User) Validate() error {
 	return nil
+}
+
+func (e *User) GetMapNameSysname() map[string]string {
+	return map[string]string{
+		"Name":   PropertySysnameName,
+		"Age":    PropertySysnameAge,
+		"Height": PropertySysnameHeight,
+		"Weight": PropertySysnameWeight,
+	}
 }
 
 func (e *User) SetName(ctx context.Context, value string, langID uint) error {
