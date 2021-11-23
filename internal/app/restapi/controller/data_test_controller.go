@@ -547,10 +547,10 @@ func (c dataTestController) userSearch(cntx *routing.Context) error {
 			break
 		}
 
-		if err = c.user.Create(ctx, users[i], langRusID); err != nil {
-			res = append(res, map[string]interface{}{"user.Create: ": err.Error()})
-			break
-		}
+		//if err = c.user.Create(ctx, users[i], langRusID); err != nil {
+		//	res = append(res, map[string]interface{}{"user.Create: ": err.Error()})
+		//	break
+		//}
 	}
 
 	if err = users[0].SetName(ctx, users[0].Name+" У лукоморья дуб зеленый", langRusID); err != nil {
@@ -633,20 +633,20 @@ func (c dataTestController) userSearch(cntx *routing.Context) error {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	for i := range users {
+	//for i := range users {
+	//
+	//	if err = users[i].SetHeight(ctx, users[i].Height+10); err != nil {
+	//		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
+	//		break
+	//	}
+	//
+	//	if err = c.user.Update(ctx, users[i], langRusID); err != nil {
+	//		res = append(res, map[string]interface{}{"user.Update: ": err.Error()})
+	//		break
+	//	}
+	//}
 
-		if err = users[i].SetHeight(ctx, users[i].Height+10); err != nil {
-			res = append(res, map[string]interface{}{"user.New: ": err.Error()})
-			break
-		}
-
-		if err = c.user.Update(ctx, users[i], langRusID); err != nil {
-			res = append(res, map[string]interface{}{"user.Update: ": err.Error()})
-			break
-		}
-	}
-
-	count, err := c.user.Count(ctx, cond)
+	count, err := c.user.Count(ctx, cond, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"user.Count: ": err.Error()})
 	}
@@ -658,12 +658,12 @@ func (c dataTestController) userSearch(cntx *routing.Context) error {
 	}
 	res = append(res, map[string]interface{}{"users: ": items})
 
-	for i := range users {
-		if err := c.user.Delete(ctx, users[i].ID); err != nil {
-			res = append(res, map[string]interface{}{"user.Delete: ": err.Error()})
-			break
-		}
-	}
+	//for i := range users {
+	//	if err := c.user.Delete(ctx, users[i].ID); err != nil {
+	//		res = append(res, map[string]interface{}{"user.Delete: ": err.Error()})
+	//		break
+	//	}
+	//}
 
 	res = append(res, map[string]interface{}{"count: ": count})
 	res = append(res, map[string]interface{}{"items: ": items})

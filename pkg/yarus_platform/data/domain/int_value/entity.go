@@ -8,9 +8,9 @@ const (
 // IntValue ...
 type IntValue struct {
 	ID         uint `gorm:"type:bigserial;primaryKey" json:"id"`
-	EntityID   uint `gorm:"type:bigint not null REFERENCES \"entity\"(id)" json:"entityID"`
-	PropertyID uint `gorm:"type:bigint not null" json:"propertyID"`
-	Value      int  `gorm:"type:bigint not null" json:"value"`
+	EntityID   uint `gorm:"type:bigint not null REFERENCES \"entity\"(id);index:idx_int_value,priority:1" json:"entityID"`
+	PropertyID uint `gorm:"type:bigint not null;index:idx_int_value,priority:2" json:"propertyID"`
+	Value      int  `gorm:"type:bigint not null;index" json:"value"`
 }
 
 func (e *IntValue) TableName() string {

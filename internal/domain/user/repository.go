@@ -15,7 +15,7 @@ type Repository interface {
 	Query(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) ([]User, error)
 	First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*User, error)
 	// Count returns the number of items.
-	Count(ctx context.Context, condition *selection_condition.SelectionCondition) (uint, error)
+	Count(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (uint, error)
 	SetDefaultConditions(conditions *selection_condition.SelectionCondition)
 	// Create saves a new album in the storage.
 	Create(ctx context.Context, obj *User, langID uint) error

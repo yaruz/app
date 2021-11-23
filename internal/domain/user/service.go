@@ -15,7 +15,7 @@ type IService interface {
 	Get(ctx context.Context, id uint, langID uint) (*User, error)
 	Query(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) ([]User, error)
 	First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*User, error)
-	Count(ctx context.Context, condition *selection_condition.SelectionCondition) (uint, error)
+	Count(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (uint, error)
 	Create(ctx context.Context, obj *User, langID uint) error
 	Update(ctx context.Context, obj *User, langID uint) error
 	Delete(ctx context.Context, id uint) error
@@ -67,8 +67,8 @@ func (s *service) First(ctx context.Context, condition *selection_condition.Sele
 }
 
 // Count returns the number of items.
-func (s *service) Count(ctx context.Context, condition *selection_condition.SelectionCondition) (uint, error) {
-	return s.repository.Count(ctx, condition)
+func (s *service) Count(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (uint, error) {
+	return s.repository.Count(ctx, condition, langID)
 }
 
 func (s *service) Create(ctx context.Context, obj *User, langID uint) error {

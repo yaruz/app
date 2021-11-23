@@ -19,7 +19,7 @@ type IService interface {
 	Get(ctx context.Context, id uint, langID uint) (*Entity, error)
 	First(ctx context.Context, cond *selection_condition.SelectionCondition, instant Searchable, langID uint) (*Entity, error)
 	Query(ctx context.Context, query *selection_condition.SelectionCondition, instant Searchable, langID uint) ([]Entity, error)
-	Count(ctx context.Context, cond *selection_condition.SelectionCondition, instant Searchable) (uint, error)
+	Count(ctx context.Context, cond *selection_condition.SelectionCondition, instant Searchable, langID uint) (uint, error)
 	Create(ctx context.Context, entity *Entity, langID uint) error
 	Update(ctx context.Context, entity *Entity, langID uint) error
 	Delete(ctx context.Context, id uint) error
@@ -114,13 +114,13 @@ func (s *service) Query(ctx context.Context, condition *selection_condition.Sele
 	return items, nil
 }
 
-func (s *service) Count(ctx context.Context, condition *selection_condition.SelectionCondition, instant Searchable) (uint, error) {
+func (s *service) Count(ctx context.Context, condition *selection_condition.SelectionCondition, instant Searchable, langID uint) (uint, error) {
 	cond, err := s.normalizeCondition(condition, instant)
 	if err != nil {
 		return 0, err
 	}
 
-	count, err := s.search.Count(ctx, cond)
+	count, err := s.search.Count(ctx, cond, langID)
 	if err != nil {
 		return 0, errors.Wrapf(err, "Can not count a list of items by query: %v", condition)
 	}
@@ -358,6 +358,81 @@ func (s *service) CheckBindRelatedEntities(relation *entity_type.Relation, entit
 }
 
 func (s *service) normalizeCondition(condition *selection_condition.SelectionCondition, instant Searchable) (*selection_condition.SelectionCondition, error) {
+	var err error
 	resCondition := &selection_condition.SelectionCondition{}
+
+	if resCondition.Where, err = s.normalizeWhereCondition(condition.Where, instant); err != nil {
+		return nil, err
+	}
+
+	if resCondition.SortOrder, err = s.normalizeSortOrderCondition(condition.SortOrder, instant); err != nil {
+		return nil, err
+	}
 	return resCondition, nil
+}
+
+func (s *service) normalizeWhereCondition(whereConditions interface{}, instant Searchable) (selection_condition.WhereConditions, error) {
+	if whereConditions == nil {
+		return nil, nil
+	}
+	var wcs selection_condition.WhereConditions
+
+	switch wc := whereConditions.(type) {
+	case selection_condition.WhereConditions:
+		wcs = wc
+	case selection_condition.WhereCondition:
+		wcs = append(wcs, wc)
+	default:
+		return nil, errors.Errorf("Conditions must be only a selection_condition.WhereConditions or a selection_condition.WhereCondition. Was given: %v", whereConditions)
+	}
+	resWCs := make(selection_condition.WhereConditions, len(wcs))
+
+	for i, wc := range wcs {
+		sysname, err := s.getInstantSysnameByName(wc.Field, instant)
+		if err != nil {
+			return nil, err
+		}
+		resWCs[i] = selection_condition.WhereCondition{
+			Field:     sysname,
+			Condition: wc.Condition,
+			Value:     wc.Value,
+		}
+	}
+	return resWCs, nil
+}
+
+func (s *service) normalizeSortOrderCondition(sortOrder []map[string]string, instant Searchable) ([]map[string]string, error) {
+	var err error
+	if sortOrder == nil {
+		return nil, nil
+	}
+
+	resSortOrder := make([]map[string]string, len(sortOrder))
+	for i, cond := range sortOrder {
+		if cond == nil || len(cond) != 1 {
+			return nil, errors.Errorf("SortOrder condition must be a slice of 1 length maps (key: val). Has given: %v", cond)
+		}
+		for key, val := range cond {
+			if key, err = s.getInstantSysnameByName(key, instant); err != nil {
+				return nil, err
+			}
+			resSortOrder[i] = map[string]string{
+				key: val,
+			}
+		}
+	}
+
+	return resSortOrder, nil
+}
+
+func (s *service) getInstantSysnameByName(name string, instant Searchable) (string, error) {
+	if name == FieldName_ID || name == FieldName_EntityTypeID || name == FieldName_EntityType {
+		return name, nil
+	}
+
+	sysname, ok := instant.GetMapNameSysname()[name]
+	if !ok {
+		return "", errors.Errorf("Name %s not found in map %v .", name, instant.GetMapNameSysname())
+	}
+	return sysname, nil
 }

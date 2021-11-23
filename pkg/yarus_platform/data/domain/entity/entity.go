@@ -23,6 +23,10 @@ import (
 const (
 	EntityName = "entity"
 	TableName  = "entity"
+
+	FieldName_ID           = "ID"
+	FieldName_EntityTypeID = "EntityTypeID"
+	FieldName_EntityType   = "EntityType"
 )
 
 type LangFinder interface {

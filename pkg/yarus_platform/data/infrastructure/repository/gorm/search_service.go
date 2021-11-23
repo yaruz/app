@@ -46,12 +46,6 @@ type PropertyCondition struct {
 	SortOrder []map[string]string
 }
 
-const (
-	fieldName_ID           = "ID"
-	fieldName_EntityTypeID = "EntityTypeID"
-	fieldName_EntityType   = "EntityType"
-)
-
 var _ entity.SearchService = (*SearchService)(nil)
 
 var IDConditionVariants = []interface{}{
@@ -126,13 +120,13 @@ func (s *SearchService) Query(ctx context.Context, condition *selection_conditio
 	return s.instantiateItems(searchResults), nil
 }
 
-func (s *SearchService) Count(ctx context.Context, condition *selection_condition.SelectionCondition) (uint, error) {
+func (s *SearchService) Count(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (uint, error) {
 	searchCondition, err := s.ParseSelectionCondition(condition)
 	if err != nil {
 		return 0, err
 	}
 
-	sqlBuilder := s.newSqlBuilder(searchCondition, 0)
+	sqlBuilder := s.newSqlBuilder(searchCondition, langID)
 
 	var res uint
 	sql, params := sqlBuilder.CountQuery()

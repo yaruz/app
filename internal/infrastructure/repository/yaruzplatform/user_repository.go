@@ -126,8 +126,8 @@ func (r *UserRepository) Query(ctx context.Context, condition *selection_conditi
 	return items, nil
 }
 
-func (r *UserRepository) Count(ctx context.Context, condition *selection_condition.SelectionCondition) (uint, error) {
-	return r.yaruzRepository.DataSubsystem().Entity.Count(ctx, condition, &user.User{})
+func (r *UserRepository) Count(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (uint, error) {
+	return r.yaruzRepository.DataSubsystem().Entity.Count(ctx, condition, &user.User{}, langID)
 }
 
 // Create saves a new record in the database.

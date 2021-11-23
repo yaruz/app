@@ -83,9 +83,9 @@ func (b *sqlBuilder) ProcessEntityConditionWhere() {
 		var fieldName string
 
 		switch wc.Field {
-		case fieldName_ID:
+		case entity.FieldName_ID:
 			fieldName = "id"
-		case fieldName_EntityTypeID:
+		case entity.FieldName_EntityTypeID:
 			fieldName = "entity_type_id"
 		default:
 			continue
@@ -114,9 +114,9 @@ func (b *sqlBuilder) ProcessEntityConditionSortOrder() {
 			var fieldName string
 
 			switch field {
-			case fieldName_ID:
+			case entity.FieldName_ID:
 				fieldName = "id"
-			case fieldName_EntityTypeID:
+			case entity.FieldName_EntityTypeID:
 				fieldName = "entity_type_id"
 			default:
 				continue
@@ -203,9 +203,12 @@ func (b *sqlBuilder) ProcessPropertyConditionsWhere(tableAlias string, wcs selec
 			if len(value) != 2 {
 				return errors.Errorf("Length of a slice must be = 2, %v given.", wc.Value)
 			}
-			b.Where.Str = append(b.Where.Str, tableAlias+".value BEETWIN ? AND ?")
+			b.Where.Str = append(b.Where.Str, tableAlias+".value BETWEEN ? AND ?")
 			b.Where.Params = append(b.Where.Params, value[0], value[1])
 		case selection_condition.ConditionTS:
+			if b.LangID == 0 {
+				break
+			}
 			b.Where.Str = append(b.Where.Str, tableAlias+".value_tsvector @@ ?")
 			cfgname, err := b.LangFinder.GetCfgnameByID(b.Ctx, b.LangID)
 			if err != nil {
@@ -258,12 +261,18 @@ func (b *sqlBuilder) GetPropertyValueTable(propertyTypeID uint) string {
 }
 
 func (b *sqlBuilder) JoinPropertyValue(tableName string, tableAlias string, propertyID uint) string {
-	return fmt.Sprintf("INNER JOIN %v AS %v ON %v.id = %v.entity_id AND %v.property_id = %v", tableName, tableAlias, entity.TableName, tableAlias, tableAlias, propertyID)
+	var langCond string
+
+	if tableName == text_value.TableName && b.LangID > 0 {
+		langCond = fmt.Sprintf(" AND %v.lang_id = %v", tableAlias, b.LangID)
+	}
+
+	return fmt.Sprintf("INNER JOIN %v AS %v ON %v.id = %v.entity_id AND %v.property_id = %v"+langCond, tableName, tableAlias, entity.TableName, tableAlias, tableAlias, propertyID)
 }
 
 func (b *sqlBuilder) subquery4Select(limit uint) (string, []interface{}) {
-	strBuilder := strings.Builder{}
 	params := make([]interface{}, 0)
+	strBuilder := strings.Builder{}
 
 	sortOrder := "entity.id"
 	if b.SortOrder != nil && len(b.SortOrder) > 0 {
@@ -298,10 +307,6 @@ func (b *sqlBuilder) CountQuery() (string, []interface{}) {
 	if b.Where != nil && len(b.Where.Str) > 0 {
 		strBuilder.WriteString(" WHERE " + strings.Join(b.Where.Str, " AND "))
 		params = b.Where.Params
-	}
-
-	if b.SortOrder != nil {
-		strBuilder.WriteString(" ORDER BY " + strings.Join(b.SortOrder, ", "))
 	}
 
 	return strBuilder.String(), params

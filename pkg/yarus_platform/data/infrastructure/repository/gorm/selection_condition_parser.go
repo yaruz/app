@@ -50,7 +50,7 @@ func (p *SelectionConditionParser) ParseWhere() error {
 	}
 
 	for _, wcondition := range sourceWhereConditions {
-		if wcondition.Field == fieldName_ID || wcondition.Field == fieldName_EntityTypeID {
+		if wcondition.Field == entity.FieldName_ID || wcondition.Field == entity.FieldName_EntityTypeID {
 			wc, err := p.CheckIDCondition(&wcondition)
 			if err != nil {
 				return err
@@ -60,7 +60,7 @@ func (p *SelectionConditionParser) ParseWhere() error {
 			continue
 		}
 
-		if wcondition.Field == fieldName_EntityType {
+		if wcondition.Field == entity.FieldName_EntityType {
 			wc, err := p.CheckEntityTypeCondition(&wcondition)
 			if err != nil {
 				return err
@@ -126,15 +126,15 @@ func (p *SelectionConditionParser) ParseSortOrder() error {
 
 		for field, sortOrder := range sortOrderMap {
 
-			if field == fieldName_ID {
+			if field == entity.FieldName_ID {
 				p.initEntityConditionSortOrder()
-				p.TargetCondition.EntityCondition.SortOrder = append(p.TargetCondition.EntityCondition.SortOrder, map[string]string{fieldName_ID: sortOrder})
+				p.TargetCondition.EntityCondition.SortOrder = append(p.TargetCondition.EntityCondition.SortOrder, map[string]string{entity.FieldName_ID: sortOrder})
 				continue
 			}
 
-			if field == fieldName_EntityType || field == fieldName_EntityTypeID {
+			if field == entity.FieldName_EntityType || field == entity.FieldName_EntityTypeID {
 				p.initEntityConditionSortOrder()
-				p.TargetCondition.EntityCondition.SortOrder = append(p.TargetCondition.EntityCondition.SortOrder, map[string]string{fieldName_EntityTypeID: sortOrder})
+				p.TargetCondition.EntityCondition.SortOrder = append(p.TargetCondition.EntityCondition.SortOrder, map[string]string{entity.FieldName_EntityTypeID: sortOrder})
 				continue
 			}
 			propertySysname := field
@@ -171,7 +171,7 @@ func (p *SelectionConditionParser) ParseLimitOffset() error {
 func (p *SelectionConditionParser) CheckSortOrder(value []map[string]string) error {
 	for _, orderMap := range value {
 		for field, sortOrder := range orderMap {
-			if field == fieldName_ID || field == fieldName_EntityType || field == fieldName_EntityTypeID {
+			if field == entity.FieldName_ID || field == entity.FieldName_EntityType || field == entity.FieldName_EntityTypeID {
 				continue
 			}
 
@@ -187,8 +187,8 @@ func (p *SelectionConditionParser) CheckSortOrder(value []map[string]string) err
 }
 
 func (p *SelectionConditionParser) CheckIDCondition(wcondition *selection_condition.WhereCondition) (*selection_condition.WhereCondition, error) {
-	if wcondition.Field != fieldName_ID && wcondition.Field != fieldName_EntityTypeID {
-		return nil, errors.Errorf("Field must be %q or %q.", fieldName_ID, fieldName_EntityTypeID)
+	if wcondition.Field != entity.FieldName_ID && wcondition.Field != entity.FieldName_EntityTypeID {
+		return nil, errors.Errorf("Field must be %q or %q.", entity.FieldName_ID, entity.FieldName_EntityTypeID)
 	}
 	wc := &selection_condition.WhereCondition{
 		Field:     wcondition.Field,
@@ -230,11 +230,11 @@ func (p *SelectionConditionParser) CheckID(value interface{}) (uint, error) {
 }
 
 func (p *SelectionConditionParser) CheckEntityTypeCondition(wcondition *selection_condition.WhereCondition) (*selection_condition.WhereCondition, error) {
-	if wcondition.Field != fieldName_EntityType {
-		return nil, errors.Errorf("Field must be %q.", fieldName_EntityType)
+	if wcondition.Field != entity.FieldName_EntityType {
+		return nil, errors.Errorf("Field must be %q.", entity.FieldName_EntityType)
 	}
 	wc := &selection_condition.WhereCondition{
-		Field:     fieldName_EntityTypeID,
+		Field:     entity.FieldName_EntityTypeID,
 		Condition: wcondition.Condition,
 	}
 	var err error
