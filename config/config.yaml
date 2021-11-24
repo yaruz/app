@@ -11,30 +11,52 @@ log:
     app:          "app"
 
 db:
-  identity:
-    dialect:        "postgres"
-    dsn:            "host=db port=5432 dbname=identity user=postgres password=1gjcnuhtc1! sslmode=disable"
-    isautomigrate:  True
-    log:
-      loglevel:     4
   reference:
     dialect:        "postgres"
-    dsn:            "host=db port=5432 dbname=reference user=postgres password=1gjcnuhtc1! sslmode=disable"
+    dsn:            "host=db_reference port=5432 dbname=reference user=postgres password=1gjcnuhtc1! sslmode=disable"
     isautomigrate:  True
     log:
       loglevel:     4
-  data:
-    dialect:        "postgres"
-    dsn:            "host=db port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
-    isautomigrate:  True
-    log:
-      loglevel:     4
-  search:
-    dialect:        "postgres"
-    dsn:            "host=db port=5432 dbname=search user=postgres password=1gjcnuhtc1! sslmode=disable"
-    isautomigrate:  True
-    log:
-      loglevel:     4
+  datasharding:
+    default:
+      capacity:  10
+      items:
+        - dialect:        "postgres"
+          dsn:            "host=db_data1 port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
+          isautomigrate:  True
+          log:
+            loglevel:     4
+        - dialect:        "postgres"
+          dsn:            "host=db_data2 port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
+          isautomigrate:  True
+          log:
+            loglevel:     4
+        - dialect:        "postgres"
+          dsn:            "host=db_data3 port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
+          isautomigrate:  True
+          log:
+            loglevel:     4
+
+    bytypes:
+      post:
+        capacity:  20
+        items:
+          - dialect:        "postgres"
+            dsn:            "host=db_data_p1 port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
+            isautomigrate:  True
+            log:
+              loglevel:     4
+          - dialect:        "postgres"
+            dsn:            "host=db_data_p2 port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
+            isautomigrate:  True
+            log:
+              loglevel:     4
+          - dialect:        "postgres"
+            dsn:            "host=db_data_p3 port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
+            isautomigrate:  True
+            log:
+              loglevel:     4
+
   redis:
     addrs:
       - "redis:6379"

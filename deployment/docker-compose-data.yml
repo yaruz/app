@@ -2,22 +2,17 @@ version: '3.7'
 
 services:
 
-  db:
-    container_name: db
-    #db with dev data
-    #image: app-postgres12.2:0.0.1
-    # for pure postgres
+  db_reference:
+    container_name: db_reference
     image: postgres:13-alpine
     volumes:
         - postgresql-data:/var/lib/postgresql/data
         - ./data/db:/docker-entrypoint-initdb.d
     restart: always
     environment:
-      #PGDATA: /var/lib/postgresql/data
-      POSTGRES_DB:        data
+      POSTGRES_DB:        reference
       POSTGRES_USER:      postgres
       POSTGRES_PASSWORD:  1gjcnuhtc1!
-      POSTGRES_MULTIPLE_DATABASES: identity, search, reference
     ports:
       - 5401:5432
     networks:
@@ -28,6 +23,139 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  db_data1:
+    container_name: db_data1
+    image: postgres:13-alpine
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+      - ./data/db:/docker-entrypoint-initdb.d
+    restart: always
+    environment:
+      POSTGRES_DB:        data
+      POSTGRES_USER:      postgres
+      POSTGRES_PASSWORD:  1gjcnuhtc1!
+    ports:
+      - 5401:5432
+    networks:
+      - backend
+    tty: true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db_data2:
+    container_name: db_data2
+    image: postgres:13-alpine
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+      - ./data/db:/docker-entrypoint-initdb.d
+    restart: always
+    environment:
+      POSTGRES_DB:        data
+      POSTGRES_USER:      postgres
+      POSTGRES_PASSWORD:  1gjcnuhtc1!
+    ports:
+      - 5401:5432
+    networks:
+      - backend
+    tty: true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db_data3:
+    container_name: db_data3
+    image: postgres:13-alpine
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+      - ./data/db:/docker-entrypoint-initdb.d
+    restart: always
+    environment:
+      POSTGRES_DB:        data
+      POSTGRES_USER:      postgres
+      POSTGRES_PASSWORD:  1gjcnuhtc1!
+    ports:
+      - 5401:5432
+    networks:
+      - backend
+    tty: true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db_data_p1:
+    container_name: db_data_t1
+    image: postgres:13-alpine
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+      - ./data/db:/docker-entrypoint-initdb.d
+    restart: always
+    environment:
+      POSTGRES_DB:        data
+      POSTGRES_USER:      postgres
+      POSTGRES_PASSWORD:  1gjcnuhtc1!
+    ports:
+      - 5401:5432
+    networks:
+      - backend
+    tty: true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db_data_p2:
+    container_name: db_data_t2
+    image: postgres:13-alpine
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+      - ./data/db:/docker-entrypoint-initdb.d
+    restart: always
+    environment:
+      POSTGRES_DB:        data
+      POSTGRES_USER:      postgres
+      POSTGRES_PASSWORD:  1gjcnuhtc1!
+    ports:
+      - 5401:5432
+    networks:
+      - backend
+    tty: true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db_data_p3:
+    container_name: db_data_t3
+    image: postgres:13-alpine
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+      - ./data/db:/docker-entrypoint-initdb.d
+    restart: always
+    environment:
+      POSTGRES_DB:        data
+      POSTGRES_USER:      postgres
+      POSTGRES_PASSWORD:  1gjcnuhtc1!
+    ports:
+      - 5401:5432
+    networks:
+      - backend
+    tty: true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 
   redis:
     container_name: redis

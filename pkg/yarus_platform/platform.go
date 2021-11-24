@@ -30,7 +30,7 @@ func NewPlatform(cfg config.Configuration) (*Platform, error) {
 		return nil, err
 	}
 
-	infra, err := infrastructure.NewInfra(logger, cfg.Infrastructure)
+	infra, err := infrastructure.NewInfrastructure(logger, cfg.Infrastructure)
 	if err != nil {
 		return nil, err
 	}

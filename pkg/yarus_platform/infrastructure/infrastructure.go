@@ -11,17 +11,45 @@ import (
 )
 
 type Infrastructure struct {
-	Logger      log.ILogger
-	DataDB      minipkg_gorm.IDB
-	ReferenceDB minipkg_gorm.IDB
-	SearchDB    minipkg_gorm.IDB
-	Redis       redis.IDB
-	Cache       cache.Service
+	Logger       log.ILogger
+	DataSharding Sharding
+	ReferenceDB  minipkg_gorm.IDB
+	SearchDB     minipkg_gorm.IDB
+	Redis        redis.IDB
+	Cache        cache.Service
 }
 
-func NewInfra(logger log.ILogger, cfg *config.Infrastructure) (*Infrastructure, error) {
+type Sharding struct {
+	Default Shards
+	ByTypes map[string]Shards
+}
 
-	DataDB, err := minipkg_gorm.New(logger, cfg.DataDB)
+func (s *Sharding) Close() (err error) {
+	for _, shards := range s.ByTypes {
+		if err = shards.Close(); err != nil {
+			return err
+		}
+	}
+	return s.Default.Close()
+}
+
+type Shards struct {
+	Capacity uint
+	Items    []minipkg_gorm.IDB
+}
+
+func (s *Shards) Close() (err error) {
+	for i := range s.Items {
+		if err = s.Items[i].Close(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func NewInfrastructure(logger log.ILogger, cfg *config.Infrastructure) (*Infrastructure, error) {
+
+	DataSharding, err := newDataSharding(logger, &cfg.DataSharding)
 	if err != nil {
 		return nil, err
 	}
@@ -42,18 +70,55 @@ func NewInfra(logger log.ILogger, cfg *config.Infrastructure) (*Infrastructure, 
 	}
 
 	return &Infrastructure{
-		Logger:      logger,
-		DataDB:      DataDB,
-		ReferenceDB: ReferenceDB,
-		SearchDB:    SearchDB,
-		Redis:       rDB,
-		Cache:       cache.NewService(rDB, cfg.CacheLifeTime),
+		Logger:       logger,
+		DataSharding: *DataSharding,
+		ReferenceDB:  ReferenceDB,
+		SearchDB:     SearchDB,
+		Redis:        rDB,
+		Cache:        cache.NewService(rDB, cfg.CacheLifeTime),
+	}, nil
+}
+
+func newDataSharding(logger log.ILogger, cfg *config.Sharding) (*Sharding, error) {
+	defaultShards, err := newShards(logger, &cfg.Default)
+	if err != nil {
+		return nil, err
+	}
+
+	byTypes := make(map[string]Shards, len(cfg.ByTypes))
+	for t, shardsCfg := range cfg.ByTypes {
+		shards, err := newShards(logger, &shardsCfg)
+		if err != nil {
+			return nil, err
+		}
+		byTypes[t] = *shards
+	}
+
+	return &Sharding{
+		Default: *defaultShards,
+		ByTypes: byTypes,
+	}, nil
+}
+
+func newShards(logger log.ILogger, cfg *config.Shards) (*Shards, error) {
+	var err error
+
+	items := make([]minipkg_gorm.IDB, len(cfg.Items))
+	for i, cfgItem := range cfg.Items {
+		if items[i], err = minipkg_gorm.New(logger, cfgItem); err != nil {
+			return nil, err
+		}
+	}
+
+	return &Shards{
+		Capacity: cfg.Capacity,
+		Items:    items,
 	}, nil
 }
 
 func (i *Infrastructure) Stop() error {
 	errRedis := i.Redis.Close()
-	errDataDB := i.DataDB.Close()
+	errDataDB := i.DataSharding.Close()
 	errReferenceDB := i.ReferenceDB.Close()
 	errSearchDB := i.SearchDB.Close()
 
