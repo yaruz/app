@@ -18,22 +18,20 @@ db:
     log:
       loglevel:     4
   datasharding:
+    isautomigrate:  True
     default:
       capacity:  10
       items:
         - dialect:        "postgres"
           dsn:            "host=db_data1 port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
-          isautomigrate:  True
           log:
             loglevel:     4
         - dialect:        "postgres"
           dsn:            "host=db_data2 port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
-          isautomigrate:  True
           log:
             loglevel:     4
         - dialect:        "postgres"
           dsn:            "host=db_data3 port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
-          isautomigrate:  True
           log:
             loglevel:     4
 
@@ -43,17 +41,14 @@ db:
         items:
           - dialect:        "postgres"
             dsn:            "host=db_data_p1 port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
-            isautomigrate:  True
             log:
               loglevel:     4
           - dialect:        "postgres"
             dsn:            "host=db_data_p2 port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
-            isautomigrate:  True
             log:
               loglevel:     4
           - dialect:        "postgres"
             dsn:            "host=db_data_p3 port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
-            isautomigrate:  True
             log:
               loglevel:     4
 

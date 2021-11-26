@@ -22,6 +22,7 @@ type DataSubsystem struct {
 	Entity           entity.IService
 	entityRepository entity.Repository
 	search           entity.SearchService
+	mapReducer       entity.MapReducer
 }
 
 func NewDataSubsystem(infra *infrastructure.Infrastructure, reference *reference.ReferenceSubsystem) (*DataSubsystem, error) {
@@ -33,27 +34,25 @@ func NewDataSubsystem(infra *infrastructure.Infrastructure, reference *reference
 	}
 	d.setupServices(infra.Logger)
 
-	if err := d.autoMigrate(infra.DataDB); err != nil {
+	if err := d.autoMigrate(infra.DataSharding); err != nil {
 		return nil, err
 	}
 
 	return d, nil
 }
 
-func (d *DataSubsystem) autoMigrate(db minipkg_gorm.IDB) error {
-	if db.IsAutoMigrate() {
-
-		err := db.DB().AutoMigrate(
-			&bool_value.BoolValue{},
-			&int_value.IntValue{},
-			&float_value.FloatValue{},
-			&date_value.DateValue{},
-			&time_value.TimeValue{},
-			&text_value.TextValue{},
-		)
-		if err != nil {
-			return err
-		}
+func (d *DataSubsystem) autoMigrate(sharding infrastructure.Sharding) error {
+	if sharding.IsAutoMigrate {
+		return sharding.ApplyFunc2DBs(func(db minipkg_gorm.IDB) error {
+			return db.DB().AutoMigrate(
+				&bool_value.BoolValue{},
+				&int_value.IntValue{},
+				&float_value.FloatValue{},
+				&date_value.DateValue{},
+				&time_value.TimeValue{},
+				&text_value.TextValue{},
+			)
+		})
 	}
 	return nil
 }
@@ -61,7 +60,9 @@ func (d *DataSubsystem) autoMigrate(db minipkg_gorm.IDB) error {
 func (d *DataSubsystem) setupRepositories(infra *infrastructure.Infrastructure) (err error) {
 	var ok bool
 
-	repo, err := gorm.GetRepository(infra.Logger, infra.DataDB, entity.EntityName, d.reference.TextLang)
+	mr := gorm.NewMapReducer(infra.Logger, infra.DataSharding)
+
+	repo, err := gorm.GetRepository(infra.Logger, mr, entity.EntityName, d.reference.TextLang)
 	if err != nil {
 		return errors.Errorf("Can not get db repository for entity %q, error happened: %v", entity.EntityName, err)
 	}
@@ -70,9 +71,7 @@ func (d *DataSubsystem) setupRepositories(infra *infrastructure.Infrastructure) 
 		return errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", entity.EntityName, entity.EntityName, repo)
 	}
 
-	if d.search, err = gorm.NewSearchService(infra.Logger, infra.DataDB, d.reference.EntityType, d.reference.Property, d.reference.TextLang); err != nil {
-		return errors.Errorf("Can not get SearchService for entity, error happened: %v", err)
-	}
+	d.search = gorm.NewSearchService(infra.Logger, mr, d.reference.EntityType, d.reference.Property, d.reference.TextLang)
 
 	return nil
 }

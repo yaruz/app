@@ -24,7 +24,7 @@ type IRepository interface{}
 
 // repository persists albums in database
 type repository struct {
-	db         minipkg_gorm.IDB
+	mapReducer entity.MapReducer
 	logger     log.ILogger
 	Conditions *selection_condition.SelectionCondition
 	model      interface{}
@@ -33,9 +33,10 @@ type repository struct {
 const DefaultLimit = 1000
 
 // GetRepository return a repository
-func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string, langFinder entity.LangFinder) (repo IRepository, err error) {
+func GetRepository(logger log.ILogger, mapReducer entity.MapReducer, entityName string, langFinder entity.LangFinder) (repo IRepository, err error) {
 	r := &repository{
-		logger: logger,
+		logger:     logger,
+		mapReducer: mapReducer,
 	}
 	ctx := context.Background()
 

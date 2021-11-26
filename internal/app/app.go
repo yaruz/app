@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	golog "log"
 
 	"github.com/yaruz/app/internal/infrastructure/repository/yaruzplatform"
@@ -60,13 +61,13 @@ type DomainTask struct {
 }
 
 // New func is a constructor for the App
-func New(cfg config.Configuration) *App {
+func New(ctx context.Context, cfg config.Configuration) *App {
 	logger, err := log.New(cfg.Log)
 	if err != nil {
 		golog.Fatal(err)
 	}
 
-	infra, err := NewInfra(logger, cfg)
+	infra, err := NewInfra(ctx, logger, cfg)
 	if err != nil {
 		golog.Fatal(err)
 	}
@@ -83,7 +84,7 @@ func New(cfg config.Configuration) *App {
 
 	return app
 }
-func NewInfra(logger log.ILogger, cfg config.Configuration) (*Infrastructure, error) {
+func NewInfra(ctx context.Context, logger log.ILogger, cfg config.Configuration) (*Infrastructure, error) {
 	IdentityDB, err := minipkg_gorm.New(logger, cfg.DB.Identity)
 	if err != nil {
 		return nil, err
@@ -94,7 +95,7 @@ func NewInfra(logger log.ILogger, cfg config.Configuration) (*Infrastructure, er
 		return nil, err
 	}
 
-	yaruzRepository, err := yarus_platform.NewPlatform(cfg.YaruzConfig())
+	yaruzRepository, err := yarus_platform.NewPlatform(ctx, cfg.YaruzConfig())
 	if err != nil {
 		return nil, err
 	}

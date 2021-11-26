@@ -1,6 +1,10 @@
 package infrastructure
 
 import (
+	"context"
+
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
+
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/db/redis"
 	"github.com/minipkg/db/redis/cache"
@@ -20,17 +24,34 @@ type Infrastructure struct {
 }
 
 type Sharding struct {
-	Default Shards
-	ByTypes map[string]Shards
+	IsAutoMigrate bool
+	Model         interface{}
+	Default       Shards
+	ByTypes       map[string]Shards
+}
+
+func (s *Sharding) SchemesInitWithContext(ctx context.Context) (err error) {
+	return s.ApplyFunc2DBs(func(db minipkg_gorm.IDB) (err error) {
+		db, err = db.SchemeInitWithContext(ctx, s.Model)
+		return err
+	})
 }
 
 func (s *Sharding) Close() (err error) {
+	return s.ApplyFunc2DBs(func(db minipkg_gorm.IDB) error {
+		return s.ApplyFunc2DBs(func(db minipkg_gorm.IDB) error {
+			return db.Close()
+		})
+	})
+}
+
+func (s *Sharding) ApplyFunc2DBs(f func(db minipkg_gorm.IDB) error) (err error) {
 	for _, shards := range s.ByTypes {
-		if err = shards.Close(); err != nil {
+		if err = shards.ApplyFunc2DBs(f); err != nil {
 			return err
 		}
 	}
-	return s.Default.Close()
+	return s.Default.ApplyFunc2DBs(f)
 }
 
 type Shards struct {
@@ -38,18 +59,31 @@ type Shards struct {
 	Items    []minipkg_gorm.IDB
 }
 
+func (s *Shards) SchemesInitWithContext(ctx context.Context, model interface{}) (err error) {
+	return s.ApplyFunc2DBs(func(db minipkg_gorm.IDB) (err error) {
+		db, err = db.SchemeInitWithContext(ctx, model)
+		return err
+	})
+}
+
 func (s *Shards) Close() (err error) {
+	return s.ApplyFunc2DBs(func(db minipkg_gorm.IDB) error {
+		return db.Close()
+	})
+}
+
+func (s *Shards) ApplyFunc2DBs(f func(db minipkg_gorm.IDB) error) (err error) {
 	for i := range s.Items {
-		if err = s.Items[i].Close(); err != nil {
+		if err = f(s.Items[i]); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func NewInfrastructure(logger log.ILogger, cfg *config.Infrastructure) (*Infrastructure, error) {
+func NewInfrastructure(ctx context.Context, logger log.ILogger, cfg *config.Infrastructure) (*Infrastructure, error) {
 
-	DataSharding, err := newDataSharding(logger, &cfg.DataSharding)
+	DataSharding, err := newDataSharding(ctx, logger, &cfg.DataSharding, entity.New())
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +113,7 @@ func NewInfrastructure(logger log.ILogger, cfg *config.Infrastructure) (*Infrast
 	}, nil
 }
 
-func newDataSharding(logger log.ILogger, cfg *config.Sharding) (*Sharding, error) {
+func newDataSharding(ctx context.Context, logger log.ILogger, cfg *config.Sharding, model interface{}) (*Sharding, error) {
 	defaultShards, err := newShards(logger, &cfg.Default)
 	if err != nil {
 		return nil, err
@@ -94,10 +128,17 @@ func newDataSharding(logger log.ILogger, cfg *config.Sharding) (*Sharding, error
 		byTypes[t] = *shards
 	}
 
-	return &Sharding{
-		Default: *defaultShards,
-		ByTypes: byTypes,
-	}, nil
+	s := &Sharding{
+		IsAutoMigrate: cfg.IsAutoMigrate,
+		Model:         model,
+		Default:       *defaultShards,
+		ByTypes:       byTypes,
+	}
+
+	if err := s.SchemesInitWithContext(ctx); err != nil {
+		return nil, err
+	}
+	return s, nil
 }
 
 func newShards(logger log.ILogger, cfg *config.Shards) (*Shards, error) {

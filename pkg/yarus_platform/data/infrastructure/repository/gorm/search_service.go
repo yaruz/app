@@ -3,7 +3,6 @@ package gorm
 import (
 	"context"
 
-	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/log"
 	"github.com/minipkg/selection_condition"
 	"github.com/pkg/errors"
@@ -21,7 +20,7 @@ import (
 )
 
 type SearchService struct {
-	db               minipkg_gorm.IDB
+	mapReducer       entity.MapReducer
 	logger           log.ILogger
 	propertyFinder   entity.PropertyFinder
 	entityTypeFinder entity.EntityTypeFinder
@@ -53,20 +52,15 @@ var IDConditionVariants = []interface{}{
 	selection_condition.ConditionIn,
 }
 
-func NewSearchService(logger log.ILogger, dbase minipkg_gorm.IDB, entityTypeFinder entity.EntityTypeFinder, propertyFinder entity.PropertyFinder, langFinder entity.LangFinder) (*SearchService, error) {
-	var err error
-	ctx := context.Background()
-	service := &SearchService{
+func NewSearchService(logger log.ILogger, mapReducer entity.MapReducer, entityTypeFinder entity.EntityTypeFinder, propertyFinder entity.PropertyFinder, langFinder entity.LangFinder) *SearchService {
+	return &SearchService{
 		logger:           logger,
+		mapReducer:       mapReducer,
 		propertyFinder:   propertyFinder,
 		entityTypeFinder: entityTypeFinder,
 		langFinder:       langFinder,
 		model:            entity.New(),
 	}
-	if service.db, err = dbase.SchemeInitWithContext(ctx, service.model); err != nil {
-		return nil, err
-	}
-	return service, nil
 }
 func (s *SearchService) Get(ctx context.Context, id uint, langID uint) (*entity.Entity, error) {
 	return s.First(ctx, &selection_condition.SelectionCondition{

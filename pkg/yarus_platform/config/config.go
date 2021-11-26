@@ -21,8 +21,9 @@ type Infrastructure struct {
 }
 
 type Sharding struct {
-	Default Shards
-	ByTypes map[string]Shards
+	IsAutoMigrate bool
+	Default       Shards
+	ByTypes       map[string]Shards
 }
 
 type Shards struct {

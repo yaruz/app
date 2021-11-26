@@ -1,6 +1,8 @@
 package yarus_platform
 
 import (
+	"context"
+
 	"github.com/minipkg/log"
 	"github.com/yaruz/app/pkg/yarus_platform/config"
 	"github.com/yaruz/app/pkg/yarus_platform/data"
@@ -24,13 +26,13 @@ type Platform struct {
 	infra *infrastructure.Infrastructure
 }
 
-func NewPlatform(cfg config.Configuration) (*Platform, error) {
+func NewPlatform(ctx context.Context, cfg config.Configuration) (*Platform, error) {
 	logger, err := log.New(cfg.Infrastructure.Log)
 	if err != nil {
 		return nil, err
 	}
 
-	infra, err := infrastructure.NewInfrastructure(logger, cfg.Infrastructure)
+	infra, err := infrastructure.NewInfrastructure(ctx, logger, cfg.Infrastructure)
 	if err != nil {
 		return nil, err
 	}
