@@ -30,9 +30,9 @@ func NewBoolValueRepository(repository *repository) (*BoolValueRepository, error
 }
 
 // Query retrieves the records with the specified offset and limit from the database.
-func (r *BoolValueRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]bool_value.BoolValue, error) {
+func (r *BoolValueRepository) queryTx(ctx context.Context, cond *selection_condition.SelectionCondition, tx *gorm.DB) ([]bool_value.BoolValue, error) {
 	items := []bool_value.BoolValue{}
-	db := minipkg_gorm.Conditions(r.DB(), cond)
+	db := minipkg_gorm.Conditions(tx, cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -47,14 +47,18 @@ func (r *BoolValueRepository) Query(ctx context.Context, cond *selection_conditi
 	return items, err
 }
 
-func (r *BoolValueRepository) BatchDeleteTx(ctx context.Context, cond *selection_condition.SelectionCondition, tx *gorm.DB) error {
-	db := minipkg_gorm.Conditions(r.db.GormTx(tx), cond)
-	if db.Error != nil {
-		return db.Error
+func (r *BoolValueRepository) BatchDeleteTx(ctx context.Context, cond *selection_condition.SelectionCondition, tx *gorm.DB) (err error) {
+	db := &minipkg_gorm.DB{GormDB: tx}
+	if db, err = db.SchemeInitWithContext(ctx, r.model); err != nil {
+		return err
 	}
 
-	err := db.Delete(&bool_value.BoolValue{}).Error
-	if err != nil {
+	gormDB := minipkg_gorm.Conditions(db.DB(), cond)
+	if gormDB.Error != nil {
+		return gormDB.Error
+	}
+
+	if err = gormDB.Delete(&bool_value.BoolValue{}).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apperror.ErrNotFound
 		}
@@ -62,16 +66,22 @@ func (r *BoolValueRepository) BatchDeleteTx(ctx context.Context, cond *selection
 	return err
 }
 
-func (r *BoolValueRepository) BatchSaveChangesTx(ctx context.Context, entityID uint, values []bool_value.BoolValue, langID uint, tx *gorm.DB) error {
+func (r *BoolValueRepository) BatchSaveChangesTx(ctx context.Context, entityID uint, values []bool_value.BoolValue, langID uint, tx *gorm.DB) (err error) {
 	for i := range values {
 		values[i].EntityID = entityID
 	}
-	return r.db.GormTx(tx).Transaction(func(tx *gorm.DB) error {
-		oldValues, err := r.Query(ctx, &selection_condition.SelectionCondition{
+
+	db := &minipkg_gorm.DB{GormDB: tx}
+	if db, err = db.SchemeInitWithContext(ctx, r.model); err != nil {
+		return err
+	}
+
+	return db.DB().Transaction(func(tx *gorm.DB) error {
+		oldValues, err := r.queryTx(ctx, &selection_condition.SelectionCondition{
 			Where: &bool_value.BoolValue{
 				EntityID: entityID,
 			},
-		})
+		}, tx)
 		if err != nil {
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
 				return err

@@ -30,9 +30,9 @@ func NewTimeValueRepository(repository *repository) (*TimeValueRepository, error
 }
 
 // Query retrieves the records with the specified offset and limit from the database.
-func (r *TimeValueRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]time_value.TimeValue, error) {
+func (r *TimeValueRepository) queryTx(ctx context.Context, cond *selection_condition.SelectionCondition, tx *gorm.DB) ([]time_value.TimeValue, error) {
 	items := []time_value.TimeValue{}
-	db := minipkg_gorm.Conditions(r.DB(), cond)
+	db := minipkg_gorm.Conditions(tx, cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -47,14 +47,18 @@ func (r *TimeValueRepository) Query(ctx context.Context, cond *selection_conditi
 	return items, err
 }
 
-func (r *TimeValueRepository) BatchDeleteTx(ctx context.Context, cond *selection_condition.SelectionCondition, tx *gorm.DB) error {
-	db := minipkg_gorm.Conditions(r.db.GormTx(tx), cond)
-	if db.Error != nil {
-		return db.Error
+func (r *TimeValueRepository) BatchDeleteTx(ctx context.Context, cond *selection_condition.SelectionCondition, tx *gorm.DB) (err error) {
+	db := &minipkg_gorm.DB{GormDB: tx}
+	if db, err = db.SchemeInitWithContext(ctx, r.model); err != nil {
+		return err
 	}
 
-	err := db.Delete(&time_value.TimeValue{}).Error
-	if err != nil {
+	gormDB := minipkg_gorm.Conditions(db.DB(), cond)
+	if gormDB.Error != nil {
+		return gormDB.Error
+	}
+
+	if err = gormDB.Delete(&time_value.TimeValue{}).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apperror.ErrNotFound
 		}
@@ -62,16 +66,22 @@ func (r *TimeValueRepository) BatchDeleteTx(ctx context.Context, cond *selection
 	return err
 }
 
-func (r *TimeValueRepository) BatchSaveChangesTx(ctx context.Context, entityID uint, values []time_value.TimeValue, langID uint, tx *gorm.DB) error {
+func (r *TimeValueRepository) BatchSaveChangesTx(ctx context.Context, entityID uint, values []time_value.TimeValue, langID uint, tx *gorm.DB) (err error) {
 	for i := range values {
 		values[i].EntityID = entityID
 	}
-	return r.db.GormTx(tx).Transaction(func(tx *gorm.DB) error {
-		oldValues, err := r.Query(ctx, &selection_condition.SelectionCondition{
+
+	db := &minipkg_gorm.DB{GormDB: tx}
+	if db, err = db.SchemeInitWithContext(ctx, r.model); err != nil {
+		return err
+	}
+
+	return db.DB().Transaction(func(tx *gorm.DB) error {
+		oldValues, err := r.queryTx(ctx, &selection_condition.SelectionCondition{
 			Where: &time_value.TimeValue{
 				EntityID: entityID,
 			},
-		})
+		}, tx)
 		if err != nil {
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
 				return err

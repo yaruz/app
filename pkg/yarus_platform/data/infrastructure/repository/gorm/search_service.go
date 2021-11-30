@@ -3,6 +3,8 @@ package gorm
 import (
 	"context"
 
+	minipkg_gorm "github.com/minipkg/db/gorm"
+
 	"github.com/minipkg/log"
 	"github.com/minipkg/selection_condition"
 	"github.com/pkg/errors"
@@ -20,7 +22,7 @@ import (
 )
 
 type SearchService struct {
-	mapReducer       entity.MapReducer
+	mapReducer       IMapReducer
 	logger           log.ILogger
 	propertyFinder   entity.PropertyFinder
 	entityTypeFinder entity.EntityTypeFinder
@@ -52,7 +54,7 @@ var IDConditionVariants = []interface{}{
 	selection_condition.ConditionIn,
 }
 
-func NewSearchService(logger log.ILogger, mapReducer entity.MapReducer, entityTypeFinder entity.EntityTypeFinder, propertyFinder entity.PropertyFinder, langFinder entity.LangFinder) *SearchService {
+func NewSearchService(logger log.ILogger, mapReducer IMapReducer, entityTypeFinder entity.EntityTypeFinder, propertyFinder entity.PropertyFinder, langFinder entity.LangFinder) *SearchService {
 	return &SearchService{
 		logger:           logger,
 		mapReducer:       mapReducer,
@@ -62,14 +64,23 @@ func NewSearchService(logger log.ILogger, mapReducer entity.MapReducer, entityTy
 		model:            entity.New(),
 	}
 }
-func (s *SearchService) Get(ctx context.Context, id uint, langID uint) (*entity.Entity, error) {
-	return s.First(ctx, &selection_condition.SelectionCondition{
-		Where: selection_condition.WhereCondition{
-			Field:     "ID",
-			Condition: "eq",
-			Value:     id,
-		},
-	}, langID)
+
+func (s *SearchService) Get(ctx context.Context, ID uint, typeID uint, langID uint) (*entity.Entity, error) {
+	sqlBuilder := &sqlBuilder{
+		Ctx:    context.Background(),
+		LangID: langID,
+	}
+	sql, params := sqlBuilder.GetQuery(ID)
+
+	searchResult := make([]SearchResult, 0)
+	if err := s.mapReducer.GetDB(ID, typeID).DB().Raw(sql, params...).Scan(&searchResult).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, yaruserror.ErrNotFound
+		}
+		return nil, err
+	}
+
+	return s.instantiateItem(searchResult), nil
 }
 
 func (s *SearchService) First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*entity.Entity, error) {
@@ -79,16 +90,18 @@ func (s *SearchService) First(ctx context.Context, condition *selection_conditio
 	}
 
 	sqlBuilder := s.newSqlBuilder(searchCondition, langID)
-
-	searchResults := make([]SearchResult, 0)
 	sql, params := sqlBuilder.FirstQuery()
 
-	if err = s.db.DB().Raw(sql, params...).Scan(&searchResults).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, yaruserror.ErrNotFound
+	searchResults, err := s.mapReducer.Query(ctx, s.model, condition, func(db minipkg_gorm.IDB) ([]SearchResult, error) {
+		searchResult := make([]SearchResult, 0)
+		if err = db.DB().Raw(sql, params...).Scan(&searchResult).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, yaruserror.ErrNotFound
+			}
+			return nil, err
 		}
-		return nil, err
-	}
+		return searchResult, nil
+	})
 
 	return s.instantiateItem(searchResults), nil
 }
@@ -100,16 +113,18 @@ func (s *SearchService) Query(ctx context.Context, condition *selection_conditio
 	}
 
 	sqlBuilder := s.newSqlBuilder(searchCondition, langID)
-
-	searchResults := make([]SearchResult, 0)
 	sql, params := sqlBuilder.SelectQuery()
 
-	if err = s.db.DB().Raw(sql, params...).Scan(&searchResults).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, yaruserror.ErrNotFound
+	searchResults, err := s.mapReducer.Query(ctx, s.model, condition, func(db minipkg_gorm.IDB) ([]SearchResult, error) {
+		searchResult := make([]SearchResult, 0)
+		if err = db.DB().Raw(sql, params...).Scan(&searchResult).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, yaruserror.ErrNotFound
+			}
+			return nil, err
 		}
-		return nil, err
-	}
+		return searchResult, nil
+	})
 
 	return s.instantiateItems(searchResults), nil
 }
@@ -121,11 +136,20 @@ func (s *SearchService) Count(ctx context.Context, condition *selection_conditio
 	}
 
 	sqlBuilder := s.newSqlBuilder(searchCondition, langID)
-
-	var res uint
 	sql, params := sqlBuilder.CountQuery()
-	s.db.DB().Raw(sql, params...).Scan(&res)
-	return res, nil
+
+	searchResults, err := s.mapReducer.Count(ctx, s.model, condition, func(db minipkg_gorm.IDB) (uint, error) {
+		var searchResult uint
+		if err = db.DB().Raw(sql, params...).Scan(&searchResult).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return 0, yaruserror.ErrNotFound
+			}
+			return 0, err
+		}
+		return searchResult, nil
+	})
+
+	return searchResults, nil
 }
 
 func (s *SearchService) instantiateItem(searchResults []SearchResult) *entity.Entity {

@@ -30,9 +30,9 @@ func NewIntValueRepository(repository *repository) (*IntValueRepository, error) 
 }
 
 // Query retrieves the records with the specified offset and limit from the database.
-func (r *IntValueRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]int_value.IntValue, error) {
+func (r *IntValueRepository) queryTx(ctx context.Context, cond *selection_condition.SelectionCondition, tx *gorm.DB) ([]int_value.IntValue, error) {
 	items := []int_value.IntValue{}
-	db := minipkg_gorm.Conditions(r.DB(), cond)
+	db := minipkg_gorm.Conditions(tx, cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -47,14 +47,18 @@ func (r *IntValueRepository) Query(ctx context.Context, cond *selection_conditio
 	return items, err
 }
 
-func (r *IntValueRepository) BatchDeleteTx(ctx context.Context, cond *selection_condition.SelectionCondition, tx *gorm.DB) error {
-	db := minipkg_gorm.Conditions(r.db.GormTx(tx), cond)
-	if db.Error != nil {
-		return db.Error
+func (r *IntValueRepository) BatchDeleteTx(ctx context.Context, cond *selection_condition.SelectionCondition, tx *gorm.DB) (err error) {
+	db := &minipkg_gorm.DB{GormDB: tx}
+	if db, err = db.SchemeInitWithContext(ctx, r.model); err != nil {
+		return err
 	}
 
-	err := db.Delete(&int_value.IntValue{}).Error
-	if err != nil {
+	gormDB := minipkg_gorm.Conditions(db.DB(), cond)
+	if gormDB.Error != nil {
+		return gormDB.Error
+	}
+
+	if err = gormDB.Delete(&int_value.IntValue{}).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apperror.ErrNotFound
 		}
@@ -62,16 +66,22 @@ func (r *IntValueRepository) BatchDeleteTx(ctx context.Context, cond *selection_
 	return err
 }
 
-func (r *IntValueRepository) BatchSaveChangesTx(ctx context.Context, entityID uint, values []int_value.IntValue, langID uint, tx *gorm.DB) error {
+func (r *IntValueRepository) BatchSaveChangesTx(ctx context.Context, entityID uint, values []int_value.IntValue, langID uint, tx *gorm.DB) (err error) {
 	for i := range values {
 		values[i].EntityID = entityID
 	}
-	return r.db.GormTx(tx).Transaction(func(tx *gorm.DB) error {
-		oldValues, err := r.Query(ctx, &selection_condition.SelectionCondition{
+
+	db := &minipkg_gorm.DB{GormDB: tx}
+	if db, err = db.SchemeInitWithContext(ctx, r.model); err != nil {
+		return err
+	}
+
+	return db.DB().Transaction(func(tx *gorm.DB) error {
+		oldValues, err := r.queryTx(ctx, &selection_condition.SelectionCondition{
 			Where: &int_value.IntValue{
 				EntityID: entityID,
 			},
-		})
+		}, tx)
 		if err != nil {
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
 				return err

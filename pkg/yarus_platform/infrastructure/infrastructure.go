@@ -23,64 +23,6 @@ type Infrastructure struct {
 	Cache        cache.Service
 }
 
-type Sharding struct {
-	IsAutoMigrate bool
-	Model         interface{}
-	Default       Shards
-	ByTypes       map[string]Shards
-}
-
-func (s *Sharding) SchemesInitWithContext(ctx context.Context) (err error) {
-	return s.ApplyFunc2DBs(func(db minipkg_gorm.IDB) (err error) {
-		db, err = db.SchemeInitWithContext(ctx, s.Model)
-		return err
-	})
-}
-
-func (s *Sharding) Close() (err error) {
-	return s.ApplyFunc2DBs(func(db minipkg_gorm.IDB) error {
-		return s.ApplyFunc2DBs(func(db minipkg_gorm.IDB) error {
-			return db.Close()
-		})
-	})
-}
-
-func (s *Sharding) ApplyFunc2DBs(f func(db minipkg_gorm.IDB) error) (err error) {
-	for _, shards := range s.ByTypes {
-		if err = shards.ApplyFunc2DBs(f); err != nil {
-			return err
-		}
-	}
-	return s.Default.ApplyFunc2DBs(f)
-}
-
-type Shards struct {
-	Capacity uint
-	Items    []minipkg_gorm.IDB
-}
-
-func (s *Shards) SchemesInitWithContext(ctx context.Context, model interface{}) (err error) {
-	return s.ApplyFunc2DBs(func(db minipkg_gorm.IDB) (err error) {
-		db, err = db.SchemeInitWithContext(ctx, model)
-		return err
-	})
-}
-
-func (s *Shards) Close() (err error) {
-	return s.ApplyFunc2DBs(func(db minipkg_gorm.IDB) error {
-		return db.Close()
-	})
-}
-
-func (s *Shards) ApplyFunc2DBs(f func(db minipkg_gorm.IDB) error) (err error) {
-	for i := range s.Items {
-		if err = f(s.Items[i]); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func NewInfrastructure(ctx context.Context, logger log.ILogger, cfg *config.Infrastructure) (*Infrastructure, error) {
 
 	DataSharding, err := newDataSharding(ctx, logger, &cfg.DataSharding, entity.New())
@@ -135,7 +77,7 @@ func newDataSharding(ctx context.Context, logger log.ILogger, cfg *config.Shardi
 		ByTypes:       byTypes,
 	}
 
-	if err := s.SchemesInitWithContext(ctx); err != nil {
+	if err := s.SchemesInitWithContext(ctx, model); err != nil {
 		return nil, err
 	}
 	return s, nil

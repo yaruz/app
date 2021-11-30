@@ -270,6 +270,10 @@ func (b *sqlBuilder) JoinPropertyValue(tableName string, tableAlias string, prop
 	return fmt.Sprintf("INNER JOIN %v AS %v ON %v.id = %v.entity_id AND %v.property_id = %v"+langCond, tableName, tableAlias, entity.TableName, tableAlias, tableAlias, propertyID)
 }
 
+func (b *sqlBuilder) subquery4Get(id uint) (string, []interface{}) {
+	return "SELECT entity.id, row_number() OVER(ORDER BY entity.id) FROM entity WHERE entity.id = ?", []interface{}{id}
+}
+
 func (b *sqlBuilder) subquery4Select(limit uint) (string, []interface{}) {
 	params := make([]interface{}, 0)
 	strBuilder := strings.Builder{}
@@ -337,4 +341,8 @@ func (b *sqlBuilder) SelectQuery() (string, []interface{}) {
 
 func (b *sqlBuilder) FirstQuery() (string, []interface{}) {
 	return b.mainPartOfQuery(b.subquery4Select(1))
+}
+
+func (b *sqlBuilder) GetQuery(ID uint) (string, []interface{}) {
+	return b.mainPartOfQuery(b.subquery4Get(ID))
 }

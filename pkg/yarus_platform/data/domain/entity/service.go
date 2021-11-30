@@ -16,13 +16,13 @@ import (
 // IService encapsulates usecase logic.
 type IService interface {
 	NewEntity() *Entity
-	Get(ctx context.Context, id uint, langID uint) (*Entity, error)
+	Get(ctx context.Context, ID uint, typeID uint, langID uint) (*Entity, error)
 	First(ctx context.Context, cond *selection_condition.SelectionCondition, instant Searchable, langID uint) (*Entity, error)
 	Query(ctx context.Context, query *selection_condition.SelectionCondition, instant Searchable, langID uint) ([]Entity, error)
 	Count(ctx context.Context, cond *selection_condition.SelectionCondition, instant Searchable, langID uint) (uint, error)
 	Create(ctx context.Context, entity *Entity, langID uint) error
 	Update(ctx context.Context, entity *Entity, langID uint) error
-	Delete(ctx context.Context, id uint) error
+	Delete(ctx context.Context, ID uint, typeID uint) error
 	EntityInit(ctx context.Context, entity *Entity, langID uint) error
 	//SetValueForProperty(entity *Entity, property *property.Property, value interface{}, langID uint) error
 	//SetValueForRelation(entity *Entity, relation *entity_type.Relation, value []uint) error
@@ -63,8 +63,16 @@ func (s *service) NewEntity() *Entity {
 }
 
 // Get returns the entity with the specified ID.
-func (s *service) Get(ctx context.Context, id uint, langID uint) (*Entity, error) {
-	entity, err := s.search.Get(ctx, id, langID)
+func (s *service) Get(ctx context.Context, ID uint, typeID uint, langID uint) (*Entity, error) {
+	if ID == 0 {
+		return nil, errors.New("ID must be set")
+	}
+
+	if typeID == 0 {
+		return nil, errors.New("typeID must be set")
+	}
+
+	entity, err := s.search.Get(ctx, ID, typeID, langID)
 	if err != nil {
 		return nil, err
 	}
@@ -128,6 +136,10 @@ func (s *service) Count(ctx context.Context, condition *selection_condition.Sele
 }
 
 func (s *service) Create(ctx context.Context, entity *Entity, langID uint) error {
+	if err := entity.Validate(); err != nil {
+		return err
+	}
+
 	err := s.repository.Create(ctx, entity, langID)
 	if err != nil {
 		return errors.Wrapf(err, "Can not create an entity: %v", entity)
@@ -141,6 +153,10 @@ func (s *service) Create(ctx context.Context, entity *Entity, langID uint) error
 }
 
 func (s *service) Update(ctx context.Context, entity *Entity, langID uint) error {
+	if err := entity.Validate(); err != nil {
+		return err
+	}
+
 	err := s.repository.Update(ctx, entity, langID)
 	if err != nil {
 		return errors.Wrapf(err, "Can not update an entity: %v", entity)
@@ -153,10 +169,18 @@ func (s *service) Update(ctx context.Context, entity *Entity, langID uint) error
 	return nil
 }
 
-func (s *service) Delete(ctx context.Context, id uint) error {
-	err := s.repository.Delete(ctx, id)
+func (s *service) Delete(ctx context.Context, ID uint, typeID uint) error {
+	if ID == 0 {
+		return errors.New("ID must be set")
+	}
+
+	if typeID == 0 {
+		return errors.New("typeID must be set")
+	}
+
+	err := s.repository.Delete(ctx, ID, typeID)
 	if err != nil {
-		return errors.Wrapf(err, "Can not delete an entity by ID: %v", id)
+		return errors.Wrapf(err, "Can not delete an entity typeID= %v; ID = %v", typeID, ID)
 	}
 	return nil
 }

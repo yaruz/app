@@ -1,10 +1,16 @@
 package gorm
 
 import (
+	"context"
+
+	"github.com/pkg/errors"
+
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/log"
+	"github.com/minipkg/selection_condition"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
 	"github.com/yaruz/app/pkg/yarus_platform/infrastructure"
+	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 )
 
 type MapReducer struct {
@@ -13,7 +19,7 @@ type MapReducer struct {
 	model    entity.Entity
 }
 
-var _ entity.MapReducer = (*MapReducer)(nil)
+var _ IMapReducer = (*MapReducer)(nil)
 
 func NewMapReducer(logger log.ILogger, sharding infrastructure.Sharding) *MapReducer {
 	return &MapReducer{
@@ -23,10 +29,44 @@ func NewMapReducer(logger log.ILogger, sharding infrastructure.Sharding) *MapRed
 	}
 }
 
-func (s *MapReducer) GetDBByID(ID uint, typeID uint) minipkg_gorm.IDB {
-	return nil
+func (s *MapReducer) GetDB(ID uint, typeID uint) minipkg_gorm.IDB {
+	return s.sharding.GetDB(ID, typeID)
 }
 
-func (s *MapReducer) GetDBForNew(typeID uint) minipkg_gorm.IDB {
-	return nil
+func (s *MapReducer) GetDBs(condition *selection_condition.SelectionCondition) []minipkg_gorm.IDB {
+	return s.sharding.GetDBs(condition)
+}
+
+func (s *MapReducer) GetDBForInsert(typeID uint) minipkg_gorm.IDB {
+	return s.sharding.GetDBForInsert(typeID)
+}
+
+func (s *MapReducer) Query(ctx context.Context, model interface{}, condition *selection_condition.SelectionCondition, f func(db minipkg_gorm.IDB) ([]SearchResult, error)) ([]SearchResult, error) {
+	var res []SearchResult
+
+	dbs := s.sharding.GetDBs(condition)
+	for _, db := range dbs {
+		searchResult, err := f(db)
+		if err != nil && !errors.Is(err, yaruserror.ErrNotFound) {
+			return nil, err
+		}
+		res = append(res, searchResult...)
+	}
+	// todo: сортировку результатов
+	return res, nil
+}
+
+func (s *MapReducer) Count(ctx context.Context, model interface{}, condition *selection_condition.SelectionCondition, f func(db minipkg_gorm.IDB) (uint, error)) (uint, error) {
+	var res uint
+
+	dbs := s.sharding.GetDBs(condition)
+	for _, db := range dbs {
+		searchResult, err := f(db)
+		if err != nil && !errors.Is(err, yaruserror.ErrNotFound) {
+			return 0, err
+		}
+		res += searchResult
+	}
+
+	return res, nil
 }

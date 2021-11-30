@@ -22,7 +22,7 @@ type DataSubsystem struct {
 	Entity           entity.IService
 	entityRepository entity.Repository
 	search           entity.SearchService
-	mapReducer       entity.MapReducer
+	mapReducer       gorm.IMapReducer
 }
 
 func NewDataSubsystem(infra *infrastructure.Infrastructure, reference *reference.ReferenceSubsystem) (*DataSubsystem, error) {
@@ -45,6 +45,7 @@ func (d *DataSubsystem) autoMigrate(sharding infrastructure.Sharding) error {
 	if sharding.IsAutoMigrate {
 		return sharding.ApplyFunc2DBs(func(db minipkg_gorm.IDB) error {
 			return db.DB().AutoMigrate(
+				&entity.Entity{},
 				&bool_value.BoolValue{},
 				&int_value.IntValue{},
 				&float_value.FloatValue{},

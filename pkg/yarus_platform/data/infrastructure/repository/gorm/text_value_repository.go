@@ -35,35 +35,10 @@ func NewTextValueRepository(repository *repository, langFinder entity.LangFinder
 	}, nil
 }
 
-//// Get reads the album with the specified ID from the database.
-//func (r *TextValueRepository) Get(ctx context.Context, id uint) (*text_value.TextValue, error) {
-//	entity := &text_value.TextValue{}
-//
-//	err := r.DB().First(entity, id).Error
-//	if err != nil {
-//		if errors.Is(err, gorm.ErrRecordNotFound) {
-//			return entity, yaruserror.ErrNotFound
-//		}
-//		return nil, err
-//	}
-//	return entity, err
-//}
-//
-//func (r *TextValueRepository) First(ctx context.Context, entity *text_value.TextValue) (*text_value.TextValue, error) {
-//	err := r.DB().Where(entity).First(entity).Error
-//	if err != nil {
-//		if errors.Is(err, gorm.ErrRecordNotFound) {
-//			return entity, yaruserror.ErrNotFound
-//		}
-//		return nil, err
-//	}
-//	return entity, err
-//}
-
 // Query retrieves the album records with the specified offset and limit from the database.
-func (r *TextValueRepository) Query(ctx context.Context, cond *selection_condition.SelectionCondition) ([]text_value.TextValue, error) {
+func (r *TextValueRepository) queryTx(ctx context.Context, cond *selection_condition.SelectionCondition, tx *gorm.DB) ([]text_value.TextValue, error) {
 	items := []text_value.TextValue{}
-	db := minipkg_gorm.Conditions(r.DB(), cond)
+	db := minipkg_gorm.Conditions(tx, cond)
 	if db.Error != nil {
 		return nil, db.Error
 	}
@@ -78,65 +53,18 @@ func (r *TextValueRepository) Query(ctx context.Context, cond *selection_conditi
 	return items, err
 }
 
-//func (r *TextValueRepository) Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error) {
-//	var count int64
-//	c := cond
-//	c.Limit = 0
-//	c.Offset = 0
-//	db := minipkg_gorm.Conditions(r.DB(), cond)
-//	if db.Error != nil {
-//		return 0, db.Error
-//	}
-//
-//	err := db.Count(&count).Error
-//	return count, err
-//}
-//
-//// Create saves a new record in the database.
-//func (r *TextValueRepository) Create(ctx context.Context, entity *text_value.TextValue) error {
-//
-//	if entity.ID > 0 {
-//		return errors.New("entity is not new")
-//	}
-//
-//	return r.db.DB().Create(entity).Error
-//}
-//
-//// Update saves a changed Maintenance record in the database.
-//func (r *TextValueRepository) Update(ctx context.Context, entity *text_value.TextValue) error {
-//
-//	if entity.ID == 0 {
-//		return errors.New("entity is new")
-//	}
-//
-//	return r.Save(ctx, entity)
-//}
-//
-//// Save update value in database, if the value doesn't have primary key, will insert it
-//func (r *TextValueRepository) Save(ctx context.Context, entity *text_value.TextValue) error {
-//	return r.db.DB().Save(entity).Error
-//}
-//
-//// Delete (soft) deletes a Maintenance record in the database.
-//func (r *TextValueRepository) Delete(ctx context.Context, id uint) error {
-//
-//	err := r.db.DB().Delete(&text_value.TextValue{}, id).Error
-//	if err != nil {
-//		if errors.Is(err, gorm.ErrRecordNotFound) {
-//			return apperror.ErrNotFound
-//		}
-//	}
-//	return err
-//}
-
-func (r *TextValueRepository) BatchDeleteTx(ctx context.Context, cond *selection_condition.SelectionCondition, tx *gorm.DB) error {
-	db := minipkg_gorm.Conditions(r.db.GormTx(tx), cond)
-	if db.Error != nil {
-		return db.Error
+func (r *TextValueRepository) BatchDeleteTx(ctx context.Context, cond *selection_condition.SelectionCondition, tx *gorm.DB) (err error) {
+	db := &minipkg_gorm.DB{GormDB: tx}
+	if db, err = db.SchemeInitWithContext(ctx, r.model); err != nil {
+		return err
 	}
 
-	err := db.Delete(&text_value.TextValue{}).Error
-	if err != nil {
+	gormDB := minipkg_gorm.Conditions(db.DB(), cond)
+	if gormDB.Error != nil {
+		return gormDB.Error
+	}
+
+	if err = gormDB.Delete(&text_value.TextValue{}).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apperror.ErrNotFound
 		}
@@ -144,14 +72,19 @@ func (r *TextValueRepository) BatchDeleteTx(ctx context.Context, cond *selection
 	return err
 }
 
-func (r *TextValueRepository) BatchSaveChangesTx(ctx context.Context, entityID uint, values []text_value.TextValue, langID uint, tx *gorm.DB) error {
-	return r.db.GormTx(tx).Transaction(func(tx *gorm.DB) error {
-		oldValues, err := r.Query(ctx, &selection_condition.SelectionCondition{
+func (r *TextValueRepository) BatchSaveChangesTx(ctx context.Context, entityID uint, values []text_value.TextValue, langID uint, tx *gorm.DB) (err error) {
+	db := &minipkg_gorm.DB{GormDB: tx}
+	if db, err = db.SchemeInitWithContext(ctx, r.model); err != nil {
+		return err
+	}
+
+	return db.DB().Transaction(func(tx *gorm.DB) error {
+		oldValues, err := r.queryTx(ctx, &selection_condition.SelectionCondition{
 			Where: &text_value.TextValue{
 				EntityID: entityID,
 				LangID:   langID,
 			},
-		})
+		}, tx)
 		if err != nil {
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
 				return err
