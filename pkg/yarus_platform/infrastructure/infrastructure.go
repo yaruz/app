@@ -3,8 +3,6 @@ package infrastructure
 import (
 	"context"
 
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
-
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/db/redis"
 	"github.com/minipkg/db/redis/cache"
@@ -23,9 +21,9 @@ type Infrastructure struct {
 	Cache        cache.Service
 }
 
-func NewInfrastructure(ctx context.Context, logger log.ILogger, cfg *config.Infrastructure) (*Infrastructure, error) {
+func NewInfrastructure(ctx context.Context, logger log.ILogger, cfg *config.Infrastructure, model2sharding interface{}) (*Infrastructure, error) {
 
-	DataSharding, err := newDataSharding(ctx, logger, &cfg.DataSharding, entity.New())
+	DataSharding, err := newDataSharding(ctx, logger, &cfg.DataSharding, model2sharding)
 	if err != nil {
 		return nil, err
 	}

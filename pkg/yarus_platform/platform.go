@@ -6,6 +6,7 @@ import (
 	"github.com/minipkg/log"
 	"github.com/yaruz/app/pkg/yarus_platform/config"
 	"github.com/yaruz/app/pkg/yarus_platform/data"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
 	"github.com/yaruz/app/pkg/yarus_platform/infrastructure"
 	"github.com/yaruz/app/pkg/yarus_platform/reference"
 )
@@ -32,7 +33,7 @@ func NewPlatform(ctx context.Context, cfg config.Configuration) (*Platform, erro
 		return nil, err
 	}
 
-	infra, err := infrastructure.NewInfrastructure(ctx, logger, cfg.Infrastructure)
+	infra, err := infrastructure.NewInfrastructure(ctx, logger, cfg.Infrastructure, entity.New())
 	if err != nil {
 		return nil, err
 	}

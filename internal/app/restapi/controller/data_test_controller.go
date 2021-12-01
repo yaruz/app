@@ -59,6 +59,8 @@ var propertyOpt2ID = 2
 var propertyOpt2Key = "three"
 var propertyOpt2Val = 3
 
+var entityTypeID uint
+
 // RegisterHandlers sets up the routing of the HTTP handlers.
 //	GET /api/models/ - список всех моделей
 //	GET /api/model/{ID} - детали модели
@@ -68,6 +70,8 @@ func RegisterDataTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platfor
 		yaruzPlatform: yaruzPlatform,
 		user:          user,
 	}
+	ctx := context.Background()
+	c.init(ctx)
 
 	r.Get("/entity", c.entity)
 	r.Get("/entity-text", c.entityText)
@@ -75,6 +79,15 @@ func RegisterDataTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platfor
 	r.Get("/user", c.userInst)
 	r.Get("/user-search", c.userSearch)
 	//r.Get("/entity-properties-search", c.entityPropertiesSearch)
+}
+
+func (c dataTestController) init(ctx context.Context) (err error) {
+	entityTypeID, err = c.yaruzPlatform.ReferenceSubsystem().EntityType.GetIDBySysname(ctx, user.EntityType)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c dataTestController) entity(ctx *routing.Context) error {
@@ -180,7 +193,7 @@ func (c dataTestController) entity(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"entity.Create()": err.Error()})
 	}
 
-	entity2, err := c.yaruzPlatform.DataSubsystem().Entity.Get(cntx, entity.ID, langRusID)
+	entity2, err := c.yaruzPlatform.DataSubsystem().Entity.Get(cntx, entity.ID, entityTypeID, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity.Get()": err.Error()})
 	}
@@ -201,7 +214,7 @@ func (c dataTestController) entity(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"entity2.Create()": err.Error()})
 	}
 
-	entity3, err := c.yaruzPlatform.DataSubsystem().Entity.Get(cntx, entity.ID, langRusID)
+	entity3, err := c.yaruzPlatform.DataSubsystem().Entity.Get(cntx, entity.ID, entityTypeID, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity.Get()": err.Error()})
 	}
@@ -260,7 +273,7 @@ func (c dataTestController) entityText(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"entity.Update()": err.Error()})
 	}
 
-	entity1, err := c.yaruzPlatform.DataSubsystem().Entity.Get(cntx, entity.ID, langRusID)
+	entity1, err := c.yaruzPlatform.DataSubsystem().Entity.Get(cntx, entity.ID, entityTypeID, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity1.Get()": err.Error()})
 	}
@@ -276,7 +289,7 @@ func (c dataTestController) entityText(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"entity.Update()": err.Error()})
 	}
 
-	entity2, err := c.yaruzPlatform.DataSubsystem().Entity.Get(cntx, entity.ID, langEngID)
+	entity2, err := c.yaruzPlatform.DataSubsystem().Entity.Get(cntx, entity.ID, entityTypeID, langEngID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity2.Get()": err.Error()})
 	}
@@ -304,7 +317,7 @@ func (c dataTestController) entityText(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"entity2.Update()": err.Error()})
 	}
 
-	entity3, err := c.yaruzPlatform.DataSubsystem().Entity.Get(cntx, entity.ID, langEngID)
+	entity3, err := c.yaruzPlatform.DataSubsystem().Entity.Get(cntx, entity.ID, entityTypeID, langEngID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"entity3.Get()": err.Error()})
 	}
@@ -389,7 +402,7 @@ func (c dataTestController) entityRelation(ctx *routing.Context) error {
 	//	res = append(res, map[string]interface{}{"Update post2": err.Error()})
 	//}
 
-	blogger2, err := c.yaruzPlatform.DataSubsystem().Entity.Get(cntx, blogger.ID, langRusID)
+	blogger2, err := c.yaruzPlatform.DataSubsystem().Entity.Get(cntx, blogger.ID, entityTypeID, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Get": err.Error()})
 	}
@@ -414,7 +427,7 @@ func (c dataTestController) entityRelation(ctx *routing.Context) error {
 	//	res = append(res, map[string]interface{}{"Update post2": err.Error()})
 	//}
 
-	blogger3, err := c.yaruzPlatform.DataSubsystem().Entity.Get(cntx, blogger.ID, langRusID)
+	blogger3, err := c.yaruzPlatform.DataSubsystem().Entity.Get(cntx, blogger.ID, entityTypeID, langRusID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"Get": err.Error()})
 	}

@@ -90,7 +90,12 @@ func (r *UserRepository) instantiate(ctx context.Context, entity *entity.Entity)
 
 // Get reads the album with the specified ID from the database.
 func (r *UserRepository) Get(ctx context.Context, id uint, langID uint) (*user.User, error) {
-	e, err := r.yaruzRepository.DataSubsystem().Entity.Get(ctx, id, langID)
+	entityTypeID, err := r.yaruzRepository.ReferenceSubsystem().EntityType.GetIDBySysname(ctx, user.EntityType)
+	if err != nil {
+		return nil, err
+	}
+
+	e, err := r.yaruzRepository.DataSubsystem().Entity.Get(ctx, id, entityTypeID, langID)
 	if err != nil {
 		return nil, err
 	}
@@ -150,5 +155,10 @@ func (r *UserRepository) Update(ctx context.Context, obj *user.User, langID uint
 
 // Delete (soft) deletes a Maintenance record in the database.
 func (r *UserRepository) Delete(ctx context.Context, id uint) error {
-	return r.yaruzRepository.DataSubsystem().Entity.Delete(ctx, id)
+	entityTypeID, err := r.yaruzRepository.ReferenceSubsystem().EntityType.GetIDBySysname(ctx, user.EntityType)
+	if err != nil {
+		return err
+	}
+
+	return r.yaruzRepository.DataSubsystem().Entity.Delete(ctx, id, entityTypeID)
 }

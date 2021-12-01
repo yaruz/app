@@ -36,11 +36,11 @@ type Configuration struct {
 }
 
 type DB struct {
-	Identity  minipkg_gorm.Config
-	Reference minipkg_gorm.Config
-	Data      minipkg_gorm.Config
-	Search    minipkg_gorm.Config
-	Redis     redis.Config
+	Identity     minipkg_gorm.Config
+	Reference    minipkg_gorm.Config
+	DataSharding yaruz_config.Sharding
+	Search       minipkg_gorm.Config
+	Redis        redis.Config
 }
 
 func (c *Configuration) YaruzConfig() yaruz_config.Configuration {
@@ -48,7 +48,7 @@ func (c *Configuration) YaruzConfig() yaruz_config.Configuration {
 		Infrastructure: &yaruz_config.Infrastructure{
 			Log:           c.Log,
 			ReferenceDB:   c.DB.Reference,
-			DataDB:        c.DB.Data,
+			DataSharding:  c.DB.DataSharding,
 			SearchDB:      c.DB.Search,
 			Redis:         c.DB.Redis,
 			CacheLifeTime: c.CacheLifeTime,
