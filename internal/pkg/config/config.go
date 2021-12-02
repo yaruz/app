@@ -69,11 +69,16 @@ func Get() (*Configuration, error) {
 	var pathToConfig string
 	var pathToMetadata string
 
-	flag.StringVar(&pathToConfig, "config", defaultPathToConfig, "path to YAML/JSON config file")
+	viper.AutomaticEnv() // read in environment variables that match
+	//viper.BindEnv("pathToConfig")
+	defPathToConfig := defaultPathToConfig
+	if viper.Get("pathToConfig") != nil {
+		defPathToConfig = viper.Get("pathToConfig").(string)
+	}
+
+	flag.StringVar(&pathToConfig, "config", defPathToConfig, "path to YAML/JSON config file")
 	flag.StringVar(&pathToMetadata, "metadata", defaultPathToMetadata, "path to YAML/JSON metadata file")
 	flag.Parse()
-
-	viper.AutomaticEnv() // read in environment variables that match
 
 	if err := config.readConfig(pathToConfig); err != nil {
 		return &config, err

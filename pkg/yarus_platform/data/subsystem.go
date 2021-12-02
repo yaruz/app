@@ -61,7 +61,7 @@ func (d *DataSubsystem) autoMigrate(sharding infrastructure.Sharding) error {
 func (d *DataSubsystem) setupRepositories(infra *infrastructure.Infrastructure) (err error) {
 	var ok bool
 
-	mr := gorm.NewMapReducer(infra.Logger, infra.DataSharding)
+	mr := gorm.NewMapReducer(infra.Logger, d.reference.EntityType, infra.DataSharding)
 
 	repo, err := gorm.GetRepository(infra.Logger, mr, entity.EntityName, d.reference.TextLang)
 	if err != nil {

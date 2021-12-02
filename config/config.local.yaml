@@ -1,0 +1,65 @@
+server:
+  httplisten:  "0.0.0.0:80"
+
+log:
+  encoding:       "json"
+  outputpaths:
+    - "log/app.log"
+    - "stdout"
+  level:          "debug"
+  initialfields:
+    app:          "app"
+
+db:
+  reference:
+    dialect:        "postgres"
+    dsn:            "host=localhost port=5000 dbname=reference user=postgres password=1gjcnuhtc1! sslmode=disable"
+    isautomigrate:  True
+    log:
+      loglevel:     4
+  datasharding:
+    isautomigrate:  True
+    default:
+      capacity:  10
+      items:
+        - dialect:        "postgres"
+          dsn:            "host=localhost port=5001 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
+          log:
+            loglevel:     4
+        - dialect:        "postgres"
+          dsn:            "host=localhost port=5002 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
+          log:
+            loglevel:     4
+        - dialect:        "postgres"
+          dsn:            "host=localhost port=5003 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
+          log:
+            loglevel:     4
+
+    bytypes:
+      post:
+        capacity:  20
+        items:
+          - dialect:        "postgres"
+            dsn:            "host=localhost port=5101 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
+            log:
+              loglevel:     4
+          - dialect:        "postgres"
+            dsn:            "host=localhost port=5102 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
+            log:
+              loglevel:     4
+          - dialect:        "postgres"
+            dsn:            "host=localhost port=5103 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
+            log:
+              loglevel:     4
+
+  redis:
+    addrs:
+      - "localhost:6379"
+    login:    ""
+    password: ""
+    dbname:   0
+
+
+jwtsigningkey: "LxsKJywDL5O5PvgODZhBH12KE6k2yL8E"
+jwtexpiration: 72
+sessionlifetime: 96
