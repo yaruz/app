@@ -59,7 +59,11 @@ func (r *EntityRepository) Create(ctx context.Context, entity *domain_entity.Ent
 
 // Update saves a changed Maintenance record in the database.
 func (r *EntityRepository) Update(ctx context.Context, entity *domain_entity.Entity, langID uint) error {
-	return r.updateTx(ctx, entity, langID, r.mapReducer.GetDB(entity.ID, entity.EntityTypeID).DB())
+	db, err := r.mapReducer.GetDB(ctx, entity.ID, entity.EntityTypeID)
+	if err != nil {
+		return err
+	}
+	return r.updateTx(ctx, entity, langID, db.DB())
 }
 
 func (r *EntityRepository) updateTx(ctx context.Context, entity *domain_entity.Entity, langID uint, tx *gorm.DB) error {
@@ -114,8 +118,12 @@ func (r *EntityRepository) afterSaveTx(ctx context.Context, entity *domain_entit
 
 // Delete (soft) deletes a Maintenance record in the database.
 func (r *EntityRepository) Delete(ctx context.Context, ID uint, typeID uint) error {
+	db, err := r.mapReducer.GetDB(ctx, ID, typeID)
+	if err != nil {
+		return err
+	}
 
-	return r.mapReducer.GetDB(ID, typeID).DB().Transaction(func(tx *gorm.DB) (err error) {
+	return db.DB().Transaction(func(tx *gorm.DB) (err error) {
 
 		if err = r.valueRepositories.Bool.BatchDeleteTx(ctx, &selection_condition.SelectionCondition{
 			Where: &bool_value.BoolValue{

@@ -30,3 +30,12 @@ type Shards struct {
 	Capacity uint
 	Items    []minipkg_gorm.Config
 }
+
+func (s *Sharding) GetSeparatedTypes() []string {
+	types := make([]string, len(s.ByTypes))
+
+	for name := range s.ByTypes {
+		types = append(types, name)
+	}
+	return types
+}

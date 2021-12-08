@@ -31,6 +31,12 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform/reference/infrastructure/repository/gorm"
 )
 
+type EntityIDRepository interface {
+	AutoMigrate() error
+	NextVal(entityTypeSysname string) (id uint, err error)
+	LastVal(entityTypeSysname string) (id uint, err error)
+}
+
 type ReferenceSubsystem struct {
 	EntityType                              entity_type.IService
 	entityTypeRepository                    entity_type.Repository
@@ -55,10 +61,13 @@ type ReferenceSubsystem struct {
 	textValueRepository                     text_value.Repository
 	TextLang                                text_lang.IService
 	textLangRepository                      text_lang.Repository
+	EntityIDRepository                      EntityIDRepository
 }
 
-func NewReferenceSubsystem(infra *infrastructure.Infrastructure, metadata *config.Metadata) (*ReferenceSubsystem, error) {
+func NewReferenceSubsystem(infra *infrastructure.Infrastructure, cfg *config.Configuration) (*ReferenceSubsystem, error) {
 	s := &ReferenceSubsystem{}
+	s.EntityIDRepository = gorm.GetEntityIDRepository(infra.Logger, infra.ReferenceDB, cfg.Infrastructure.DataSharding.GetSeparatedTypes())
+
 	if err := s.setupRepositories(infra); err != nil {
 		return nil, err
 	}
@@ -68,7 +77,7 @@ func NewReferenceSubsystem(infra *infrastructure.Infrastructure, metadata *confi
 		return nil, err
 	}
 
-	if err := s.dbDataInit(metadata); err != nil {
+	if err := s.dbDataInit(cfg.Metadata); err != nil {
 		return nil, err
 	}
 
@@ -77,6 +86,8 @@ func NewReferenceSubsystem(infra *infrastructure.Infrastructure, metadata *confi
 
 func (s *ReferenceSubsystem) autoMigrate(db minipkg_gorm.IDB) error {
 	if db.IsAutoMigrate() {
+		s.EntityIDRepository.AutoMigrate()
+
 		err := db.DB().SetupJoinTable(&entity_type.EntityType{}, "Properties", &entity_type2property.EntityType2Property{})
 		if err != nil {
 			return err

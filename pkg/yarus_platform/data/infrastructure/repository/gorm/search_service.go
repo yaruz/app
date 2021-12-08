@@ -72,8 +72,13 @@ func (s *SearchService) Get(ctx context.Context, ID uint, typeID uint, langID ui
 	}
 	sql, params := sqlBuilder.GetQuery(ID)
 
+	db, err := s.mapReducer.GetDB(ctx, ID, typeID)
+	if err != nil {
+		return nil, err
+	}
+
 	searchResult := make([]SearchResult, 0)
-	if err := s.mapReducer.GetDB(ID, typeID).DB().Raw(sql, params...).Scan(&searchResult).Error; err != nil {
+	if err := db.DB().Raw(sql, params...).Scan(&searchResult).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, yaruserror.ErrNotFound
 		}

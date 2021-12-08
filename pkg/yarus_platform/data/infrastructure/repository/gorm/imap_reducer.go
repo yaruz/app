@@ -8,7 +8,7 @@ import (
 )
 
 type IMapReducer interface {
-	GetDB(ID uint, typeID uint) minipkg_gorm.IDB
+	GetDB(ctx context.Context, ID uint, typeID uint) (minipkg_gorm.IDB, error)
 	GetDBs(condition *selection_condition.SelectionCondition) []minipkg_gorm.IDB
 	GetDBForInsert(typeID uint) minipkg_gorm.IDB
 	Query(ctx context.Context, model interface{}, condition *selection_condition.SelectionCondition, f func(db minipkg_gorm.IDB) ([]SearchResult, error)) ([]SearchResult, error)

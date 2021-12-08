@@ -20,6 +20,7 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b
+	golang.org/x/tools v0.0.0-20201224043029-2b0845dc783e
 	google.golang.org/protobuf v1.25.0
 	gorm.io/datatypes v1.0.0
 	gorm.io/gorm v1.21.15

@@ -43,8 +43,8 @@ type DB struct {
 	Redis        redis.Config
 }
 
-func (c *Configuration) YaruzConfig() yaruz_config.Configuration {
-	return yaruz_config.Configuration{
+func (c *Configuration) YaruzConfig() *yaruz_config.Configuration {
+	return &yaruz_config.Configuration{
 		Infrastructure: &yaruz_config.Infrastructure{
 			Log:           c.Log,
 			ReferenceDB:   c.DB.Reference,

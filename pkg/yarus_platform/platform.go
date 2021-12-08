@@ -27,7 +27,7 @@ type Platform struct {
 	infra *infrastructure.Infrastructure
 }
 
-func NewPlatform(ctx context.Context, cfg config.Configuration) (*Platform, error) {
+func NewPlatform(ctx context.Context, cfg *config.Configuration) (*Platform, error) {
 	logger, err := log.New(cfg.Infrastructure.Log)
 	if err != nil {
 		return nil, err
@@ -38,7 +38,7 @@ func NewPlatform(ctx context.Context, cfg config.Configuration) (*Platform, erro
 		return nil, err
 	}
 
-	reference, err := reference.NewReferenceSubsystem(infra, cfg.Metadata)
+	reference, err := reference.NewReferenceSubsystem(infra, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func NewPlatform(ctx context.Context, cfg config.Configuration) (*Platform, erro
 	}
 
 	return &Platform{
-		cfg:                cfg,
+		cfg:                *cfg,
 		dataSubsystem:      data,
 		referenceSubsystem: reference,
 		//searchSubsystem:    search,

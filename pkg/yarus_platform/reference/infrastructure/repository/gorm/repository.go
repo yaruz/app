@@ -39,6 +39,16 @@ type repository struct {
 
 const DefaultLimit = 1000
 
+func GetEntityIDRepository(logger log.ILogger, db minipkg_gorm.IDB, entityTypes []string) *EntityIDRepository {
+	return NewEntityIDRepository(
+		&repository{
+			logger: logger,
+			db:     db,
+		},
+		entityTypes,
+	)
+}
+
 // GetRepository return a repository
 func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string) (repo IRepository, err error) {
 	r := &repository{
