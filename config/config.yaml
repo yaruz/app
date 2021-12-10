@@ -36,8 +36,10 @@ db:
             loglevel:     4
 
     bytypes:
-      post:
+      posts:
         capacity:  20
+        entitytypes:
+          - post
         items:
           - dialect:        "postgres"
             dsn:            "host=db_data_p1 port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"

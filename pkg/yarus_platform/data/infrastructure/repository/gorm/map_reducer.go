@@ -41,35 +41,29 @@ func (s *MapReducer) ShardIndex(shardCapacity uint, ID uint) uint {
 	return res - 1
 }
 
-func (s *MapReducer) GetDB(ctx context.Context, ID uint, typeID uint) (minipkg_gorm.IDB, error) {
-	typeSysname, err := s.entityTypeFinder.GetSysnameByID(ctx, typeID)
+func (s *MapReducer) GetDB(ctx context.Context, typeID uint, ID uint) (minipkg_gorm.IDB, error) {
+	entityType, err := s.entityTypeFinder.GetSysnameByID(ctx, typeID)
 	if err != nil {
 		return nil, err
 	}
 
-	shards := &s.sharding.Default
-	if s, ok := s.sharding.ByTypes[typeSysname]; ok {
-		shards = &s
+	cluster := s.sharding.Default
+	if sysname, ok := s.sharding.ClusterSysnamesByEntityTypes[entityType]; ok {
+		if cluster, ok = s.sharding.BySysnames[sysname]; !ok {
+			return nil, errors.Wrapf(yaruserror.ErrNotFound, "Cluster not found, sysname = %q.", sysname)
+		}
 	}
 
-	shardIndex := s.ShardIndex(shards.Capacity, ID)
-	if shardIndex >= uint(len(shards.Items)) {
-		return nil, errors.Errorf("ID = %v is too big for shards capacity = %v length = %v", ID, shards.Capacity, len(shards.Items))
+	shardIndex := s.ShardIndex(cluster.Capacity, ID)
+	if shardIndex >= uint(len(cluster.Items)) {
+		return nil, errors.Errorf("ID = %v is too big for cluster capacity = %v length = %v", ID, cluster.Capacity, len(cluster.Items))
 	}
 
-	return (*shards).Items[shardIndex], nil
+	return cluster.Items[shardIndex], nil
 }
-
-//	1. централизованные последовательности sequence для каждого списка шард (Shards). Храним в DB reference.
-//	2. соотв. добываем и инкрементим его программно. И пишем в entity.ID - простое поле, не sequence.
-//	3. Соотв. для этого нужна соотв. структура со списком методов
 
 func (s *MapReducer) GetDBs(condition *selection_condition.SelectionCondition) []minipkg_gorm.IDB {
 	return s.sharding.GetDBs(condition)
-}
-
-func (s *MapReducer) GetDBForInsert(typeID uint) minipkg_gorm.IDB {
-	return s.sharding.GetDBForInsert(typeID)
 }
 
 func (s *MapReducer) Query(ctx context.Context, model interface{}, condition *selection_condition.SelectionCondition, f func(db minipkg_gorm.IDB) ([]SearchResult, error)) ([]SearchResult, error) {

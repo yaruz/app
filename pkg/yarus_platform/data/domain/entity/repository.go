@@ -34,3 +34,9 @@ type Repository interface {
 	Update(ctx context.Context, entity *Entity, langID uint) error
 	Delete(ctx context.Context, id uint, typeID uint) error
 }
+
+type EntityIDRepository interface {
+	AutoMigrate() error
+	NextVal(entityTypeSysname string) (id uint, err error)
+	LastVal(entityTypeSysname string) (id uint, err error)
+}

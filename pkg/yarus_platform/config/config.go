@@ -22,20 +22,21 @@ type Infrastructure struct {
 
 type Sharding struct {
 	IsAutoMigrate bool
-	Default       Shards
-	ByTypes       map[string]Shards
+	Default       DBCluster
+	BySysnames    map[string]DBCluster
 }
 
-type Shards struct {
-	Capacity uint
-	Items    []minipkg_gorm.Config
+type DBCluster struct {
+	Capacity    uint
+	EntityTypes []string
+	Items       []minipkg_gorm.Config
 }
 
-func (s *Sharding) GetSeparatedTypes() []string {
-	types := make([]string, len(s.ByTypes))
+func (s *Sharding) GetEntityTypesByClusterSysnames() map[string][]string {
+	types := make(map[string][]string, len(s.BySysnames))
 
-	for name := range s.ByTypes {
-		types = append(types, name)
+	for sysname, cluster := range s.BySysnames {
+		types[sysname] = cluster.EntityTypes
 	}
 	return types
 }

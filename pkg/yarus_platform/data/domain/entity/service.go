@@ -135,12 +135,25 @@ func (s *service) Count(ctx context.Context, condition *selection_condition.Sele
 	return count, nil
 }
 
-func (s *service) Create(ctx context.Context, entity *Entity, langID uint) error {
-	if err := entity.Validate(); err != nil {
+func (s *service) Create(ctx context.Context, entity *Entity, langID uint) (err error) {
+	var t string
+	if entity.ID > 0 {
+		return errors.New("Entity is not new.")
+	}
+
+	if err = entity.Validate(); err != nil {
 		return err
 	}
 
-	err := s.repository.Create(ctx, entity, langID)
+	if t, err = s.reference.EntityType.GetSysnameByID(ctx, entity.EntityTypeID); err != nil {
+		return errors.Wrapf(err, "Can not get sysname for type ID = %v", entity.EntityTypeID)
+	}
+
+	if entity.ID, err = s.reference.EntityIDRepository.NextVal(t); err != nil {
+		return errors.Wrapf(err, "Can not get ID for type = %s", t)
+	}
+
+	err = s.repository.Create(ctx, entity, langID)
 	if err != nil {
 		return errors.Wrapf(err, "Can not create an entity: %v", entity)
 	}
@@ -153,6 +166,10 @@ func (s *service) Create(ctx context.Context, entity *Entity, langID uint) error
 }
 
 func (s *service) Update(ctx context.Context, entity *Entity, langID uint) error {
+	if entity.ID == 0 {
+		return errors.New("Entity is new.")
+	}
+
 	if err := entity.Validate(); err != nil {
 		return err
 	}

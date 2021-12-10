@@ -77,7 +77,7 @@ type Searchable interface {
 // 	RelationsValues - красивый и удобный список со связями - // - // -
 //
 type Entity struct {
-	ID               uint                     `gorm:"type:bigserial;primaryKey" json:"id"`
+	ID               uint                     `gorm:"type:bigint;primaryKey" json:"id"`
 	EntityTypeID     uint                     `gorm:"type:bigint not null;index" json:"entityTypeID"`
 	PropertiesValues map[uint]PropertyValue   `gorm:"-" json:"propertiesValues"`
 	RelationsValues  map[uint]RelationValue   `gorm:"-" json:"relationsValues"`

@@ -23,7 +23,7 @@ type Infrastructure struct {
 
 func NewInfrastructure(ctx context.Context, logger log.ILogger, cfg *config.Infrastructure, model2sharding interface{}) (*Infrastructure, error) {
 
-	DataSharding, err := newDataSharding(ctx, logger, &cfg.DataSharding, model2sharding)
+	DataSharding, err := newSharding(ctx, logger, &cfg.DataSharding, model2sharding)
 	if err != nil {
 		return nil, err
 	}
@@ -50,50 +50,6 @@ func NewInfrastructure(ctx context.Context, logger log.ILogger, cfg *config.Infr
 		SearchDB:     SearchDB,
 		Redis:        rDB,
 		Cache:        cache.NewService(rDB, cfg.CacheLifeTime),
-	}, nil
-}
-
-func newDataSharding(ctx context.Context, logger log.ILogger, cfg *config.Sharding, model interface{}) (*Sharding, error) {
-	defaultShards, err := newShards(logger, &cfg.Default)
-	if err != nil {
-		return nil, err
-	}
-
-	byTypes := make(map[string]Shards, len(cfg.ByTypes))
-	for t, shardsCfg := range cfg.ByTypes {
-		shards, err := newShards(logger, &shardsCfg)
-		if err != nil {
-			return nil, err
-		}
-		byTypes[t] = *shards
-	}
-
-	s := &Sharding{
-		IsAutoMigrate: cfg.IsAutoMigrate,
-		Model:         model,
-		Default:       *defaultShards,
-		ByTypes:       byTypes,
-	}
-
-	if err := s.SchemesInitWithContext(ctx, model); err != nil {
-		return nil, err
-	}
-	return s, nil
-}
-
-func newShards(logger log.ILogger, cfg *config.Shards) (*Shards, error) {
-	var err error
-
-	items := make([]minipkg_gorm.IDB, len(cfg.Items))
-	for i, cfgItem := range cfg.Items {
-		if items[i], err = minipkg_gorm.New(logger, cfgItem); err != nil {
-			return nil, err
-		}
-	}
-
-	return &Shards{
-		Capacity: cfg.Capacity,
-		Items:    items,
 	}, nil
 }
 

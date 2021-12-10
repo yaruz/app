@@ -66,7 +66,7 @@ type ReferenceSubsystem struct {
 
 func NewReferenceSubsystem(infra *infrastructure.Infrastructure, cfg *config.Configuration) (*ReferenceSubsystem, error) {
 	s := &ReferenceSubsystem{}
-	s.EntityIDRepository = gorm.GetEntityIDRepository(infra.Logger, infra.ReferenceDB, cfg.Infrastructure.DataSharding.GetSeparatedTypes())
+	s.EntityIDRepository = gorm.GetEntityIDRepository(infra.Logger, infra.ReferenceDB, cfg.Infrastructure.DataSharding.GetEntityTypesByClusterSysnames())
 
 	if err := s.setupRepositories(infra); err != nil {
 		return nil, err

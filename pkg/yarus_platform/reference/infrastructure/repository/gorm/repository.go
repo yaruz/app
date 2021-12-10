@@ -39,13 +39,13 @@ type repository struct {
 
 const DefaultLimit = 1000
 
-func GetEntityIDRepository(logger log.ILogger, db minipkg_gorm.IDB, entityTypes []string) *EntityIDRepository {
+func GetEntityIDRepository(logger log.ILogger, db minipkg_gorm.IDB, entityTypesByClusterSysnames map[string][]string) *EntityIDRepository {
 	return NewEntityIDRepository(
 		&repository{
 			logger: logger,
 			db:     db,
 		},
-		entityTypes,
+		entityTypesByClusterSysnames,
 	)
 }
 

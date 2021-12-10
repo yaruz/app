@@ -8,31 +8,34 @@ import (
 	"gorm.io/gorm"
 )
 
-const ShardsNameDefault = "default"
+const DBClusterDefaultSysname = "default"
 
 type EntityIDRepository struct {
 	repository
-	entityTypes   []string
-	entityTypesSt map[string]struct{}
+	entityTypesByClusterSysnames map[string][]string
+	clusterSysnamesByEntityTypes map[string]string
 }
 
-func NewEntityIDRepository(repository *repository, entityTypes []string) *EntityIDRepository {
-	entityTypes = append(entityTypes, ShardsNameDefault)
-	entityTypesSt := make(map[string]struct{}, len(entityTypes))
-	for _, entityType := range entityTypes {
-		entityTypesSt[entityType] = struct{}{}
+func NewEntityIDRepository(repository *repository, entityTypesByClusterSysnames map[string][]string) *EntityIDRepository {
+	clusterSysnamesByEntityTypes := make(map[string]string)
+
+	for sysname, entityTypes := range entityTypesByClusterSysnames {
+		for _, entityType := range entityTypes {
+			clusterSysnamesByEntityTypes[entityType] = sysname
+		}
 	}
+	entityTypesByClusterSysnames[DBClusterDefaultSysname] = nil
 
 	return &EntityIDRepository{
-		repository:    *repository,
-		entityTypes:   entityTypes,
-		entityTypesSt: entityTypesSt,
+		repository:                   *repository,
+		entityTypesByClusterSysnames: entityTypesByClusterSysnames,
+		clusterSysnamesByEntityTypes: clusterSysnamesByEntityTypes,
 	}
 }
 
 func (r *EntityIDRepository) AutoMigrate() error {
-	for _, t := range r.entityTypes {
-		query := r.createQuery(r.getSeqName(t))
+	for s := range r.entityTypesByClusterSysnames {
+		query := r.createQuery(r.getSeqNameByClusterSysname(s))
 		if err := r.db.DB().Exec(query).Error; err != nil {
 			return err
 		}
@@ -40,24 +43,32 @@ func (r *EntityIDRepository) AutoMigrate() error {
 	return nil
 }
 
-func (r *EntityIDRepository) isSpecialEntityType(entityTypeSysname string) bool {
-	_, ok := r.entityTypesSt[entityTypeSysname]
-	return ok
+func (r *EntityIDRepository) isSeparatedEntityType(entityTypeSysname string) (string, bool) {
+	sysname, ok := r.clusterSysnamesByEntityTypes[entityTypeSysname]
+	return sysname, ok
 }
 
-func (r *EntityIDRepository) getSeqName(entityTypeSysname string) string {
-	if r.isSpecialEntityType(entityTypeSysname) {
-		return entityTypeSysname
+func (r *EntityIDRepository) getSeqNameByClusterSysname(clusterSysname string) string {
+	return r.buildSeqName(clusterSysname)
+}
+
+func (r *EntityIDRepository) getSeqNameByEntityTypeSysname(entityTypeSysname string) string {
+	if sysname, ok := r.isSeparatedEntityType(entityTypeSysname); ok {
+		return r.buildSeqName(sysname)
 	}
-	return ShardsNameDefault
+	return r.buildSeqName(DBClusterDefaultSysname)
+}
+
+func (r *EntityIDRepository) buildSeqName(clusterSysname string) string {
+	return "id4type_" + clusterSysname
 }
 
 func (r *EntityIDRepository) NextVal(entityTypeSysname string) (id uint, err error) {
-	return r.getVal(r.nextvalQuery(r.getSeqName(entityTypeSysname)))
+	return r.getVal(r.nextvalQuery(r.getSeqNameByEntityTypeSysname(entityTypeSysname)))
 }
 
 func (r *EntityIDRepository) LastVal(entityTypeSysname string) (id uint, err error) {
-	return r.getVal(r.lastvalQuery(r.getSeqName(entityTypeSysname)))
+	return r.getVal(r.lastvalQuery(r.getSeqNameByEntityTypeSysname(entityTypeSysname)))
 }
 
 func (r *EntityIDRepository) getVal(sql string) (id uint, err error) {
@@ -71,7 +82,7 @@ func (r *EntityIDRepository) getVal(sql string) (id uint, err error) {
 }
 
 func (r *EntityIDRepository) createQuery(name string) string {
-	return fmt.Sprintf("CREATE SEQUENCE IF NOT EXISTS '%s'", name)
+	return fmt.Sprintf("CREATE SEQUENCE IF NOT EXISTS %s", name)
 }
 
 func (r *EntityIDRepository) nextvalQuery(name string) string {
