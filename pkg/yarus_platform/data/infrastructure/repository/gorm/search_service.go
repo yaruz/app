@@ -89,7 +89,7 @@ func (s *SearchService) Get(ctx context.Context, ID uint, typeID uint, langID ui
 }
 
 func (s *SearchService) First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*entity.Entity, error) {
-	searchCondition, err := s.ParseSelectionCondition(condition)
+	parser, searchCondition, err := s.ParseSelectionCondition(condition)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func (s *SearchService) First(ctx context.Context, condition *selection_conditio
 	sqlBuilder := s.newSqlBuilder(searchCondition, langID)
 	sql, params := sqlBuilder.FirstQuery()
 
-	searchResults, err := s.mapReducer.Query(ctx, s.model, searchCondition.EntityCondition.Where, func(db minipkg_gorm.IDB) ([]SearchResult, error) {
+	searchResults, err := s.mapReducer.Query(ctx, parser, searchCondition.EntityCondition.Where, func(db minipkg_gorm.IDB) ([]SearchResult, error) {
 		searchResult := make([]SearchResult, 0)
 		if err = db.DB().Raw(sql, params...).Scan(&searchResult).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -112,7 +112,7 @@ func (s *SearchService) First(ctx context.Context, condition *selection_conditio
 }
 
 func (s *SearchService) Query(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) ([]entity.Entity, error) {
-	searchCondition, err := s.ParseSelectionCondition(condition)
+	parser, searchCondition, err := s.ParseSelectionCondition(condition)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func (s *SearchService) Query(ctx context.Context, condition *selection_conditio
 	sqlBuilder := s.newSqlBuilder(searchCondition, langID)
 	sql, params := sqlBuilder.SelectQuery()
 
-	searchResults, err := s.mapReducer.Query(ctx, s.model, condition, func(db minipkg_gorm.IDB) ([]SearchResult, error) {
+	searchResults, err := s.mapReducer.Query(ctx, parser, searchCondition.EntityCondition.Where, func(db minipkg_gorm.IDB) ([]SearchResult, error) {
 		searchResult := make([]SearchResult, 0)
 		if err = db.DB().Raw(sql, params...).Scan(&searchResult).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -135,7 +135,7 @@ func (s *SearchService) Query(ctx context.Context, condition *selection_conditio
 }
 
 func (s *SearchService) Count(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (uint, error) {
-	searchCondition, err := s.ParseSelectionCondition(condition)
+	parser, searchCondition, err := s.ParseSelectionCondition(condition)
 	if err != nil {
 		return 0, err
 	}
@@ -143,7 +143,7 @@ func (s *SearchService) Count(ctx context.Context, condition *selection_conditio
 	sqlBuilder := s.newSqlBuilder(searchCondition, langID)
 	sql, params := sqlBuilder.CountQuery()
 
-	searchResults, err := s.mapReducer.Count(ctx, s.model, condition, func(db minipkg_gorm.IDB) (uint, error) {
+	searchResults, err := s.mapReducer.Count(ctx, parser, searchCondition.EntityCondition.Where, func(db minipkg_gorm.IDB) (uint, error) {
 		var searchResult uint
 		if err = db.DB().Raw(sql, params...).Scan(&searchResult).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -328,8 +328,8 @@ func (s *SearchService) initPropValsMapItem(cap int) map[uint]map[uint]struct{} 
 	return res
 }
 
-func (s *SearchService) ParseSelectionCondition(OriginalCondition *selection_condition.SelectionCondition) (*SearchCondition, error) {
-	parser := SelectionConditionParser{
+func (s *SearchService) ParseSelectionCondition(OriginalCondition *selection_condition.SelectionCondition) (*SelectionConditionParser, *SearchCondition, error) {
+	parser := &SelectionConditionParser{
 		propertyFinder:    s.propertyFinder,
 		entityTypeFinder:  s.entityTypeFinder,
 		OriginalCondition: OriginalCondition,
@@ -337,10 +337,10 @@ func (s *SearchService) ParseSelectionCondition(OriginalCondition *selection_con
 	}
 
 	if err := parser.Run(); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return parser.TargetCondition, nil
+	return parser, parser.TargetCondition, nil
 }
 
 func (s *SearchService) newSqlBuilder(condition *SearchCondition, langID uint) *sqlBuilder {

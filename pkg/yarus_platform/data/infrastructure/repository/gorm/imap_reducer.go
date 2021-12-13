@@ -10,6 +10,6 @@ import (
 type IMapReducer interface {
 	GetDB(ctx context.Context, typeID uint, ID uint) (minipkg_gorm.IDB, error)
 	GetDBs(entityWhereConditions selection_condition.WhereConditions) []minipkg_gorm.IDB
-	Query(ctx context.Context, model interface{}, entityWhereConditions selection_condition.WhereConditions, f func(db minipkg_gorm.IDB) ([]SearchResult, error)) ([]SearchResult, error)
-	Count(ctx context.Context, model interface{}, entityWhereConditions selection_condition.WhereConditions, f func(db minipkg_gorm.IDB) (uint, error)) (uint, error)
+	Query(ctx context.Context, parser *SelectionConditionParser, entityWhereConditions selection_condition.WhereConditions, f func(db minipkg_gorm.IDB) ([]SearchResult, error)) ([]SearchResult, error)
+	Count(ctx context.Context, parser *SelectionConditionParser, entityWhereConditions selection_condition.WhereConditions, f func(db minipkg_gorm.IDB) (uint, error)) (uint, error)
 }

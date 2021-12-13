@@ -187,37 +187,45 @@ func (p *SelectionConditionParser) CheckSortOrder(value []map[string]string) err
 }
 
 func (p *SelectionConditionParser) GetEntityTypeIDsAndIDsByEntityWhereConditions(entityWhereConditions selection_condition.WhereConditions) (entityTypes []uint, IDs []uint, err error) {
-
+	for _, wc := range entityWhereConditions {
+		tids, ids, err := p.getEntityTypeIDsAndIDsByEntityWhereCondition(&wc)
+		if err != nil {
+			return nil, nil, err
+		}
+		entityTypes = append(entityTypes, tids...)
+		IDs = append(IDs, ids...)
+	}
+	return entityTypes, IDs, nil
 }
 
 func (p *SelectionConditionParser) getEntityTypeIDsAndIDsByEntityWhereCondition(entityWhereCondition *selection_condition.WhereCondition) (entityTypes []uint, IDs []uint, err error) {
 	if entityWhereCondition.Field != entity.FieldName_ID && entityWhereCondition.Field != entity.FieldName_EntityTypeID {
-		return nil, errors.Errorf("Field must be %q or %q.", entity.FieldName_ID, entity.FieldName_EntityTypeID)
+		return nil, nil, errors.Errorf("Field must be %q or %q.", entity.FieldName_ID, entity.FieldName_EntityTypeID)
 	}
-	wc := &selection_condition.WhereCondition{
-		Field:     entityWhereCondition.Field,
-		Condition: entityWhereCondition.Condition,
-	}
-	var err error
+	var values []uint
 
 	switch entityWhereCondition.Condition {
 	case selection_condition.ConditionEq:
 		var value uint
 		if value, err = p.CheckID(entityWhereCondition.Value); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		wc.Value = value
+		values = append(values, value)
 	case selection_condition.ConditionIn:
 		var value []uint
 		if value, err = p.CheckIDs(entityWhereCondition.Value); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		wc.Value = value
+		values = append(values, value...)
 	default:
-		return nil, errors.Errorf("Condition must be %q or %q", selection_condition.ConditionEq, selection_condition.ConditionIn)
+		return nil, nil, errors.Errorf("Condition must be %q or %q", selection_condition.ConditionEq, selection_condition.ConditionIn)
 	}
 
-	return wc, nil
+	if entityWhereCondition.Field == entity.FieldName_ID {
+		return nil, values, nil
+	}
+
+	return values, nil, nil
 }
 
 func (p *SelectionConditionParser) CheckIDCondition(wcondition *selection_condition.WhereCondition) (*selection_condition.WhereCondition, error) {
