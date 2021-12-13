@@ -97,7 +97,7 @@ func (s *SearchService) First(ctx context.Context, condition *selection_conditio
 	sqlBuilder := s.newSqlBuilder(searchCondition, langID)
 	sql, params := sqlBuilder.FirstQuery()
 
-	searchResults, err := s.mapReducer.Query(ctx, s.model, condition, func(db minipkg_gorm.IDB) ([]SearchResult, error) {
+	searchResults, err := s.mapReducer.Query(ctx, s.model, searchCondition.EntityCondition.Where, func(db minipkg_gorm.IDB) ([]SearchResult, error) {
 		searchResult := make([]SearchResult, 0)
 		if err = db.DB().Raw(sql, params...).Scan(&searchResult).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {

@@ -62,16 +62,39 @@ func (s *MapReducer) GetDB(ctx context.Context, typeID uint, ID uint) (minipkg_g
 	return cluster.Items[shardIndex], nil
 }
 
-func (s *MapReducer) GetDBs(condition *selection_condition.SelectionCondition) []minipkg_gorm.IDB {
+func (s *MapReducer) GetDBs(entityWhereConditions selection_condition.WhereConditions) []minipkg_gorm.IDB {
+	//	получаем слайс EntityType и слайс ID
+	entityTypes, IDs := s.processCondition(entityWhereConditions)
+	//	получаем слайс кластеров по слайсу EntityType
+	//	бежим по слайсу кластеров:
+	//		получаем слайс db по слайсу ID
 	return s.sharding.GetDBs(condition)
 }
 
-func (s *MapReducer) Query(ctx context.Context, model interface{}, condition *selection_condition.SelectionCondition, f func(db minipkg_gorm.IDB) ([]SearchResult, error)) ([]SearchResult, error) {
+func (s *MapReducer) processCondition(entityWhereConditions selection_condition.WhereConditions) (entityTypes []uint, IDs []uint) {
+	if entityWhereConditions == nil {
+		return nil, nil
+	}
+
+	for _, wc := range entityWhereConditions {
+		ids := make([]uint, 0, 1)
+		switch wc.Condition {
+		case selection_condition.ConditionEq:
+
+		case selection_condition.ConditionIn:
+		}
+	}
+
+	return entityTypes, IDs
+}
+
+func (s *MapReducer) Query(ctx context.Context, model interface{}, entityWhereConditions selection_condition.WhereConditions, f func(db minipkg_gorm.IDB) ([]SearchResult, error)) ([]SearchResult, error) {
 	var res []SearchResult
 
-	dbs := s.GetDBs(condition)
+	dbs := s.GetDBs(entityWhereConditions)
 	for _, db := range dbs {
 		searchResult, err := f(db)
+		// todo: распараллелить
 		if err != nil && !errors.Is(err, yaruserror.ErrNotFound) {
 			return nil, err
 		}
@@ -81,10 +104,10 @@ func (s *MapReducer) Query(ctx context.Context, model interface{}, condition *se
 	return res, nil
 }
 
-func (s *MapReducer) Count(ctx context.Context, model interface{}, condition *selection_condition.SelectionCondition, f func(db minipkg_gorm.IDB) (uint, error)) (uint, error) {
+func (s *MapReducer) Count(ctx context.Context, model interface{}, entityWhereConditions selection_condition.WhereConditions, f func(db minipkg_gorm.IDB) (uint, error)) (uint, error) {
 	var res uint
 
-	dbs := s.GetDBs(condition)
+	dbs := s.GetDBs(entityWhereConditions)
 	for _, db := range dbs {
 		searchResult, err := f(db)
 		if err != nil && !errors.Is(err, yaruserror.ErrNotFound) {

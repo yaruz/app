@@ -186,6 +186,40 @@ func (p *SelectionConditionParser) CheckSortOrder(value []map[string]string) err
 	return nil
 }
 
+func (p *SelectionConditionParser) GetEntityTypeIDsAndIDsByEntityWhereConditions(entityWhereConditions selection_condition.WhereConditions) (entityTypes []uint, IDs []uint, err error) {
+
+}
+
+func (p *SelectionConditionParser) getEntityTypeIDsAndIDsByEntityWhereCondition(entityWhereCondition *selection_condition.WhereCondition) (entityTypes []uint, IDs []uint, err error) {
+	if entityWhereCondition.Field != entity.FieldName_ID && entityWhereCondition.Field != entity.FieldName_EntityTypeID {
+		return nil, errors.Errorf("Field must be %q or %q.", entity.FieldName_ID, entity.FieldName_EntityTypeID)
+	}
+	wc := &selection_condition.WhereCondition{
+		Field:     entityWhereCondition.Field,
+		Condition: entityWhereCondition.Condition,
+	}
+	var err error
+
+	switch entityWhereCondition.Condition {
+	case selection_condition.ConditionEq:
+		var value uint
+		if value, err = p.CheckID(entityWhereCondition.Value); err != nil {
+			return nil, err
+		}
+		wc.Value = value
+	case selection_condition.ConditionIn:
+		var value []uint
+		if value, err = p.CheckIDs(entityWhereCondition.Value); err != nil {
+			return nil, err
+		}
+		wc.Value = value
+	default:
+		return nil, errors.Errorf("Condition must be %q or %q", selection_condition.ConditionEq, selection_condition.ConditionIn)
+	}
+
+	return wc, nil
+}
+
 func (p *SelectionConditionParser) CheckIDCondition(wcondition *selection_condition.WhereCondition) (*selection_condition.WhereCondition, error) {
 	if wcondition.Field != entity.FieldName_ID && wcondition.Field != entity.FieldName_EntityTypeID {
 		return nil, errors.Errorf("Field must be %q or %q.", entity.FieldName_ID, entity.FieldName_EntityTypeID)
@@ -204,18 +238,9 @@ func (p *SelectionConditionParser) CheckIDCondition(wcondition *selection_condit
 		}
 		wc.Value = value
 	case selection_condition.ConditionIn:
-		valInterface, ok := wcondition.Value.([]interface{})
-		if !ok {
-			return nil, errors.Errorf("Can not cast to the []interface{} value = %v", wcondition.Value)
-		}
-
-		value := make([]uint, len(valInterface))
-		for i, val := range valInterface {
-			valUint, err := p.CheckID(val)
-			if err != nil {
-				return nil, err
-			}
-			value[i] = valUint
+		var value []uint
+		if value, err = p.CheckIDs(wcondition.Value); err != nil {
+			return nil, err
 		}
 		wc.Value = value
 	default:
@@ -227,6 +252,23 @@ func (p *SelectionConditionParser) CheckIDCondition(wcondition *selection_condit
 
 func (p *SelectionConditionParser) CheckID(value interface{}) (uint, error) {
 	return property.GetRelationItemValue(value)
+}
+
+func (p *SelectionConditionParser) CheckIDs(value interface{}) ([]uint, error) {
+	valInterface, ok := value.([]interface{})
+	if !ok {
+		return nil, errors.Errorf("Can not cast to the []interface{} value = %v", value)
+	}
+
+	values := make([]uint, len(valInterface))
+	for i, val := range valInterface {
+		valUint, err := p.CheckID(val)
+		if err != nil {
+			return nil, err
+		}
+		values[i] = valUint
+	}
+	return values, nil
 }
 
 func (p *SelectionConditionParser) CheckEntityTypeCondition(wcondition *selection_condition.WhereCondition) (*selection_condition.WhereCondition, error) {
