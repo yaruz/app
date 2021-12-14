@@ -38,7 +38,12 @@ func NewEntityRepository(repository *repository, valueRepositories *domain_entit
 
 // Create saves a new record in the database.
 func (r *EntityRepository) Create(ctx context.Context, entity *domain_entity.Entity, langID uint) error {
-	return r.mapReducer.GetDBForInsert(entity.EntityTypeID).DB().Transaction(func(tx *gorm.DB) (err error) {
+	db, err := r.mapReducer.GetDB(ctx, entity.EntityTypeID, entity.ID)
+	if err != nil {
+		return nil
+	}
+
+	return db.DB().Transaction(func(tx *gorm.DB) (err error) {
 
 		if err := tx.Omit(clause.Associations).Create(entity).Error; err != nil {
 			return err

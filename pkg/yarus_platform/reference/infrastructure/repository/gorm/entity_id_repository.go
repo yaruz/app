@@ -3,12 +3,12 @@ package gorm
 import (
 	"fmt"
 
+	"github.com/yaruz/app/pkg/yarus_platform/config"
+
 	"github.com/pkg/errors"
 	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 	"gorm.io/gorm"
 )
-
-const DBClusterDefaultSysname = "default"
 
 type EntityIDRepository struct {
 	repository
@@ -24,7 +24,7 @@ func NewEntityIDRepository(repository *repository, entityTypesByClusterSysnames 
 			clusterSysnamesByEntityTypes[entityType] = sysname
 		}
 	}
-	entityTypesByClusterSysnames[DBClusterDefaultSysname] = nil
+	entityTypesByClusterSysnames[config.DBClusterDefaultSysname] = nil
 
 	return &EntityIDRepository{
 		repository:                   *repository,
@@ -56,7 +56,7 @@ func (r *EntityIDRepository) getSeqNameByEntityTypeSysname(entityTypeSysname str
 	if sysname, ok := r.isSeparatedEntityType(entityTypeSysname); ok {
 		return r.buildSeqName(sysname)
 	}
-	return r.buildSeqName(DBClusterDefaultSysname)
+	return r.buildSeqName(config.DBClusterDefaultSysname)
 }
 
 func (r *EntityIDRepository) buildSeqName(clusterSysname string) string {

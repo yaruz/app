@@ -3,6 +3,9 @@ package infrastructure
 import (
 	"context"
 
+	"github.com/pkg/errors"
+	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
+
 	"github.com/minipkg/log"
 	"github.com/yaruz/app/pkg/yarus_platform/config"
 
@@ -12,35 +15,35 @@ import (
 type Sharding struct {
 	IsAutoMigrate                bool
 	Model                        interface{}
-	Default                      DBCluster
-	BySysnames                   map[string]DBCluster
+	Default                      *DBCluster
+	BySysnames                   map[string]*DBCluster
 	ClusterSysnamesByEntityTypes map[string]string
 }
 
 func newSharding(ctx context.Context, logger log.ILogger, cfg *config.Sharding, model interface{}) (*Sharding, error) {
 	clusterSysnamesByEntityTypes := make(map[string]string)
-	defaultShards, err := newDBCluster(logger, &cfg.Default)
+	defaultCluster, err := newDBCluster(logger, &cfg.Default)
 	if err != nil {
 		return nil, err
 	}
 
-	bySysnames := make(map[string]DBCluster, len(cfg.BySysnames))
+	bySysnames := make(map[string]*DBCluster, len(cfg.BySysnames))
 	for sysname, clusterCfg := range cfg.BySysnames {
 		for _, entityType := range clusterCfg.EntityTypes {
 			clusterSysnamesByEntityTypes[entityType] = sysname
 		}
 
-		shards, err := newDBCluster(logger, &clusterCfg)
+		cluster, err := newDBCluster(logger, &clusterCfg)
 		if err != nil {
 			return nil, err
 		}
-		bySysnames[sysname] = *shards
+		bySysnames[sysname] = cluster
 	}
 
 	s := &Sharding{
 		IsAutoMigrate:                cfg.IsAutoMigrate,
 		Model:                        model,
-		Default:                      *defaultShards,
+		Default:                      defaultCluster,
 		BySysnames:                   bySysnames,
 		ClusterSysnamesByEntityTypes: clusterSysnamesByEntityTypes,
 	}
@@ -49,6 +52,27 @@ func newSharding(ctx context.Context, logger log.ILogger, cfg *config.Sharding, 
 		return nil, err
 	}
 	return s, nil
+}
+
+func (s *Sharding) GetClustersByEntityTypes(entityTypes []string) ([]*DBCluster, error) {
+	var DBClusters []*DBCluster
+
+	if entityTypes == nil || len(entityTypes) == 0 {
+		DBClusters = append(DBClusters, s.Default)
+		return DBClusters, nil
+	}
+
+	for _, entityType := range entityTypes {
+		cluster := s.Default
+		if sysname, ok := s.ClusterSysnamesByEntityTypes[entityType]; ok {
+			if cluster, ok = s.BySysnames[sysname]; !ok {
+				return nil, errors.Wrapf(yaruserror.ErrNotFound, "Cluster with sysname = %q not found.", sysname)
+			}
+		}
+		DBClusters = append(DBClusters, cluster)
+	}
+
+	return DBClusters, nil
 }
 
 func (s *Sharding) SchemesInitWithContext(ctx context.Context, model interface{}) (err error) {

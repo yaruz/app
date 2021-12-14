@@ -62,22 +62,53 @@ func (s *MapReducer) GetDB(ctx context.Context, typeID uint, ID uint) (minipkg_g
 	return cluster.Items[shardIndex], nil
 }
 
-func (s *MapReducer) GetDBs(parser *SelectionConditionParser, entityWhereConditions selection_condition.WhereConditions) ([]minipkg_gorm.IDB, error) {
+func (s *MapReducer) GetDBs(ctx context.Context, parser *SelectionConditionParser, entityWhereConditions selection_condition.WhereConditions) ([]minipkg_gorm.IDB, error) {
+	var dbs []minipkg_gorm.IDB
 	//	получаем слайс EntityType и слайс ID
-	entityTypes, IDs, err := parser.GetEntityTypeIDsAndIDsByEntityWhereConditions(entityWhereConditions)
+	entityTypeIDs, IDs, err := parser.GetEntityTypeIDsAndIDsByEntityWhereConditions(entityWhereConditions)
 	if err != nil {
 		return nil, err
 	}
+
+	entityTypeSysnames := make([]string, len(entityTypeIDs))
+	for i, entityTypeID := range entityTypeIDs {
+		entityTypeSysname, err := s.entityTypeFinder.GetSysnameByID(ctx, entityTypeID)
+		if err != nil {
+			return nil, err
+		}
+		entityTypeSysnames[i] = entityTypeSysname
+	}
+
 	//	получаем слайс кластеров по слайсу EntityType
+	clusters, err := s.sharding.GetClustersByEntityTypes(entityTypeSysnames)
+	if err != nil {
+		return nil, err
+	}
+
 	//	бежим по слайсу кластеров:
-	//		получаем слайс db по слайсу ID
-	return s.sharding.GetDBs(condition)
+	for _, cluster := range clusters {
+		if IDs == nil {
+			dbs = append(dbs, cluster.Items...)
+			continue
+		}
+		//		получаем слайс db по слайсу ID
+		for _, ID := range IDs {
+			shardIndex := s.ShardIndex(cluster.Capacity, ID)
+			if shardIndex >= uint(len(cluster.Items)) {
+				return nil, errors.Errorf("ID = %v is too big for cluster capacity = %v length = %v", ID, cluster.Capacity, len(cluster.Items))
+			}
+			dbs = append(dbs, cluster.Items[shardIndex])
+		}
+
+	}
+
+	return dbs, nil
 }
 
 func (s *MapReducer) Query(ctx context.Context, parser *SelectionConditionParser, entityWhereConditions selection_condition.WhereConditions, f func(db minipkg_gorm.IDB) ([]SearchResult, error)) ([]SearchResult, error) {
 	var res []SearchResult
 
-	dbs, err := s.GetDBs(parser, entityWhereConditions)
+	dbs, err := s.GetDBs(ctx, parser, entityWhereConditions)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +128,7 @@ func (s *MapReducer) Query(ctx context.Context, parser *SelectionConditionParser
 func (s *MapReducer) Count(ctx context.Context, parser *SelectionConditionParser, entityWhereConditions selection_condition.WhereConditions, f func(db minipkg_gorm.IDB) (uint, error)) (uint, error) {
 	var res uint
 
-	dbs, err := s.GetDBs(parser, entityWhereConditions)
+	dbs, err := s.GetDBs(ctx, parser, entityWhereConditions)
 	if err != nil {
 		return 0, err
 	}

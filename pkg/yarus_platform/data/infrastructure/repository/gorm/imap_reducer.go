@@ -9,7 +9,7 @@ import (
 
 type IMapReducer interface {
 	GetDB(ctx context.Context, typeID uint, ID uint) (minipkg_gorm.IDB, error)
-	GetDBs(entityWhereConditions selection_condition.WhereConditions) []minipkg_gorm.IDB
+	GetDBs(ctx context.Context, parser *SelectionConditionParser, entityWhereConditions selection_condition.WhereConditions) ([]minipkg_gorm.IDB, error)
 	Query(ctx context.Context, parser *SelectionConditionParser, entityWhereConditions selection_condition.WhereConditions, f func(db minipkg_gorm.IDB) ([]SearchResult, error)) ([]SearchResult, error)
 	Count(ctx context.Context, parser *SelectionConditionParser, entityWhereConditions selection_condition.WhereConditions, f func(db minipkg_gorm.IDB) (uint, error)) (uint, error)
 }

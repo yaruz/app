@@ -6,6 +6,8 @@ import (
 	"github.com/minipkg/log"
 )
 
+const DBClusterDefaultSysname = "default"
+
 type Configuration struct {
 	Infrastructure *Infrastructure
 	Metadata       *Metadata
