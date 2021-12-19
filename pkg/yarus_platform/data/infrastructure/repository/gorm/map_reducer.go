@@ -107,60 +107,132 @@ func (s *MapReducer) GetDBs(ctx context.Context, parser *SelectionConditionParse
 }
 
 func (s *MapReducer) Query(ctx context.Context, parser *SelectionConditionParser, entityWhereConditions selection_condition.WhereConditions, f func(db minipkg_gorm.IDB) ([]SearchResult, error)) ([]SearchResult, error) {
-	var res []SearchResult
-	errorsCh := make(chan error)
-	resultsCh := make(chan []SearchResult)
-	stopCh := make(chan struct{})
-	wg := &sync.WaitGroup{}
-
 	dbs, err := s.GetDBs(ctx, parser, entityWhereConditions)
 	if err != nil {
 		return nil, err
 	}
 
+	// todo: сортировку результатов
+	return s.queryReceiver(s.queryStarter(dbs, f))
+}
+
+func (s *MapReducer) queryStarter(dbs []minipkg_gorm.IDB, f func(db minipkg_gorm.IDB) ([]SearchResult, error)) (resultCh chan []SearchResult, errorsCh chan error) {
+	errorsCh = make(chan error)
+	resultCh = make(chan []SearchResult)
+
+	defer func() {
+		close(errorsCh)
+		close(resultCh)
+	}()
+
+	wg := &sync.WaitGroup{}
 	for _, db := range dbs {
 		wg.Add(1)
+		go s.queryProcessing(wg, db, f, resultCh, errorsCh)
+	}
+	wg.Wait()
 
-		go s.queryProcessing(wg, db, f, resultsCh, errorsCh, stopCh)
+	return resultCh, errorsCh
+}
 
-		searchResult, err := f(db)
-		// todo: распараллелить
-		if err != nil && !errors.Is(err, yaruserror.ErrNotFound) {
-			return nil, err
+func (s *MapReducer) queryProcessing(wg *sync.WaitGroup, db minipkg_gorm.IDB, f func(db minipkg_gorm.IDB) ([]SearchResult, error), resultCh chan []SearchResult, errorsCh chan error) {
+	var searchResult []SearchResult
+	defer func() {
+		if err := recover(); err != nil {
+			errorsCh <- errors.New("panic happened in given func: " + err.(string))
 		}
+		wg.Done()
+	}()
+
+	searchResult, err := f(db)
+	if err != nil {
+		if !errors.Is(err, yaruserror.ErrNotFound) {
+			errorsCh <- err
+		}
+		return
+	}
+
+	resultCh <- searchResult
+	return
+}
+
+func (s *MapReducer) queryReceiver(resultCh chan []SearchResult, errorsCh chan error) ([]SearchResult, error) {
+	var res []SearchResult
+	var err error
+
+	select {
+	case err = <-errorsCh:
+		return nil, err
+	default:
+	}
+
+	for searchResult := range resultCh {
 		res = append(res, searchResult...)
 	}
-	// todo: сортировку результатов
 	return res, nil
 }
 
-func (s *MapReducer) queryStarter(wg *sync.WaitGroup, db minipkg_gorm.IDB, f func(db minipkg_gorm.IDB) ([]SearchResult, error), resultCh chan []SearchResult, errorsCh chan error, stopCh chan struct{}) {
-
-}
-
-func (s *MapReducer) queryProcessing(wg *sync.WaitGroup, db minipkg_gorm.IDB, f func(db minipkg_gorm.IDB) ([]SearchResult, error), resultCh chan []SearchResult, errorsCh chan error, stopCh chan struct{}) {
-
-}
-
-func (s *MapReducer) queryReceiver(wg *sync.WaitGroup, db minipkg_gorm.IDB, f func(db minipkg_gorm.IDB) ([]SearchResult, error), resultCh chan []SearchResult, errorsCh chan error, stopCh chan struct{}) {
-
-}
-
 func (s *MapReducer) Count(ctx context.Context, parser *SelectionConditionParser, entityWhereConditions selection_condition.WhereConditions, f func(db minipkg_gorm.IDB) (uint, error)) (uint, error) {
-	var res uint
-
 	dbs, err := s.GetDBs(ctx, parser, entityWhereConditions)
 	if err != nil {
 		return 0, err
 	}
 
+	return s.countReceiver(s.countStarter(dbs, f))
+}
+
+func (s *MapReducer) countStarter(dbs []minipkg_gorm.IDB, f func(db minipkg_gorm.IDB) (uint, error)) (resultCh chan uint, errorsCh chan error) {
+	errorsCh = make(chan error)
+	resultCh = make(chan uint)
+
+	defer func() {
+		close(errorsCh)
+		close(resultCh)
+	}()
+
+	wg := &sync.WaitGroup{}
 	for _, db := range dbs {
-		searchResult, err := f(db)
-		if err != nil && !errors.Is(err, yaruserror.ErrNotFound) {
-			return 0, err
+		wg.Add(1)
+		go s.countProcessing(wg, db, f, resultCh, errorsCh)
+	}
+	wg.Wait()
+
+	return resultCh, errorsCh
+}
+
+func (s *MapReducer) countProcessing(wg *sync.WaitGroup, db minipkg_gorm.IDB, f func(db minipkg_gorm.IDB) (uint, error), resultCh chan uint, errorsCh chan error) {
+	var searchResult uint
+	defer func() {
+		if err := recover(); err != nil {
+			errorsCh <- errors.New("panic happened in given func: " + err.(string))
 		}
-		res += searchResult
+		wg.Done()
+	}()
+
+	searchResult, err := f(db)
+	if err != nil {
+		if !errors.Is(err, yaruserror.ErrNotFound) {
+			errorsCh <- err
+		}
+		return
 	}
 
+	resultCh <- searchResult
+	return
+}
+
+func (s *MapReducer) countReceiver(resultCh chan uint, errorsCh chan error) (uint, error) {
+	var res uint
+	var err error
+
+	select {
+	case err = <-errorsCh:
+		return 0, err
+	default:
+	}
+
+	for searchResult := range resultCh {
+		res += searchResult
+	}
 	return res, nil
 }
