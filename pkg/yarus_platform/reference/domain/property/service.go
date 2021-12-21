@@ -3,6 +3,16 @@ package property
 import (
 	"context"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_group"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_unit"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_view_type"
+
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/yaruz/app/pkg/yarus_platform/config"
+
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_lang"
+
 	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 
 	"github.com/minipkg/selection_condition"
@@ -15,6 +25,7 @@ import (
 // IService encapsulates usecase logic.
 type IService interface {
 	NewEntity() *Property
+	PropertyInit(ctx context.Context, PropertiesConfig config.Properties, entityTypeSysname string) (propertyIDs []uint, err error)
 	Get(ctx context.Context, id uint) (*Property, error)
 	First(ctx context.Context, entity *Property) (*Property, error)
 	Query(ctx context.Context, query *selection_condition.SelectionCondition) ([]Property, error)
@@ -41,17 +52,27 @@ type IService interface {
 }
 
 type service struct {
-	logger     log.ILogger
-	repository Repository
+	logger                  log.ILogger
+	repository              Repository
+	propertyTypeService     property_type.IService
+	propertyUnitService     property_unit.IService
+	propertyViewTypeService property_view_type.IService
+	propertyGroupService    property_group.IService
+	langFinder              text_lang.LangFinder
 }
 
 var _ IService = (*service)(nil)
 
 // NewService creates a new service.
-func NewService(logger log.ILogger, repo Repository) IService {
+func NewService(logger log.ILogger, repo Repository, propertyTypeService property_type.IService, propertyUnitService property_unit.IService, propertyViewTypeService property_view_type.IService, propertyGroupService property_group.IService, langFinder text_lang.LangFinder) IService {
 	s := &service{
-		logger:     logger,
-		repository: repo,
+		logger:                  logger,
+		repository:              repo,
+		propertyTypeService:     propertyTypeService,
+		propertyUnitService:     propertyUnitService,
+		propertyViewTypeService: propertyViewTypeService,
+		propertyGroupService:    propertyGroupService,
+		langFinder:              langFinder,
 	}
 	repo.SetDefaultConditions(s.defaultConditions())
 	return s
@@ -64,6 +85,91 @@ func (s *service) defaultConditions() *selection_condition.SelectionCondition {
 
 func (s *service) NewEntity() *Property {
 	return New()
+}
+
+func (s *service) PropertyInit(ctx context.Context, PropertiesConfig config.Properties, entityTypeSysname string) (propertyIDs []uint, err error) {
+	count, err := s.Count(ctx, &selection_condition.SelectionCondition{})
+	if err != nil {
+		return nil, err
+	}
+	if count > 0 {
+		return nil, nil
+	}
+
+	langsSl, err := s.langFinder.GetCodesEmptyInterfaceSlice(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	langsIDsMap, err := s.langFinder.GetMapCodeID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for sysname, propertyConfig := range PropertiesConfig {
+		prop := New()
+		prop.Sysname = entityTypeSysname + "." + sysname
+
+		if propertyConfig.PropertyType != "" {
+			if prop.PropertyTypeID, err = s.propertyTypeService.GetIDBySysname(ctx, propertyConfig.PropertyType); err != nil {
+				return nil, err
+			}
+		}
+
+		if propertyConfig.PropertyUnit != "" {
+			propertyUnitID, err := s.propertyUnitService.GetIDBySysname(ctx, propertyConfig.PropertyUnit)
+			if err != nil {
+				return nil, err
+			}
+			prop.PropertyUnitID = &propertyUnitID
+		}
+
+		if propertyConfig.PropertyViewType != "" {
+			propertyViewTypeID, err := s.propertyViewTypeService.GetIDBySysname(ctx, propertyConfig.PropertyViewType)
+			if err != nil {
+				return nil, err
+			}
+			prop.PropertyViewTypeID = &propertyViewTypeID
+		}
+
+		if propertyConfig.PropertyGroup != "" {
+			propertyGroupID, err := s.propertyGroupService.GetIDBySysname(ctx, propertyConfig.PropertyGroup)
+			if err != nil {
+				return nil, err
+			}
+			prop.PropertyGroupID = &propertyGroupID
+		}
+
+		prop.IsSpecific = propertyConfig.IsSpecific
+		prop.IsRange = propertyConfig.IsRange
+		prop.IsMultiple = propertyConfig.IsMultiple
+		prop.SortOrder = propertyConfig.SortOrder
+		prop.Options = propertyConfig.Options
+		if err := s.TCreate(ctx, prop, 1); err != nil {
+			return nil, err
+		}
+
+		for lang, texts := range propertyConfig.Texts {
+			if err := validation.Validate(lang, validation.In(langsSl...)); err != nil {
+				return nil, errors.Wrapf(err, "PropertyInit error: invalid lang = %q", lang)
+			}
+			langID, ok := langsIDsMap[lang]
+			if !ok {
+				return nil, errors.Errorf("PropertyInit error: not found lang = %q", lang)
+			}
+
+			name := texts.Name
+			description := texts.Description
+			prop.Name = &name
+			prop.Description = &description
+			if err := s.TUpdate(ctx, prop, langID); err != nil {
+				return nil, err
+			}
+		}
+		propertyIDs = append(propertyIDs, prop.ID)
+	}
+
+	return propertyIDs, nil
 }
 
 // Get returns the entity with the specified ID.

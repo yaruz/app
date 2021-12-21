@@ -3,6 +3,11 @@ package property_unit
 import (
 	"context"
 
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/yaruz/app/pkg/yarus_platform/config"
+
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_lang"
+
 	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 
 	"github.com/minipkg/selection_condition"
@@ -15,6 +20,7 @@ import (
 // IService encapsulates usecase logic.
 type IService interface {
 	NewEntity() *PropertyUnit
+	DataInit(ctx context.Context, unitsConfig config.PropertyUnits) error
 	Get(ctx context.Context, id uint) (*PropertyUnit, error)
 	First(ctx context.Context, entity *PropertyUnit) (*PropertyUnit, error)
 	Query(ctx context.Context, query *selection_condition.SelectionCondition) ([]PropertyUnit, error)
@@ -38,15 +44,17 @@ type IService interface {
 type service struct {
 	logger     log.ILogger
 	repository Repository
+	langFinder text_lang.LangFinder
 }
 
 var _ IService = (*service)(nil)
 
 // NewService creates a new service.
-func NewService(logger log.ILogger, repo Repository) IService {
+func NewService(logger log.ILogger, repo Repository, langFinder text_lang.LangFinder) IService {
 	s := &service{
 		logger:     logger,
 		repository: repo,
+		langFinder: langFinder,
 	}
 	repo.SetDefaultConditions(s.defaultConditions())
 	return s
@@ -59,6 +67,54 @@ func (s *service) defaultConditions() *selection_condition.SelectionCondition {
 
 func (s *service) NewEntity() *PropertyUnit {
 	return New()
+}
+
+func (s *service) DataInit(ctx context.Context, unitsConfig config.PropertyUnits) error {
+	count, err := s.Count(ctx, &selection_condition.SelectionCondition{})
+	if err != nil {
+		return err
+	}
+	if count > 0 {
+		return nil
+	}
+
+	langsSl, err := s.langFinder.GetCodesEmptyInterfaceSlice(ctx)
+	if err != nil {
+		return err
+	}
+
+	langsIDsMap, err := s.langFinder.GetMapCodeID(ctx)
+	if err != nil {
+		return err
+	}
+
+	for sysname, unitConfig := range unitsConfig {
+		unit := New()
+		unit.Sysname = sysname
+		if err := s.TCreate(ctx, unit, 1); err != nil {
+			return err
+		}
+
+		for lang, texts := range unitConfig {
+			if err := validation.Validate(lang, validation.In(langsSl...)); err != nil {
+				return errors.Wrapf(err, "PropertyUnitInit error: invalid lang = %q", lang)
+			}
+			langID, ok := langsIDsMap[lang]
+			if !ok {
+				return errors.Errorf("PropertyUnitInit error: not found lang = %q", lang)
+			}
+
+			name := texts.Name
+			description := texts.Description
+			unit.Name = &name
+			unit.Description = &description
+			if err := s.TUpdate(ctx, unit, langID); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 // Get returns the entity with the specified ID.

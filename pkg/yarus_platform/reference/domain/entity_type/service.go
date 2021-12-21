@@ -3,6 +3,13 @@ package entity_type
 import (
 	"context"
 
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/yaruz/app/pkg/yarus_platform/config"
+
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
+
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_lang"
+
 	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 
 	"github.com/minipkg/selection_condition"
@@ -15,6 +22,7 @@ import (
 // IService encapsulates usecase logic.
 type IService interface {
 	NewEntity() *EntityType
+	DataInit(ctx context.Context, EntityTypesConfig config.EntityTypes) error
 	Get(ctx context.Context, id uint) (*EntityType, error)
 	GetBySysname(ctx context.Context, sysname string, langID uint) (*EntityType, error)
 	First(ctx context.Context, entity *EntityType) (*EntityType, error)
@@ -43,16 +51,20 @@ type service struct {
 	logger          log.ILogger
 	repository      Repository
 	relationService RelationService
+	propertyService property.IService
+	langFinder      text_lang.LangFinder
 }
 
 var _ IService = (*service)(nil)
 
 // NewService creates a new service.
-func NewService(logger log.ILogger, repo Repository, relationService RelationService) IService {
+func NewService(logger log.ILogger, repo Repository, relationService RelationService, propertyService property.IService, langFinder text_lang.LangFinder) IService {
 	s := &service{
 		logger:          logger,
 		repository:      repo,
 		relationService: relationService,
+		propertyService: propertyService,
+		langFinder:      langFinder,
 	}
 	repo.SetDefaultConditions(s.defaultConditions())
 	return s
@@ -75,6 +87,70 @@ func (s *service) initPropertiesAndRelations(ctx context.Context, entity *Entity
 func (s *service) tInitPropertiesAndRelations(ctx context.Context, entity *EntityType, langID uint) (err error) {
 	(*entity).Properties, (*entity).Relations, err = s.relationService.TGetPropertiesAndRelationsByEntityTypeID(ctx, (*entity).ID, langID)
 	return err
+}
+
+func (s *service) DataInit(ctx context.Context, EntityTypesConfig config.EntityTypes) error {
+	count, err := s.Count(ctx, &selection_condition.SelectionCondition{})
+	if err != nil {
+		return err
+	}
+	if count > 0 {
+		return nil
+	}
+	propertiesCount, err := s.propertyService.Count(ctx, &selection_condition.SelectionCondition{})
+	if err != nil {
+		return err
+	}
+
+	langsSl, err := s.langFinder.GetCodesEmptyInterfaceSlice(ctx)
+	if err != nil {
+		return err
+	}
+
+	langsIDsMap, err := s.langFinder.GetMapCodeID(ctx)
+	if err != nil {
+		return err
+	}
+
+	for sysname, entityTypeConfig := range EntityTypesConfig {
+		entityType := New()
+		entityType.Sysname = sysname
+		if err := s.TCreate(ctx, entityType, 1); err != nil {
+			return err
+		}
+
+		for lang, texts := range entityTypeConfig.Texts {
+			if err := validation.Validate(lang, validation.In(langsSl...)); err != nil {
+				return errors.Wrapf(err, "EntityTypeInit error: invalid lang = %q", lang)
+			}
+			langID, ok := langsIDsMap[lang]
+			if !ok {
+				return errors.Errorf("EntityTypeInit error: not found lang = %q", lang)
+			}
+
+			name := texts.Name
+			description := texts.Description
+			entityType.Name = &name
+			entityType.Description = &description
+			if err := s.TUpdate(ctx, entityType, langID); err != nil {
+				return err
+			}
+		}
+		if propertiesCount == 0 {
+			propertyIDs, err := s.propertyService.PropertyInit(ctx, entityTypeConfig.Properties, entityType.Sysname)
+			if err != nil {
+				return err
+			}
+
+			for _, propertyId := range propertyIDs {
+				if err := s.BindProperty(ctx, entityType.ID, propertyId); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 // Get returns the entity with the specified ID.

@@ -230,17 +230,17 @@ func (s *ReferenceSubsystem) setupRepositories(infra *infrastructure.Infrastruct
 }
 
 func (s *ReferenceSubsystem) setupServices(logger log.ILogger) {
-	s.EntityType2Property = entity_type2property.NewService(logger, s.entityType2PropertyRepository)
-	s.Relation = entity_type.NewRelationService(logger, s.relationRepository)
-	s.EntityType = entity_type.NewService(logger, s.entityTypeRepository, s.Relation)
-	s.PropertyGroup = property_group.NewService(logger, s.propertyGroupRepository)
-	s.Property = property.NewService(logger, s.propertyRepository)
-	s.PropertyType = property_type.NewService(logger, s.propertyTypeRepository, s.propertyType2PropertyViewTypeRepository)
-	s.PropertyUnit = property_unit.NewService(logger, s.propertyUnitRepository)
-	s.PropertyViewType = property_view_type.NewService(logger, s.propertyViewTypeRepository)
+	s.TextLang = text_lang.NewService(logger, s.textLangRepository)
 	s.TextSource = text_source.NewService(logger, s.textSourceRepository)
 	s.TextValue = text_value.NewService(logger, s.textValueRepository)
-	s.TextLang = text_lang.NewService(logger, s.textLangRepository)
+	s.EntityType2Property = entity_type2property.NewService(logger, s.entityType2PropertyRepository)
+	s.Relation = entity_type.NewRelationService(logger, s.relationRepository)
+	s.PropertyGroup = property_group.NewService(logger, s.propertyGroupRepository)
+	s.PropertyType = property_type.NewService(logger, s.propertyTypeRepository, s.propertyType2PropertyViewTypeRepository, s.TextLang)
+	s.PropertyUnit = property_unit.NewService(logger, s.propertyUnitRepository, s.TextLang)
+	s.PropertyViewType = property_view_type.NewService(logger, s.propertyViewTypeRepository)
+	s.Property = property.NewService(logger, s.propertyRepository, s.PropertyType, s.PropertyUnit, s.PropertyViewType, s.PropertyGroup, s.TextLang)
+	s.EntityType = entity_type.NewService(logger, s.entityTypeRepository, s.Relation, s.Property, s.TextLang)
 }
 
 func (s *ReferenceSubsystem) dbStructFix(db minipkg_gorm.IDB) error {
@@ -268,22 +268,22 @@ func (s *ReferenceSubsystem) dbStructFix(db minipkg_gorm.IDB) error {
 func (s *ReferenceSubsystem) dbDataInit(metadata *config.Metadata) error {
 	ctx := context.Background()
 
-	err := s.LangDataInit(ctx, metadata.Languages)
+	err := s.TextLang.DataInit(ctx, metadata.Languages)
 	if err != nil {
 		return err
 	}
 
-	err = s.PropertyTypeDataInit(ctx)
+	err = s.PropertyType.DataInit(ctx)
 	if err != nil {
 		return err
 	}
 
-	err = s.PropertyUnitInit(ctx, metadata.PropertyUnits)
+	err = s.PropertyUnit.DataInit(ctx, metadata.PropertyUnits)
 	if err != nil {
 		return err
 	}
 
-	err = s.EntityTypeInit(ctx, metadata.EntityTypes)
+	err = s.EntityType.DataInit(ctx, metadata.EntityTypes)
 	if err != nil {
 		return err
 	}

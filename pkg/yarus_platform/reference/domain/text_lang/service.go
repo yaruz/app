@@ -3,6 +3,8 @@ package text_lang
 import (
 	"context"
 
+	"github.com/yaruz/app/pkg/yarus_platform/config"
+
 	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 
 	"github.com/minipkg/selection_condition"
@@ -12,13 +14,25 @@ import (
 	"github.com/minipkg/log"
 )
 
+type LangFinder interface {
+	GetCodes(ctx context.Context) ([]string, error)
+	GetCodesEmptyInterfaceSlice(ctx context.Context) ([]interface{}, error)
+	GetMapCodeID(ctx context.Context) (map[string]uint, error)
+	GetMapIDCode(ctx context.Context) (map[uint]string, error)
+	GetMapIDCfgname(ctx context.Context) (map[uint]string, error)
+	GetIDByCode(ctx context.Context, code string) (uint, error)
+	GetCfgnameByID(ctx context.Context, id uint) (string, error)
+}
+
 // IService encapsulates usecase logic.
 type IService interface {
 	NewEntity() *TextLang
+	DataInit(ctx context.Context, langsConfig config.Languages) error
 	Get(ctx context.Context, id uint) (*TextLang, error)
 	Query(ctx context.Context, query *selection_condition.SelectionCondition) ([]TextLang, error)
 	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error)
 	Create(ctx context.Context, entity *TextLang) error
+	Upsert(ctx context.Context, entity *TextLang) error
 	Update(ctx context.Context, entity *TextLang) error
 	Save(ctx context.Context, entity *TextLang) error
 	Delete(ctx context.Context, id uint) error
@@ -55,6 +69,19 @@ func (s *service) defaultConditions() *selection_condition.SelectionCondition {
 
 func (s *service) NewEntity() *TextLang {
 	return New()
+}
+
+func (s *service) DataInit(ctx context.Context, langsConfig config.Languages) error {
+
+	for _, langConfig := range langsConfig {
+		item := New()
+		item.Code = langConfig.Code
+		item.Name = langConfig.Name
+		item.Cfgname = langConfig.Cfgname
+		s.Upsert(ctx, item)
+	}
+
+	return nil
 }
 
 // Get returns the entity with the specified ID.
@@ -185,6 +212,19 @@ func (s *service) Create(ctx context.Context, entity *TextLang) error {
 	}
 
 	err = s.repository.Create(ctx, entity)
+	if err != nil {
+		return errors.Wrapf(err, "Can not create an entity: %v", entity)
+	}
+	return nil
+}
+
+func (s *service) Upsert(ctx context.Context, entity *TextLang) error {
+	err := entity.Validate()
+	if err != nil {
+		return errors.Wrapf(err, "Validation error: %v", err)
+	}
+
+	err = s.repository.Upsert(ctx, entity)
 	if err != nil {
 		return errors.Wrapf(err, "Can not create an entity: %v", entity)
 	}

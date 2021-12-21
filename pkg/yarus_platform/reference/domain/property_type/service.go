@@ -3,6 +3,8 @@ package property_type
 import (
 	"context"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_lang"
+
 	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type2property_view_type"
@@ -17,6 +19,7 @@ import (
 // IService encapsulates usecase logic.
 type IService interface {
 	NewEntity() *PropertyType
+	DataInit(ctx context.Context) error
 	Get(ctx context.Context, id uint) (*PropertyType, error)
 	First(ctx context.Context, entity *PropertyType) (*PropertyType, error)
 	Query(ctx context.Context, query *selection_condition.SelectionCondition) ([]PropertyType, error)
@@ -44,16 +47,18 @@ type service struct {
 	logger                                  log.ILogger
 	repository                              Repository
 	propertyType2propertyViewTypeRepository property_type2property_view_type.Repository
+	langFinder                              text_lang.LangFinder
 }
 
 var _ IService = (*service)(nil)
 
 // NewService creates a new service.
-func NewService(logger log.ILogger, repo Repository, propertyType2propertyViewTypeRepository property_type2property_view_type.Repository) IService {
+func NewService(logger log.ILogger, repo Repository, propertyType2propertyViewTypeRepository property_type2property_view_type.Repository, langFinder text_lang.LangFinder) IService {
 	s := &service{
 		logger:                                  logger,
 		repository:                              repo,
 		propertyType2propertyViewTypeRepository: propertyType2propertyViewTypeRepository,
+		langFinder:                              langFinder,
 	}
 	repo.SetDefaultConditions(s.defaultConditions())
 	return s
@@ -66,6 +71,48 @@ func (s *service) defaultConditions() *selection_condition.SelectionCondition {
 
 func (s *service) NewEntity() *PropertyType {
 	return New()
+}
+
+func (s *service) DataInit(ctx context.Context) error {
+	count, err := s.Count(ctx, &selection_condition.SelectionCondition{})
+	if err != nil {
+		return err
+	}
+	if count > 0 {
+		return nil
+	}
+
+	items := []PropertyType{
+		{
+			Sysname: SysnameRelation,
+		},
+		{
+			Sysname: SysnameBoolean,
+		},
+		{
+			Sysname: SysnameInt,
+		},
+		{
+			Sysname: SysnameFloat,
+		},
+		{
+			Sysname: SysnameDate,
+		},
+		{
+			Sysname: SysnameTime,
+		},
+		{
+			Sysname: SysnameText,
+		},
+	}
+	for _, i := range items {
+		err = s.Create(ctx, &i)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Get returns the entity with the specified ID.

@@ -177,10 +177,6 @@ func (r *PropertyRepository) Create(ctx context.Context, entity *property.Proper
 		return errors.New("entity is not new")
 	}
 
-	if err := entity.Validate(); err != nil {
-		return err
-	}
-
 	if err := entity.BeforeSave(); err != nil {
 		return err
 	}

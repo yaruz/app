@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"gorm.io/gorm/clause"
+
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_lang"
 
 	"github.com/yaruz/app/internal/pkg/apperror"
@@ -104,6 +106,12 @@ func (r *TextLangRepository) Update(ctx context.Context, entity *text_lang.TextL
 // Save update value in database, if the value doesn't have primary key, will insert it
 func (r *TextLangRepository) Save(ctx context.Context, entity *text_lang.TextLang) error {
 	return r.db.DB().Save(entity).Error
+}
+
+func (r *TextLangRepository) Upsert(ctx context.Context, entity *text_lang.TextLang) error {
+	return r.db.DB().Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Create(entity).Error
 }
 
 // Delete (soft) deletes a record in the database.
