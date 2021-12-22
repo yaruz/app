@@ -74,13 +74,6 @@ func (s *service) NewEntity() *PropertyType {
 }
 
 func (s *service) DataInit(ctx context.Context) error {
-	count, err := s.Count(ctx, &selection_condition.SelectionCondition{})
-	if err != nil {
-		return err
-	}
-	if count > 0 {
-		return nil
-	}
 
 	items := []PropertyType{
 		{
@@ -105,9 +98,9 @@ func (s *service) DataInit(ctx context.Context) error {
 			Sysname: SysnameText,
 		},
 	}
+
 	for _, i := range items {
-		err = s.Create(ctx, &i)
-		if err != nil {
+		if err := s.UpsertBySysname(ctx, &i, 1); err != nil {
 			return err
 		}
 	}
@@ -251,6 +244,27 @@ func (s *service) Count(ctx context.Context, cond *selection_condition.Selection
 		return 0, errors.Wrapf(err, "Can not count a list of items by query: %v", cond)
 	}
 	return count, nil
+}
+
+func (s *service) UpsertBySysname(ctx context.Context, entity *PropertyType, langID uint) (err error) {
+	found, err := s.repository.First(ctx, &PropertyType{
+		Sysname: entity.Sysname,
+	})
+
+	if err != nil {
+		if err != yaruserror.ErrNotFound {
+			return err
+		}
+		err = s.TCreate(ctx, entity, langID)
+	} else {
+		entity.ID = found.ID
+		entity.NameSourceID = found.NameSourceID
+		entity.DescriptionSourceID = found.DescriptionSourceID
+		entity.CreatedAt = found.CreatedAt
+		err = s.TUpdate(ctx, entity, langID)
+	}
+
+	return err
 }
 
 func (s *service) Create(ctx context.Context, entity *PropertyType) error {

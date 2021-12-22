@@ -88,13 +88,6 @@ func (s *service) NewEntity() *Property {
 }
 
 func (s *service) PropertyInit(ctx context.Context, PropertiesConfig config.Properties, entityTypeSysname string) (propertyIDs []uint, err error) {
-	count, err := s.Count(ctx, &selection_condition.SelectionCondition{})
-	if err != nil {
-		return nil, err
-	}
-	if count > 0 {
-		return nil, nil
-	}
 
 	langsSl, err := s.langFinder.GetCodesEmptyInterfaceSlice(ctx)
 	if err != nil {
@@ -145,7 +138,7 @@ func (s *service) PropertyInit(ctx context.Context, PropertiesConfig config.Prop
 		prop.IsMultiple = propertyConfig.IsMultiple
 		prop.SortOrder = propertyConfig.SortOrder
 		prop.Options = propertyConfig.Options
-		if err := s.TCreate(ctx, prop, 1); err != nil {
+		if err := s.UpsertBySysname(ctx, prop, 1); err != nil {
 			return nil, err
 		}
 
@@ -156,6 +149,10 @@ func (s *service) PropertyInit(ctx context.Context, PropertiesConfig config.Prop
 			langID, ok := langsIDsMap[lang]
 			if !ok {
 				return nil, errors.Errorf("PropertyInit error: not found lang = %q", lang)
+			}
+
+			if prop, err = s.TGet(ctx, prop.ID, langID); err != nil {
+				return nil, err
 			}
 
 			name := texts.Name
@@ -366,6 +363,30 @@ func (s *service) Count(ctx context.Context, cond *selection_condition.Selection
 		return 0, errors.Wrapf(err, "Can not count a list of items by query: %v", cond)
 	}
 	return count, nil
+}
+
+func (s *service) UpsertBySysname(ctx context.Context, entity *Property, langID uint) (err error) {
+	found, err := s.repository.First(ctx, &Property{
+		Sysname: entity.Sysname,
+	})
+
+	if err != nil {
+		if err != yaruserror.ErrNotFound {
+			return err
+		}
+		err = s.TCreate(ctx, entity, langID)
+	} else {
+		entity.ID = found.ID
+		entity.NameSourceID = found.NameSourceID
+		entity.DescriptionSourceID = found.DescriptionSourceID
+		entity.CreatedAt = found.CreatedAt
+		if found.SortOrder == 0 {
+			entity.SortOrder = found.SortOrder
+		}
+		err = s.TUpdate(ctx, entity, langID)
+	}
+
+	return err
 }
 
 func (s *service) Create(ctx context.Context, entity *Property) error {

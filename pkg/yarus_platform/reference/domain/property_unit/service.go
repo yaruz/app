@@ -70,14 +70,6 @@ func (s *service) NewEntity() *PropertyUnit {
 }
 
 func (s *service) DataInit(ctx context.Context, unitsConfig config.PropertyUnits) error {
-	count, err := s.Count(ctx, &selection_condition.SelectionCondition{})
-	if err != nil {
-		return err
-	}
-	if count > 0 {
-		return nil
-	}
-
 	langsSl, err := s.langFinder.GetCodesEmptyInterfaceSlice(ctx)
 	if err != nil {
 		return err
@@ -91,7 +83,7 @@ func (s *service) DataInit(ctx context.Context, unitsConfig config.PropertyUnits
 	for sysname, unitConfig := range unitsConfig {
 		unit := New()
 		unit.Sysname = sysname
-		if err := s.TCreate(ctx, unit, 1); err != nil {
+		if err := s.UpsertBySysname(ctx, unit, 1); err != nil {
 			return err
 		}
 
@@ -102,6 +94,10 @@ func (s *service) DataInit(ctx context.Context, unitsConfig config.PropertyUnits
 			langID, ok := langsIDsMap[lang]
 			if !ok {
 				return errors.Errorf("PropertyUnitInit error: not found lang = %q", lang)
+			}
+
+			if unit, err = s.TGet(ctx, unit.ID, langID); err != nil {
+				return err
 			}
 
 			name := texts.Name
@@ -253,6 +249,27 @@ func (s *service) Count(ctx context.Context, cond *selection_condition.Selection
 		return 0, errors.Wrapf(err, "Can not count a list of items by query: %v", cond)
 	}
 	return count, nil
+}
+
+func (s *service) UpsertBySysname(ctx context.Context, entity *PropertyUnit, langID uint) (err error) {
+	found, err := s.repository.First(ctx, &PropertyUnit{
+		Sysname: entity.Sysname,
+	})
+
+	if err != nil {
+		if err != yaruserror.ErrNotFound {
+			return err
+		}
+		err = s.TCreate(ctx, entity, langID)
+	} else {
+		entity.ID = found.ID
+		entity.NameSourceID = found.NameSourceID
+		entity.DescriptionSourceID = found.DescriptionSourceID
+		entity.CreatedAt = found.CreatedAt
+		err = s.TUpdate(ctx, entity, langID)
+	}
+
+	return err
 }
 
 func (s *service) Create(ctx context.Context, entity *PropertyUnit) error {

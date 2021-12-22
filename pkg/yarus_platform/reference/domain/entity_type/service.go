@@ -90,17 +90,6 @@ func (s *service) tInitPropertiesAndRelations(ctx context.Context, entity *Entit
 }
 
 func (s *service) DataInit(ctx context.Context, EntityTypesConfig config.EntityTypes) error {
-	count, err := s.Count(ctx, &selection_condition.SelectionCondition{})
-	if err != nil {
-		return err
-	}
-	if count > 0 {
-		return nil
-	}
-	propertiesCount, err := s.propertyService.Count(ctx, &selection_condition.SelectionCondition{})
-	if err != nil {
-		return err
-	}
 
 	langsSl, err := s.langFinder.GetCodesEmptyInterfaceSlice(ctx)
 	if err != nil {
@@ -115,7 +104,7 @@ func (s *service) DataInit(ctx context.Context, EntityTypesConfig config.EntityT
 	for sysname, entityTypeConfig := range EntityTypesConfig {
 		entityType := New()
 		entityType.Sysname = sysname
-		if err := s.TCreate(ctx, entityType, 1); err != nil {
+		if err := s.UpsertBySysname(ctx, entityType, 1); err != nil {
 			return err
 		}
 
@@ -128,6 +117,10 @@ func (s *service) DataInit(ctx context.Context, EntityTypesConfig config.EntityT
 				return errors.Errorf("EntityTypeInit error: not found lang = %q", lang)
 			}
 
+			if entityType, err = s.TGet(ctx, entityType.ID, langID); err != nil {
+				return err
+			}
+
 			name := texts.Name
 			description := texts.Description
 			entityType.Name = &name
@@ -136,16 +129,14 @@ func (s *service) DataInit(ctx context.Context, EntityTypesConfig config.EntityT
 				return err
 			}
 		}
-		if propertiesCount == 0 {
-			propertyIDs, err := s.propertyService.PropertyInit(ctx, entityTypeConfig.Properties, entityType.Sysname)
-			if err != nil {
-				return err
-			}
+		propertyIDs, err := s.propertyService.PropertyInit(ctx, entityTypeConfig.Properties, entityType.Sysname)
+		if err != nil {
+			return err
+		}
 
-			for _, propertyId := range propertyIDs {
-				if err := s.BindProperty(ctx, entityType.ID, propertyId); err != nil {
-					return err
-				}
+		for _, propertyId := range propertyIDs {
+			if err := s.BindPropertyIfNotBinded(ctx, entityType.ID, propertyId); err != nil {
+				return err
 			}
 		}
 	}
@@ -311,6 +302,27 @@ func (s *service) Count(ctx context.Context, cond *selection_condition.Selection
 	return count, nil
 }
 
+func (s *service) UpsertBySysname(ctx context.Context, entity *EntityType, langID uint) (err error) {
+	found, err := s.repository.First(ctx, &EntityType{
+		Sysname: entity.Sysname,
+	})
+
+	if err != nil {
+		if err != yaruserror.ErrNotFound {
+			return err
+		}
+		err = s.TCreate(ctx, entity, langID)
+	} else {
+		entity.ID = found.ID
+		entity.NameSourceID = found.NameSourceID
+		entity.DescriptionSourceID = found.DescriptionSourceID
+		entity.CreatedAt = found.CreatedAt
+		err = s.TUpdate(ctx, entity, langID)
+	}
+
+	return err
+}
+
 func (s *service) Create(ctx context.Context, entity *EntityType) error {
 	err := entity.Validate()
 	if err != nil {
@@ -373,6 +385,14 @@ func (s *service) Delete(ctx context.Context, entity *EntityType) error {
 
 func (s *service) BindProperty(ctx context.Context, id uint, propertyID uint) error {
 	err := s.repository.BindProperty(ctx, id, propertyID)
+	if err != nil {
+		return errors.Wrapf(err, "Can not for an entity ID = %v bind an property ID = %v", id, propertyID)
+	}
+	return nil
+}
+
+func (s *service) BindPropertyIfNotBinded(ctx context.Context, id uint, propertyID uint) error {
+	err := s.repository.BindPropertyIfNotBinded(ctx, id, propertyID)
 	if err != nil {
 		return errors.Wrapf(err, "Can not for an entity ID = %v bind an property ID = %v", id, propertyID)
 	}

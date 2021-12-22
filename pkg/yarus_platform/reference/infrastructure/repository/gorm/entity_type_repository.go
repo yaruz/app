@@ -256,6 +256,24 @@ func (r *EntityTypeRepository) BindProperty(ctx context.Context, id uint, proper
 	})
 }
 
+func (r *EntityTypeRepository) BindPropertyIfNotBinded(ctx context.Context, id uint, propertyID uint) error {
+	_, err := r.entityType2PropertyRepository.First(ctx, &entity_type2property.EntityType2Property{
+		EntityTypeID: id,
+		PropertyID:   propertyID,
+	})
+
+	if err != nil {
+		if !errors.Is(err, yaruserror.ErrNotFound) {
+			return err
+		}
+		return r.entityType2PropertyRepository.Create(ctx, &entity_type2property.EntityType2Property{
+			EntityTypeID: id,
+			PropertyID:   propertyID,
+		})
+	}
+	return nil
+}
+
 func (r *EntityTypeRepository) UnbindProperty(ctx context.Context, id uint, propertyID uint) error {
 	return r.entityType2PropertyRepository.Delete(ctx, &entity_type2property.EntityType2Property{
 		EntityTypeID: id,

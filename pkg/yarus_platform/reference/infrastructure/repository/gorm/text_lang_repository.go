@@ -110,6 +110,7 @@ func (r *TextLangRepository) Save(ctx context.Context, entity *text_lang.TextLan
 
 func (r *TextLangRepository) Upsert(ctx context.Context, entity *text_lang.TextLang) error {
 	return r.db.DB().Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "code"}},
 		UpdateAll: true,
 	}).Create(entity).Error
 }

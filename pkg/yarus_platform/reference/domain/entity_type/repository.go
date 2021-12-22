@@ -25,6 +25,7 @@ type Repository interface {
 	TCreate(ctx context.Context, entity *EntityType, langID uint) (err error)
 	TUpdate(ctx context.Context, entity *EntityType, langID uint) (err error)
 	BindProperty(ctx context.Context, id uint, propertyID uint) error
+	BindPropertyIfNotBinded(ctx context.Context, id uint, propertyID uint) error
 	UnbindProperty(ctx context.Context, id uint, propertyID uint) error
 	UnbindAllProperty(ctx context.Context, id uint) error
 }
