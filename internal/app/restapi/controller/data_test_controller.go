@@ -78,6 +78,7 @@ func RegisterDataTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platfor
 	r.Get("/entity-relation", c.entityRelation)
 	r.Get("/user", c.userInst)
 	r.Get("/user-search", c.userSearch)
+	r.Get("/sharding", c.sharding)
 	//r.Get("/entity-properties-search", c.entityPropertiesSearch)
 }
 
@@ -918,4 +919,7 @@ func (c dataTestController) entityTypesInit(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (c dataTestController) sharding(ctx *routing.Context) error {
 }

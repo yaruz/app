@@ -20,7 +20,7 @@ db:
   datasharding:
     isautomigrate:  True
     default:
-      capacity:  10
+      capacity:  3
       items:
         - dialect:        "postgres"
           dsn:            "host=db_data1 port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
@@ -36,10 +36,11 @@ db:
             loglevel:     4
 
     bytypes:
-      posts:
-        capacity:  20
+      AdvertisingCampaigns:
+        capacity:  5
         entitytypes:
-          - post
+          - AdvertisingCampaign
+          - Offer
         items:
           - dialect:        "postgres"
             dsn:            "host=db_data_p1 port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"

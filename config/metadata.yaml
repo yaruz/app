@@ -38,7 +38,7 @@ propertyunits:
       description: "килограмм"
 
 entitytypes:
-  user:
+  User:
     texts:
       eng:
         name: "user"
@@ -47,42 +47,55 @@ entitytypes:
         name: "пользователь"
         description: "пользователь"
     properties:
-      name:
+      Email:
         propertytype: "text"
         texts:
           eng:
-            name: "name"
-            description: "name"
+            name: "email"
           rus:
-            name: "имя"
-            description: "имя"
-      age:
+            name: "email"
+      Phone:
         propertytype: "int"
-        propertyunit: "year"
         texts:
           eng:
-            name: "age"
-            description: "age"
+            name: "phone"
           rus:
-            name: "возраст"
-            description: "возраст"
-      height:
-        propertytype: "float"
-        propertyunit: "mm"
-        texts:
-          eng:
-            name: "height"
-            description: "height"
-          rus:
-            name: "рост"
-            description: "рост"
-      weight:
-        propertytype: "float"
-        propertyunit: "kg"
-        texts:
-          eng:
-            name: "weight"
-            description: "weight"
-          rus:
-            name: "масса"
-            description: "масса"
+            name: "телефон"
+  Advertiser:
+    Name:
+      propertytype: "text"
+      texts:
+        eng:
+          name: "name"
+        rus:
+          name: "имя"
+  AdvertisingCampaign:
+    Name:
+      propertytype: "text"
+      texts:
+        eng:
+          name: "name"
+        rus:
+          name: "имя"
+  Offer:
+    CreatedAt:
+      propertytype: "time"
+      texts:
+        eng:
+          name: "date of creation"
+        rus:
+          name: "дата создания"
+    StartedAt:
+      propertytype: "time"
+      texts:
+        eng:
+          name: "date of start"
+        rus:
+          name: "дата начала"
+    FinishedAt:
+      propertytype: "time"
+      texts:
+        eng:
+          name: "date of finish"
+        rus:
+          name: "дата завершения"
