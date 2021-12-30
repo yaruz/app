@@ -52,7 +52,7 @@ func (s *service) NewEntity() *Task {
 func (s *service) Get(ctx context.Context, id uint) (*Task, error) {
 	entity, err := s.repository.Get(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "Can not get a %v by id: %v", EntityType, id)
 	}
 	return entity, nil
 }

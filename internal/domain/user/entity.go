@@ -7,23 +7,16 @@ import (
 )
 
 const (
-	EntityType            = "user"
-	PropertySysnameName   = "user.name"
-	PropertySysnameAge    = "user.age"
-	PropertySysnameHeight = "user.height"
-	PropertySysnameWeight = "user.weight"
+	EntityType           = "User"
+	PropertySysnameEmail = "User.Email"
+	PropertySysnamePhone = "User.Phone"
 )
 
 // User is the user entity
 type User struct {
 	*entity.Entity
-	Name   string
-	Age    uint
-	Height float64
-	Weight float64
-	//CreatedAt time.Time
-	//UpdatedAt time.Time
-	//DeletedAt *time.Time
+	Email string
+	Phone uint
 }
 
 var _ entity.Searchable = (*User)(nil)
@@ -38,29 +31,27 @@ func (e User) Validate() error {
 
 func (e *User) GetMapNameSysname() map[string]string {
 	return map[string]string{
-		"Name":   PropertySysnameName,
-		"Age":    PropertySysnameAge,
-		"Height": PropertySysnameHeight,
-		"Weight": PropertySysnameWeight,
+		"Email": PropertySysnameEmail,
+		"Phone": PropertySysnamePhone,
 	}
 }
 
-func (e *User) SetName(ctx context.Context, value string, langID uint) error {
-	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameName, langID)
+func (e *User) SetEmail(ctx context.Context, value string) error {
+	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameEmail, 1)
 	if err != nil {
 		return err
 	}
 
-	if err = e.Entity.SetValueForProperty(prop, value, langID); err != nil {
+	if err = e.Entity.SetValueForProperty(prop, value, 1); err != nil {
 		return err
 	}
 
-	e.Name = value
+	e.Email = value
 	return nil
 }
 
-func (e *User) SetAge(ctx context.Context, value uint) error {
-	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameAge, 0)
+func (e *User) SetPhone(ctx context.Context, value uint) error {
+	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnamePhone, 0)
 	if err != nil {
 		return err
 	}
@@ -69,34 +60,6 @@ func (e *User) SetAge(ctx context.Context, value uint) error {
 		return err
 	}
 
-	e.Age = value
-	return nil
-}
-
-func (e *User) SetHeight(ctx context.Context, value float64) error {
-	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameHeight, 0)
-	if err != nil {
-		return err
-	}
-
-	if err = e.Entity.SetValueForProperty(prop, value, 0); err != nil {
-		return err
-	}
-
-	e.Height = value
-	return nil
-}
-
-func (e *User) SetWeight(ctx context.Context, value float64) error {
-	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameWeight, 0)
-	if err != nil {
-		return err
-	}
-
-	if err = e.Entity.SetValueForProperty(prop, value, 0); err != nil {
-		return err
-	}
-
-	e.Weight = value
+	e.Phone = value
 	return nil
 }

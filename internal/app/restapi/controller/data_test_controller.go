@@ -921,5 +921,28 @@ func (c dataTestController) entityTypesInit(ctx context.Context) error {
 	return nil
 }
 
-func (c dataTestController) sharding(ctx *routing.Context) error {
+func (c dataTestController) sharding(cntx *routing.Context) error {
+	ctx := cntx.Request.Context()
+
+	struc, err := c.user.New(ctx)
+	if err != nil {
+		errors.Wrapf(err, "Can not get a new user instant.")
+	}
+
+	cond, err := ozzo_routing.ParseQueryParams(cntx, struc)
+	if err != nil {
+		errors.Wrapf(apperror.ErrBadRequest, err.Error())
+	}
+
+	res := make([]map[string]interface{}, 0, 10)
+	res = append(res, map[string]interface{}{"test": "entity"})
+
+	var langRusID uint
+	//var langEngID uint
+
+	if langRusID, err = c.yaruzPlatform.ReferenceSubsystem().TextLang.GetIDByCode(ctx, config.LangRus); err != nil {
+		res = append(res, map[string]interface{}{"TextLang.GetIDByCode(rus): ": err.Error()})
+	}
+
+	return cntx.Write(res)
 }

@@ -39,7 +39,7 @@ func (r *UserRepository) instantiate(ctx context.Context, entity *entity.Entity)
 		Entity: entity,
 	}
 
-	namePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnameName)
+	namePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnameEmail)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (r *UserRepository) instantiate(ctx context.Context, entity *entity.Entity)
 		}
 	}
 
-	agePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnameAge)
+	agePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnamePhone)
 	if err != nil {
 		return nil, err
 	}

@@ -1,4 +1,4 @@
-package user
+package advertising_campaign
 
 import (
 	"context"
@@ -11,13 +11,13 @@ import (
 
 // IService encapsulates usecase logic for user.
 type IService interface {
-	New(ctx context.Context) (*User, error)
-	Get(ctx context.Context, id uint, langID uint) (*User, error)
-	Query(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) ([]User, error)
-	First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*User, error)
+	New(ctx context.Context) (*AdvertisingCampaign, error)
+	Get(ctx context.Context, id uint, langID uint) (*AdvertisingCampaign, error)
+	Query(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) ([]AdvertisingCampaign, error)
+	First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*AdvertisingCampaign, error)
 	Count(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (uint, error)
-	Create(ctx context.Context, obj *User, langID uint) error
-	Update(ctx context.Context, obj *User, langID uint) error
+	Create(ctx context.Context, obj *AdvertisingCampaign, langID uint) error
+	Update(ctx context.Context, obj *AdvertisingCampaign, langID uint) error
 	Delete(ctx context.Context, id uint) error
 }
 
@@ -44,12 +44,12 @@ func (s service) defaultConditions() *selection_condition.SelectionCondition {
 	return &selection_condition.SelectionCondition{}
 }
 
-func (s *service) New(ctx context.Context) (*User, error) {
+func (s *service) New(ctx context.Context) (*AdvertisingCampaign, error) {
 	return s.repository.New(ctx)
 }
 
 // Get returns the entity with the specified ID.
-func (s *service) Get(ctx context.Context, id uint, langID uint) (*User, error) {
+func (s *service) Get(ctx context.Context, id uint, langID uint) (*AdvertisingCampaign, error) {
 	entity, err := s.repository.Get(ctx, id, langID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Can not get a %v by id: %v", EntityType, id)
@@ -58,11 +58,11 @@ func (s *service) Get(ctx context.Context, id uint, langID uint) (*User, error) 
 }
 
 // Query returns the items with the specified offset and limit.
-func (s *service) Query(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) ([]User, error) {
+func (s *service) Query(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) ([]AdvertisingCampaign, error) {
 	return s.repository.Query(ctx, condition, langID)
 }
 
-func (s *service) First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*User, error) {
+func (s *service) First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*AdvertisingCampaign, error) {
 	return s.repository.First(ctx, condition, langID)
 }
 
@@ -71,11 +71,11 @@ func (s *service) Count(ctx context.Context, condition *selection_condition.Sele
 	return s.repository.Count(ctx, condition, langID)
 }
 
-func (s *service) Create(ctx context.Context, obj *User, langID uint) error {
+func (s *service) Create(ctx context.Context, obj *AdvertisingCampaign, langID uint) error {
 	return s.repository.Create(ctx, obj, langID)
 }
 
-func (s *service) Update(ctx context.Context, obj *User, langID uint) error {
+func (s *service) Update(ctx context.Context, obj *AdvertisingCampaign, langID uint) error {
 	return s.repository.Update(ctx, obj, langID)
 }
 
