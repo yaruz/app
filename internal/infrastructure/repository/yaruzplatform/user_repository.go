@@ -26,11 +26,13 @@ func NewUserRepository(repository *repository) (*UserRepository, error) {
 }
 
 func (r *UserRepository) New(ctx context.Context) (*user.User, error) {
-	entityTypeID, err := r.yaruzRepository.ReferenceSubsystem().EntityType.GetIDBySysname(ctx, user.EntityType)
+	entity, err := r.repository.NewEntityByEntityType(ctx, user.EntityType)
 	if err != nil {
 		return nil, err
 	}
-	return r.repository.NewByEntityTypeID(ctx, entityTypeID)
+	return &user.User{
+		Entity: entity,
+	}, nil
 }
 
 func (r *UserRepository) instantiate(ctx context.Context, entity *entity.Entity) (*user.User, error) {

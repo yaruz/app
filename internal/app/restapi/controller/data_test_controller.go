@@ -5,23 +5,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/minipkg/ozzo_routing"
-	"github.com/pkg/errors"
-	"github.com/yaruz/app/internal/pkg/apperror"
+	"github.com/yaruz/app/internal/domain/offer"
 
-	"github.com/yaruz/app/internal/pkg/config"
+	"github.com/yaruz/app/internal/domain/advertiser"
+	"github.com/yaruz/app/internal/domain/advertising_campaign"
 
 	"github.com/yaruz/app/internal/domain/user"
-
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
-
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
-
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
-
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
-
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_unit"
+	"github.com/yaruz/app/internal/pkg/config"
 
 	routing "github.com/go-ozzo/ozzo-routing/v2"
 	"github.com/minipkg/log"
@@ -29,9 +19,12 @@ import (
 )
 
 type dataTestController struct {
-	Logger        log.ILogger
-	user          user.IService
-	yaruzPlatform yarus_platform.IPlatform
+	Logger              log.ILogger
+	user                user.IService
+	advertiser          advertiser.IService
+	advertisingCampaign advertising_campaign.IService
+	offer               offer.IService
+	yaruzPlatform       yarus_platform.IPlatform
 }
 
 var langEngID = uint(1)
@@ -64,20 +57,23 @@ var entityTypeID uint
 // RegisterHandlers sets up the routing of the HTTP handlers.
 //	GET /api/models/ - список всех моделей
 //	GET /api/model/{ID} - детали модели
-func RegisterDataTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platform.IPlatform, user user.IService, logger log.ILogger, authHandler routing.Handler) {
+func RegisterDataTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platform.IPlatform, user user.IService, advertiser advertiser.IService, advertisingCampaign advertising_campaign.IService, offer offer.IService, logger log.ILogger, authHandler routing.Handler) {
 	c := dataTestController{
-		Logger:        logger,
-		yaruzPlatform: yaruzPlatform,
-		user:          user,
+		Logger:              logger,
+		yaruzPlatform:       yaruzPlatform,
+		user:                user,
+		advertiser:          advertiser,
+		advertisingCampaign: advertisingCampaign,
+		offer:               offer,
 	}
 	ctx := context.Background()
 	c.init(ctx)
 
-	r.Get("/entity", c.entity)
-	r.Get("/entity-text", c.entityText)
-	r.Get("/entity-relation", c.entityRelation)
-	r.Get("/user", c.userInst)
-	r.Get("/user-search", c.userSearch)
+	//r.Get("/entity", c.entity)
+	//r.Get("/entity-text", c.entityText)
+	//r.Get("/entity-relation", c.entityRelation)
+	//r.Get("/user", c.userInst)
+	//r.Get("/user-search", c.userSearch)
 	r.Get("/sharding", c.sharding)
 	//r.Get("/entity-properties-search", c.entityPropertiesSearch)
 }
@@ -91,6 +87,7 @@ func (c dataTestController) init(ctx context.Context) (err error) {
 	return nil
 }
 
+/*
 func (c dataTestController) entity(ctx *routing.Context) error {
 	res := make([]map[string]interface{}, 0, 10)
 	res = append(res, map[string]interface{}{"test": "entity"})
@@ -919,23 +916,18 @@ func (c dataTestController) entityTypesInit(ctx context.Context) error {
 	}
 
 	return nil
-}
+}*/
 
-func (c dataTestController) sharding(cntx *routing.Context) error {
+func (c dataTestController) sharding(cntx *routing.Context) (err error) {
 	ctx := cntx.Request.Context()
 
-	struc, err := c.user.New(ctx)
-	if err != nil {
-		errors.Wrapf(err, "Can not get a new user instant.")
-	}
-
-	cond, err := ozzo_routing.ParseQueryParams(cntx, struc)
-	if err != nil {
-		errors.Wrapf(apperror.ErrBadRequest, err.Error())
-	}
+	//cond, err := ozzo_routing.ParseQueryParams(cntx, struc)
+	//if err != nil {
+	//	errors.Wrapf(apperror.ErrBadRequest, err.Error())
+	//}
 
 	res := make([]map[string]interface{}, 0, 10)
-	res = append(res, map[string]interface{}{"test": "entity"})
+	res = append(res, map[string]interface{}{"test": "sharding"})
 
 	var langRusID uint
 	//var langEngID uint
@@ -944,5 +936,271 @@ func (c dataTestController) sharding(cntx *routing.Context) error {
 		res = append(res, map[string]interface{}{"TextLang.GetIDByCode(rus): ": err.Error()})
 	}
 
+	users, advertisers, advertisingCompains, offers, err := c.dataCreate(ctx, langRusID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"dataCreate err": err.Error()})
+	}
+
+	if err = c.dataUpdate(ctx, users, advertisers, advertisingCompains, offers, langRusID); err != nil {
+		res = append(res, map[string]interface{}{"dataUpdate err": err.Error()})
+	}
+
+	resG, err := c.dataGet(ctx, users, advertisers, advertisingCompains, offers, langRusID)
+	if err != nil {
+		res = append(res, map[string]interface{}{"dataUpdate err": err.Error()})
+	}
+	res = append(res, resG...)
+
+	if err = c.dataDelete(ctx, users, advertisers, advertisingCompains, offers, langRusID); err != nil {
+		res = append(res, map[string]interface{}{"dataUpdate err": err.Error()})
+	}
+	res = append(res, map[string]interface{}{"test": "all done!"})
+
 	return cntx.Write(res)
+}
+
+func (c dataTestController) dataCreate(ctx context.Context, langId uint) ([]user.User, []advertiser.Advertiser, []advertising_campaign.AdvertisingCampaign, []offer.Offer, error) {
+
+	users := []user.User{
+		{
+			Email: "mail1@mail.ru",
+			Phone: 79998886655,
+		},
+		{
+			Email: "mail2@mail.ru",
+			Phone: 79998886644,
+		},
+		{
+			Email: "mail3@mail.ru",
+			Phone: 79998885544,
+		},
+		{
+			Email: "mail4@mail.ru",
+			Phone: 79998885533,
+		},
+		{
+			Email: "mail5@mail.ru",
+			Phone: 79998884433,
+		},
+	}
+
+	advertisers := []advertiser.Advertiser{
+		{
+			Name: "Рекламодатель1",
+		},
+		{
+			Name: "Рекламодатель2",
+		},
+		{
+			Name: "Рекламодатель3",
+		},
+		{
+			Name: "Рекламодатель4",
+		},
+	}
+
+	compaings := []advertising_campaign.AdvertisingCampaign{
+		{
+			Name: "Рекламная компания 1",
+		},
+		{
+			Name: "Рекламная компания 2",
+		},
+		{
+			Name: "Рекламная компания 3",
+		},
+		{
+			Name: "Рекламная компания 4",
+		},
+		{
+			Name: "Рекламная компания 5",
+		},
+	}
+
+	offers := []offer.Offer{
+		{
+			CreatedAt:  time.Now(),
+			StartedAt:  time.Now().AddDate(0, 0, 1),
+			FinishedAt: time.Now().AddDate(0, 1, 1),
+		},
+		{
+			CreatedAt:  time.Now(),
+			StartedAt:  time.Now().AddDate(0, 0, 2),
+			FinishedAt: time.Now().AddDate(0, 1, 2),
+		},
+		{
+			CreatedAt:  time.Now(),
+			StartedAt:  time.Now().AddDate(0, 0, 3),
+			FinishedAt: time.Now().AddDate(0, 1, 3),
+		},
+		{
+			CreatedAt:  time.Now(),
+			StartedAt:  time.Now().AddDate(0, 0, 4),
+			FinishedAt: time.Now().AddDate(0, 1, 4),
+		},
+		{
+			CreatedAt:  time.Now(),
+			StartedAt:  time.Now().AddDate(0, 0, 5),
+			FinishedAt: time.Now().AddDate(0, 1, 5),
+		},
+		{
+			CreatedAt:  time.Now(),
+			StartedAt:  time.Now().AddDate(0, 0, 6),
+			FinishedAt: time.Now().AddDate(0, 1, 6),
+		},
+		{
+			CreatedAt:  time.Now(),
+			StartedAt:  time.Now().AddDate(0, 0, 7),
+			FinishedAt: time.Now().AddDate(0, 1, 7),
+		},
+		{
+			CreatedAt:  time.Now(),
+			StartedAt:  time.Now().AddDate(0, 0, 8),
+			FinishedAt: time.Now().AddDate(0, 1, 8),
+		},
+		{
+			CreatedAt:  time.Now(),
+			StartedAt:  time.Now().AddDate(0, 0, 9),
+			FinishedAt: time.Now().AddDate(0, 1, 9),
+		},
+		{
+			CreatedAt:  time.Now(),
+			StartedAt:  time.Now().AddDate(0, 0, 10),
+			FinishedAt: time.Now().AddDate(0, 1, 10),
+		},
+	}
+
+	for i := range users {
+		if err := c.user.Create(ctx, &users[i], langId); err != nil {
+			return nil, nil, nil, nil, err
+		}
+	}
+
+	for i := range advertisers {
+		if err := c.advertiser.Create(ctx, &advertisers[i], langId); err != nil {
+			return nil, nil, nil, nil, err
+		}
+	}
+
+	for i := range compaings {
+		if err := c.advertisingCampaign.Create(ctx, &compaings[i], langId); err != nil {
+			return nil, nil, nil, nil, err
+		}
+	}
+
+	for i := range offers {
+		if err := c.offer.Create(ctx, &offers[i], langId); err != nil {
+			return nil, nil, nil, nil, err
+		}
+	}
+
+	return users, advertisers, compaings, offers, nil
+}
+
+func (c dataTestController) dataUpdate(ctx context.Context, users []user.User, advertisers []advertiser.Advertiser, compaings []advertising_campaign.AdvertisingCampaign, offers []offer.Offer, langId uint) error {
+
+	for i := range users {
+		users[i].Email = "u_" + users[i].Email
+
+		if err := c.user.Update(ctx, &users[i], langId); err != nil {
+			return err
+		}
+	}
+
+	for i := range advertisers {
+		advertisers[i].Name = "u_" + users[i].Email
+
+		if err := c.advertiser.Create(ctx, &advertisers[i], langId); err != nil {
+			return err
+		}
+	}
+
+	for i := range compaings {
+		compaings[i].Name = "u_" + users[i].Email
+
+		if err := c.advertisingCampaign.Create(ctx, &compaings[i], langId); err != nil {
+			return err
+		}
+	}
+
+	for i := range offers {
+		offers[i].FinishedAt = offers[i].FinishedAt.AddDate(0, 1, 0)
+
+		if err := c.offer.Create(ctx, &offers[i], langId); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c dataTestController) dataGet(ctx context.Context, users []user.User, advertisers []advertiser.Advertiser, compaings []advertising_campaign.AdvertisingCampaign, offers []offer.Offer, langId uint) ([]map[string]interface{}, error) {
+	res := make([]map[string]interface{}, 0, 10)
+
+	for i := range users {
+		user, err := c.user.Get(ctx, users[i].ID, langId)
+		if err != nil {
+			return res, err
+		}
+
+		res = append(res, map[string]interface{}{"user #" + strconv.Itoa(int(users[i].ID)): user})
+	}
+
+	for i := range advertisers {
+		advertiser, err := c.advertiser.Get(ctx, advertisers[i].ID, langId)
+		if err != nil {
+			return res, err
+		}
+
+		res = append(res, map[string]interface{}{"advertiser #" + strconv.Itoa(int(advertisers[i].ID)): advertiser})
+	}
+
+	for i := range compaings {
+		compaing, err := c.advertisingCampaign.Get(ctx, compaings[i].ID, langId)
+		if err != nil {
+			return res, err
+		}
+
+		res = append(res, map[string]interface{}{"compaing #" + strconv.Itoa(int(compaings[i].ID)): compaing})
+	}
+
+	for i := range offers {
+		offer, err := c.offer.Get(ctx, offers[i].ID, langId)
+		if err != nil {
+			return res, err
+		}
+
+		res = append(res, map[string]interface{}{"offer #" + strconv.Itoa(int(offers[i].ID)): offer})
+	}
+
+	return res, nil
+}
+
+func (c dataTestController) dataDelete(ctx context.Context, users []user.User, advertisers []advertiser.Advertiser, compaings []advertising_campaign.AdvertisingCampaign, offers []offer.Offer, langId uint) error {
+
+	for i := range users {
+		if err := c.user.Delete(ctx, users[i].ID); err != nil {
+			return err
+		}
+	}
+
+	for i := range advertisers {
+		if err := c.advertiser.Delete(ctx, advertisers[i].ID); err != nil {
+			return err
+		}
+	}
+
+	for i := range compaings {
+		if err := c.advertisingCampaign.Delete(ctx, compaings[i].ID); err != nil {
+			return err
+		}
+	}
+
+	for i := range offers {
+		if err := c.offer.Delete(ctx, offers[i].ID); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

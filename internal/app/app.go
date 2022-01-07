@@ -4,6 +4,10 @@ import (
 	"context"
 	golog "log"
 
+	"github.com/yaruz/app/internal/domain/advertiser"
+	"github.com/yaruz/app/internal/domain/advertising_campaign"
+	"github.com/yaruz/app/internal/domain/offer"
+
 	"github.com/yaruz/app/internal/infrastructure/repository/yaruzplatform"
 
 	"github.com/yaruz/app/pkg/yarus_platform"
@@ -17,7 +21,6 @@ import (
 	"github.com/yaruz/app/internal/pkg/apperror"
 	"github.com/yaruz/app/internal/pkg/config"
 
-	"github.com/yaruz/app/internal/domain/task"
 	"github.com/yaruz/app/internal/domain/user"
 )
 
@@ -45,19 +48,14 @@ type Auth struct {
 
 // Domain is a Domain Layer Entry Point
 type Domain struct {
-	User DomainUser
-	//	Example
-	Task DomainTask
-}
-
-type DomainUser struct {
-	Repository user.Repository
-	Service    user.IService
-}
-
-type DomainTask struct {
-	Repository task.Repository
-	Service    task.IService
+	User                          user.IService
+	userRepository                user.Repository
+	Advertiser                    advertiser.IService
+	advertiserRepository          advertiser.Repository
+	AdvertisingCampaign           advertising_campaign.IService
+	advertisingCampaignRepository advertising_campaign.Repository
+	Offer                         offer.IService
+	offerRepository               offer.Repository
 }
 
 // New func is a constructor for the App
@@ -124,19 +122,39 @@ func (app *App) SetupRepositories() (err error) {
 		golog.Fatalf("Can not get yaruz repository for entity %q, error happened: %v", user.EntityType, err)
 	}
 
-	app.Domain.User.Repository, ok = userRepo.(user.Repository)
+	app.Domain.userRepository, ok = userRepo.(user.Repository)
 	if !ok {
 		return errors.Errorf("Can not cast yaruz repository for entity %q to %vRepository. Repo: %v", user.EntityType, user.EntityType, userRepo)
 	}
-	//	Example
-	taskRepo, err := yaruzplatform.GetRepository(app.Infra.Logger, app.Infra.YaruzRepository, task.EntityType)
+
+	advertiserRepo, err := yaruzplatform.GetRepository(app.Infra.Logger, app.Infra.YaruzRepository, advertiser.EntityType)
 	if err != nil {
-		golog.Fatalf("Can not get yaruz repository for entity %q, error happened: %v", task.EntityType, err)
+		golog.Fatalf("Can not get yaruz repository for entity %q, error happened: %v", advertiser.EntityType, err)
 	}
 
-	app.Domain.Task.Repository, ok = taskRepo.(task.Repository)
+	app.Domain.advertiserRepository, ok = advertiserRepo.(advertiser.Repository)
 	if !ok {
-		return errors.Errorf("Can not cast yaruz repository for entity %q to %vRepository. Repo: %v", task.EntityType, task.EntityType, userRepo)
+		return errors.Errorf("Can not cast yaruz repository for entity %q to %vRepository. Repo: %v", advertiser.EntityType, advertiser.EntityType, advertiserRepo)
+	}
+
+	advertisingCampaignRepo, err := yaruzplatform.GetRepository(app.Infra.Logger, app.Infra.YaruzRepository, advertising_campaign.EntityType)
+	if err != nil {
+		golog.Fatalf("Can not get yaruz repository for entity %q, error happened: %v", advertising_campaign.EntityType, err)
+	}
+
+	app.Domain.advertisingCampaignRepository, ok = advertisingCampaignRepo.(advertising_campaign.Repository)
+	if !ok {
+		return errors.Errorf("Can not cast yaruz repository for entity %q to %vRepository. Repo: %v", advertising_campaign.EntityType, advertising_campaign.EntityType, advertisingCampaignRepo)
+	}
+
+	offerRepo, err := yaruzplatform.GetRepository(app.Infra.Logger, app.Infra.YaruzRepository, offer.EntityType)
+	if err != nil {
+		golog.Fatalf("Can not get yaruz repository for entity %q, error happened: %v", offer.EntityType, err)
+	}
+
+	app.Domain.offerRepository, ok = offerRepo.(offer.Repository)
+	if !ok {
+		return errors.Errorf("Can not cast yaruz repository for entity %q to %vRepository. Repo: %v", offer.EntityType, offer.EntityType, offerRepo)
 	}
 
 	//if app.Auth.SessionRepository, err = redisrep.NewSessionRepository(app.Infra.Redis, app.Cfg.SessionLifeTime, app.Domain.User.Repository); err != nil {
@@ -150,10 +168,11 @@ func (app *App) SetupRepositories() (err error) {
 }
 
 func (app *App) SetupServices() {
-	app.Domain.User.Service = user.NewService(app.Infra.Logger, app.Domain.User.Repository)
+	app.Domain.User = user.NewService(app.Infra.Logger, app.Domain.userRepository)
+	app.Domain.Advertiser = advertiser.NewService(app.Infra.Logger, app.Domain.advertiserRepository)
+	app.Domain.AdvertisingCampaign = advertising_campaign.NewService(app.Infra.Logger, app.Domain.advertisingCampaignRepository)
+	app.Domain.Offer = offer.NewService(app.Infra.Logger, app.Domain.offerRepository)
 	//app.Auth.Service = auth.NewService(app.Cfg.JWTSigningKey, app.Cfg.JWTExpiration, app.Domain.User.Service, app.Infra.Logger, app.Auth.SessionRepository, app.Auth.TokenRepository)
-	//	Example
-	app.Domain.Task.Service = task.NewService(app.Infra.Logger, app.Domain.Task.Repository)
 }
 
 // Run is func to run the App

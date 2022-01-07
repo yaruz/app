@@ -53,12 +53,15 @@ func (r *repository) GetPropertyFinder() entity.PropertyFinder {
 	return r.yaruzRepository.ReferenceSubsystem().Property
 }
 
-func (r *repository) NewByEntityTypeID(ctx context.Context, entityTypeID uint) (*user.User, error) {
+func (r *repository) NewEntityByEntityType(ctx context.Context, entityType string) (*entity.Entity, error) {
+	entityTypeID, err := r.yaruzRepository.ReferenceSubsystem().EntityType.GetIDBySysname(ctx, entityType)
+	if err != nil {
+		return nil, err
+	}
+
 	entity := entity.New()
 	entity.EntityTypeID = entityTypeID
 	entity.PropertyFinder = r.GetPropertyFinder()
 
-	return &user.User{
-		Entity: entity,
-	}, nil
+	return entity, nil
 }
