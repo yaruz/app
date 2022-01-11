@@ -38,51 +38,39 @@ func (r *OfferRepository) New(ctx context.Context) (*offer.Offer, error) {
 func (r *OfferRepository) instantiate(ctx context.Context, entity *entity.Entity) (*offer.Offer, error) {
 	entity.PropertyFinder = r.GetPropertyFinder()
 	obj := &offer.Offer{
+		ID:     entity.ID,
 		Entity: entity,
 	}
 
-	namePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, offer.PropertySysnameEmail)
+	сreatedAtPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, offer.PropertySysnameCreatedAt)
 	if err != nil {
 		return nil, err
 	}
-	nameVal, ok := obj.PropertiesValues[namePropID]
+	сreatedAtVal, ok := obj.PropertiesValues[сreatedAtPropID]
 	if ok {
-		if obj.Name, err = property.GetValueText(nameVal.Value); err != nil {
+		if obj.CreatedAt, err = property.GetValueTime(сreatedAtVal.Value); err != nil {
 			return nil, errors.Wrapf(err, "OfferRepository.instantiate error. ")
 		}
 	}
 
-	agePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, offer.PropertySysnamePhone)
+	startedAtPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, offer.PropertySysnameStartedAt)
 	if err != nil {
 		return nil, err
 	}
-	ageVal, ok := obj.PropertiesValues[agePropID]
+	startedAtVal, ok := obj.PropertiesValues[startedAtPropID]
 	if ok {
-		age, err := property.GetValueInt(ageVal.Value)
-		if err != nil {
-			return nil, errors.Wrapf(err, "OfferRepository.instantiate error. ")
-		}
-		obj.Age = uint(age)
-	}
-
-	heightPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, offer.PropertySysnameHeight)
-	if err != nil {
-		return nil, err
-	}
-	heightVal, ok := obj.PropertiesValues[heightPropID]
-	if ok {
-		if obj.Height, err = property.GetValueFloat(heightVal.Value); err != nil {
+		if obj.StartedAt, err = property.GetValueTime(startedAtVal.Value); err != nil {
 			return nil, errors.Wrapf(err, "OfferRepository.instantiate error. ")
 		}
 	}
 
-	weightPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, offer.PropertySysnameWeight)
+	finishedAtPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, offer.PropertySysnameFinishedAt)
 	if err != nil {
 		return nil, err
 	}
-	weightVal, ok := obj.PropertiesValues[weightPropID]
+	finishedAtVal, ok := obj.PropertiesValues[finishedAtPropID]
 	if ok {
-		if obj.Weight, err = property.GetValueFloat(weightVal.Value); err != nil {
+		if obj.CreatedAt, err = property.GetValueTime(finishedAtVal.Value); err != nil {
 			return nil, errors.Wrapf(err, "OfferRepository.instantiate error. ")
 		}
 	}

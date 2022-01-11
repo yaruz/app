@@ -99,9 +99,9 @@ func (s *service) PropertyInit(ctx context.Context, PropertiesConfig config.Prop
 		return nil, err
 	}
 
-	for sysname, propertyConfig := range PropertiesConfig {
+	for _, propertyConfig := range PropertiesConfig {
 		prop := New()
-		prop.Sysname = entityTypeSysname + "." + sysname
+		prop.Sysname = propertyConfig.Sysname
 
 		if propertyConfig.PropertyType != "" {
 			if prop.PropertyTypeID, err = s.propertyTypeService.GetIDBySysname(ctx, propertyConfig.PropertyType); err != nil {

@@ -15,6 +15,7 @@ const (
 // User is the user entity
 type User struct {
 	*entity.Entity
+	ID    uint
 	Email string
 	Phone uint
 }

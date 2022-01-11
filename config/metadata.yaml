@@ -8,94 +8,114 @@ languages:
      cfgname: "russian"
 
 propertyunits:
-  item:
-    eng:
-      name: "item"
-      description: "item"
-    rus:
-      name: "шт."
-      description: "штук"
-  mm:
-    eng:
-      name: "mm"
-      description: "millimeters"
-    rus:
-      name: "мм"
-      description: "миллиметры"
-  year:
-    eng:
-      name: "year"
-      description: "years"
-    rus:
-      name: "лет"
-      description: "лет"
-  kg:
-    eng:
-      name: "kg"
-      description: "kilogram"
-    rus:
-      name: "кг"
-      description: "килограмм"
+  - sysname: "item"
+    texts:
+      eng:
+        name: "item"
+        description: "item"
+      rus:
+        name: "шт."
+        description: "штук"
+  - sysname: "mm"
+    texts:
+      eng:
+        name: "mm"
+        description: "millimeters"
+      rus:
+        name: "мм"
+        description: "миллиметры"
+  - sysname: "year"
+    texts:
+      eng:
+        name: "year"
+        description: "year"
+      rus:
+        name: "лет"
+        description: "лет"
+  - sysname: "kg"
+    texts:
+      eng:
+        name: "kg"
+        description: "kilogram"
+      rus:
+        name: "кг"
+        description: "килограмм"
 
 entitytypes:
-  User:
+  - sysname: "User"
     texts:
       eng:
         name: "user"
-        description: "user"
       rus:
         name: "пользователь"
-        description: "пользователь"
     properties:
-      Email:
+      - sysname: "User.Email"
         propertytype: "text"
         texts:
           eng:
             name: "email"
           rus:
             name: "email"
-      Phone:
+      - sysname: "User.Phone"
         propertytype: "int"
         texts:
           eng:
             name: "phone"
           rus:
             name: "телефон"
-  Advertiser:
-    Name:
-      propertytype: "text"
-      texts:
-        eng:
-          name: "name"
-        rus:
-          name: "имя"
-  AdvertisingCampaign:
-    Name:
-      propertytype: "text"
-      texts:
-        eng:
-          name: "name"
-        rus:
-          name: "имя"
-  Offer:
-    CreatedAt:
-      propertytype: "time"
-      texts:
-        eng:
-          name: "date of creation"
-        rus:
-          name: "дата создания"
-    StartedAt:
-      propertytype: "time"
-      texts:
-        eng:
-          name: "date of start"
-        rus:
-          name: "дата начала"
-    FinishedAt:
-      propertytype: "time"
-      texts:
-        eng:
-          name: "date of finish"
-        rus:
-          name: "дата завершения"
+  - sysname: "Advertiser"
+    texts:
+      eng:
+        name: "advertiser"
+      rus:
+        name: "рекламодатель"
+    properties:
+      - sysname: "Advertiser.Name"
+        propertytype: "text"
+        texts:
+          eng:
+            name: "name"
+          rus:
+            name: "имя"
+  - sysname: "AdvertisingCampaign"
+    texts:
+      eng:
+        name: "advertising campaign"
+      rus:
+        name: "рекламная кампания"
+    properties:
+      - sysname: "AdvertisingCampaign.Name"
+        propertytype: "text"
+        texts:
+          eng:
+            name: "name"
+          rus:
+            name: "имя"
+  - sysname: "Offer"
+    texts:
+      eng:
+        name: "offer"
+      rus:
+        name: "предложение"
+    properties:
+      - sysname: "Offer.CreatedAt"
+        propertytype: "time"
+        texts:
+          eng:
+            name: "date of creation"
+          rus:
+            name: "дата создания"
+      - sysname: "Offer.StartedAt"
+        propertytype: "time"
+        texts:
+          eng:
+            name: "date of start"
+          rus:
+            name: "дата начала"
+      - sysname: "Offer.FinishedAt"
+        propertytype: "time"
+        texts:
+          eng:
+            name: "date of finish"
+          rus:
+            name: "дата завершения"

@@ -38,51 +38,17 @@ func (r *AdvertisingCampaignRepository) New(ctx context.Context) (*advertising_c
 func (r *AdvertisingCampaignRepository) instantiate(ctx context.Context, entity *entity.Entity) (*advertising_campaign.AdvertisingCampaign, error) {
 	entity.PropertyFinder = r.GetPropertyFinder()
 	obj := &advertising_campaign.AdvertisingCampaign{
+		ID:     entity.ID,
 		Entity: entity,
 	}
 
-	namePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, advertising_campaign.PropertySysnameEmail)
+	namePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, advertising_campaign.PropertySysnameName)
 	if err != nil {
 		return nil, err
 	}
 	nameVal, ok := obj.PropertiesValues[namePropID]
 	if ok {
 		if obj.Name, err = property.GetValueText(nameVal.Value); err != nil {
-			return nil, errors.Wrapf(err, "AdvertisingCampaignRepository.instantiate error. ")
-		}
-	}
-
-	agePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, advertising_campaign.PropertySysnamePhone)
-	if err != nil {
-		return nil, err
-	}
-	ageVal, ok := obj.PropertiesValues[agePropID]
-	if ok {
-		age, err := property.GetValueInt(ageVal.Value)
-		if err != nil {
-			return nil, errors.Wrapf(err, "AdvertisingCampaignRepository.instantiate error. ")
-		}
-		obj.Age = uint(age)
-	}
-
-	heightPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, advertising_campaign.PropertySysnameHeight)
-	if err != nil {
-		return nil, err
-	}
-	heightVal, ok := obj.PropertiesValues[heightPropID]
-	if ok {
-		if obj.Height, err = property.GetValueFloat(heightVal.Value); err != nil {
-			return nil, errors.Wrapf(err, "AdvertisingCampaignRepository.instantiate error. ")
-		}
-	}
-
-	weightPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, advertising_campaign.PropertySysnameWeight)
-	if err != nil {
-		return nil, err
-	}
-	weightVal, ok := obj.PropertiesValues[weightPropID]
-	if ok {
-		if obj.Weight, err = property.GetValueFloat(weightVal.Value); err != nil {
 			return nil, errors.Wrapf(err, "AdvertisingCampaignRepository.instantiate error. ")
 		}
 	}

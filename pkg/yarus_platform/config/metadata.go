@@ -15,25 +15,30 @@ type Language struct {
 	Cfgname string
 }
 
-type PropertyUnits map[string]PropertyUnit
+type PropertyUnits []PropertyUnit
 
-type PropertyUnit map[string]NameAndDescriptionText
+type PropertyUnit struct {
+	Sysname string
+	Texts   map[string]NameAndDescriptionText
+}
 
 type NameAndDescriptionText struct {
 	Name        string
 	Description string
 }
 
-type EntityTypes map[string]EntityType
+type EntityTypes []EntityType
 
 type EntityType struct {
+	Sysname    string
 	Texts      map[string]NameAndDescriptionText
 	Properties Properties
 }
 
-type Properties map[string]Property
+type Properties []Property
 
 type Property struct {
+	Sysname          string
 	PropertyType     string
 	PropertyUnit     string
 	PropertyViewType string

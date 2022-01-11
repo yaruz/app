@@ -1071,25 +1071,73 @@ func (c dataTestController) dataCreate(ctx context.Context, langId uint) ([]user
 	}
 
 	for i := range users {
-		if err := c.user.Create(ctx, &users[i], langId); err != nil {
+		user, err := c.user.New(ctx)
+		if err != nil {
+			return nil, nil, nil, nil, err
+		}
+
+		if err = user.SetEmail(ctx, users[i].Email); err != nil {
+			return nil, nil, nil, nil, err
+		}
+
+		if err = user.SetPhone(ctx, users[i].Phone); err != nil {
+			return nil, nil, nil, nil, err
+		}
+
+		if err := c.user.Create(ctx, user, langId); err != nil {
 			return nil, nil, nil, nil, err
 		}
 	}
 
 	for i := range advertisers {
-		if err := c.advertiser.Create(ctx, &advertisers[i], langId); err != nil {
+		advertiser, err := c.advertiser.New(ctx)
+		if err != nil {
+			return nil, nil, nil, nil, err
+		}
+
+		if err = advertiser.SetName(ctx, advertisers[i].Name, langId); err != nil {
+			return nil, nil, nil, nil, err
+		}
+
+		if err := c.advertiser.Create(ctx, advertiser, langId); err != nil {
 			return nil, nil, nil, nil, err
 		}
 	}
 
 	for i := range compaings {
-		if err := c.advertisingCampaign.Create(ctx, &compaings[i], langId); err != nil {
+		compaing, err := c.advertisingCampaign.New(ctx)
+		if err != nil {
+			return nil, nil, nil, nil, err
+		}
+
+		if err = compaing.SetName(ctx, compaings[i].Name, langId); err != nil {
+			return nil, nil, nil, nil, err
+		}
+
+		if err := c.advertisingCampaign.Create(ctx, compaing, langId); err != nil {
 			return nil, nil, nil, nil, err
 		}
 	}
 
 	for i := range offers {
-		if err := c.offer.Create(ctx, &offers[i], langId); err != nil {
+		offer, err := c.offer.New(ctx)
+		if err != nil {
+			return nil, nil, nil, nil, err
+		}
+
+		if err = offer.SetCreatedAt(ctx, offers[i].CreatedAt); err != nil {
+			return nil, nil, nil, nil, err
+		}
+
+		if err = offer.SetStartedAt(ctx, offers[i].StartedAt); err != nil {
+			return nil, nil, nil, nil, err
+		}
+
+		if err = offer.SetFinishedAt(ctx, offers[i].FinishedAt); err != nil {
+			return nil, nil, nil, nil, err
+		}
+
+		if err := c.offer.Create(ctx, offer, langId); err != nil {
 			return nil, nil, nil, nil, err
 		}
 	}

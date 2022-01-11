@@ -17,6 +17,7 @@ const (
 // Offer is the user entity
 type Offer struct {
 	*entity.Entity
+	ID         uint
 	CreatedAt  time.Time
 	StartedAt  time.Time
 	FinishedAt time.Time

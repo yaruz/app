@@ -7,13 +7,14 @@ import (
 )
 
 const (
-	EntityType          = "user"
-	PropertySysnameName = "user.name"
+	EntityType          = "Advertiser"
+	PropertySysnameName = "Advertiser.Name"
 )
 
 // Advertiser is the user entity
 type Advertiser struct {
 	*entity.Entity
+	ID   uint
 	Name string
 }
 

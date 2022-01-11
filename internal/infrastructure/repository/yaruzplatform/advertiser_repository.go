@@ -38,51 +38,17 @@ func (r *AdvertiserRepository) New(ctx context.Context) (*advertiser.Advertiser,
 func (r *AdvertiserRepository) instantiate(ctx context.Context, entity *entity.Entity) (*advertiser.Advertiser, error) {
 	entity.PropertyFinder = r.GetPropertyFinder()
 	obj := &advertiser.Advertiser{
+		ID:     entity.ID,
 		Entity: entity,
 	}
 
-	namePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, advertiser.PropertySysnameEmail)
+	namePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, advertiser.PropertySysnameName)
 	if err != nil {
 		return nil, err
 	}
 	nameVal, ok := obj.PropertiesValues[namePropID]
 	if ok {
 		if obj.Name, err = property.GetValueText(nameVal.Value); err != nil {
-			return nil, errors.Wrapf(err, "AdvertiserRepository.instantiate error. ")
-		}
-	}
-
-	agePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, advertiser.PropertySysnamePhone)
-	if err != nil {
-		return nil, err
-	}
-	ageVal, ok := obj.PropertiesValues[agePropID]
-	if ok {
-		age, err := property.GetValueInt(ageVal.Value)
-		if err != nil {
-			return nil, errors.Wrapf(err, "AdvertiserRepository.instantiate error. ")
-		}
-		obj.Age = uint(age)
-	}
-
-	heightPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, advertiser.PropertySysnameHeight)
-	if err != nil {
-		return nil, err
-	}
-	heightVal, ok := obj.PropertiesValues[heightPropID]
-	if ok {
-		if obj.Height, err = property.GetValueFloat(heightVal.Value); err != nil {
-			return nil, errors.Wrapf(err, "AdvertiserRepository.instantiate error. ")
-		}
-	}
-
-	weightPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, advertiser.PropertySysnameWeight)
-	if err != nil {
-		return nil, err
-	}
-	weightVal, ok := obj.PropertiesValues[weightPropID]
-	if ok {
-		if obj.Weight, err = property.GetValueFloat(weightVal.Value); err != nil {
 			return nil, errors.Wrapf(err, "AdvertiserRepository.instantiate error. ")
 		}
 	}

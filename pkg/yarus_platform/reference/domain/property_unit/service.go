@@ -80,14 +80,14 @@ func (s *service) DataInit(ctx context.Context, unitsConfig config.PropertyUnits
 		return err
 	}
 
-	for sysname, unitConfig := range unitsConfig {
+	for _, unitConfig := range unitsConfig {
 		unit := New()
-		unit.Sysname = sysname
+		unit.Sysname = unitConfig.Sysname
 		if err := s.UpsertBySysname(ctx, unit, 1); err != nil {
 			return err
 		}
 
-		for lang, texts := range unitConfig {
+		for lang, texts := range unitConfig.Texts {
 			if err := validation.Validate(lang, validation.In(langsSl...)); err != nil {
 				return errors.Wrapf(err, "PropertyUnitInit error: invalid lang = %q", lang)
 			}

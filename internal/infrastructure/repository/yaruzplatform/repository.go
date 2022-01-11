@@ -3,8 +3,11 @@ package yaruzplatform
 import (
 	"context"
 
+	"github.com/yaruz/app/internal/domain/advertiser"
+	"github.com/yaruz/app/internal/domain/advertising_campaign"
+	"github.com/yaruz/app/internal/domain/offer"
+
 	"github.com/minipkg/selection_condition"
-	"github.com/yaruz/app/internal/domain/task"
 	"github.com/yaruz/app/internal/domain/user"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
 
@@ -37,10 +40,14 @@ func GetRepository(logger log.ILogger, yaruzRepository yarus_platform.IPlatform,
 	switch entity {
 	case user.EntityType:
 		repo, err = NewUserRepository(r)
-	case task.EntityType:
-		repo, err = NewTaskRepository(r)
+	case advertiser.EntityType:
+		repo, err = NewAdvertiserRepository(r)
+	case advertising_campaign.EntityType:
+		repo, err = NewAdvertisingCampaignRepository(r)
+	case offer.EntityType:
+		repo, err = NewOfferRepository(r)
 	default:
-		err = errors.Errorf("Text for entity %q not found", entity)
+		err = errors.Errorf("Case for entity %q not found", entity)
 	}
 	return repo, err
 }

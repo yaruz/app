@@ -101,9 +101,9 @@ func (s *service) DataInit(ctx context.Context, EntityTypesConfig config.EntityT
 		return err
 	}
 
-	for sysname, entityTypeConfig := range EntityTypesConfig {
+	for _, entityTypeConfig := range EntityTypesConfig {
 		entityType := New()
-		entityType.Sysname = sysname
+		entityType.Sysname = entityTypeConfig.Sysname
 		if err := s.UpsertBySysname(ctx, entityType, 1); err != nil {
 			return err
 		}

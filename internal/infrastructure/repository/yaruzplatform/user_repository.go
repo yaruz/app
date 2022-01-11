@@ -38,53 +38,32 @@ func (r *UserRepository) New(ctx context.Context) (*user.User, error) {
 func (r *UserRepository) instantiate(ctx context.Context, entity *entity.Entity) (*user.User, error) {
 	entity.PropertyFinder = r.GetPropertyFinder()
 	obj := &user.User{
+		ID:     entity.ID,
 		Entity: entity,
 	}
 
-	namePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnameEmail)
+	emailPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnameEmail)
 	if err != nil {
 		return nil, err
 	}
-	nameVal, ok := obj.PropertiesValues[namePropID]
+	emailVal, ok := obj.PropertiesValues[emailPropID]
 	if ok {
-		if obj.Name, err = property.GetValueText(nameVal.Value); err != nil {
+		if obj.Email, err = property.GetValueText(emailVal.Value); err != nil {
 			return nil, errors.Wrapf(err, "UserRepository.instantiate error. ")
 		}
 	}
 
-	agePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnamePhone)
+	phonePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnamePhone)
 	if err != nil {
 		return nil, err
 	}
-	ageVal, ok := obj.PropertiesValues[agePropID]
+	phoneVal, ok := obj.PropertiesValues[phonePropID]
 	if ok {
-		age, err := property.GetValueInt(ageVal.Value)
+		phone, err := property.GetValueInt(phoneVal.Value)
 		if err != nil {
 			return nil, errors.Wrapf(err, "UserRepository.instantiate error. ")
 		}
-		obj.Age = uint(age)
-	}
-
-	heightPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnameHeight)
-	if err != nil {
-		return nil, err
-	}
-	heightVal, ok := obj.PropertiesValues[heightPropID]
-	if ok {
-		if obj.Height, err = property.GetValueFloat(heightVal.Value); err != nil {
-			return nil, errors.Wrapf(err, "UserRepository.instantiate error. ")
-		}
-	}
-
-	weightPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnameWeight)
-	if err != nil {
-		return nil, err
-	}
-	weightVal, ok := obj.PropertiesValues[weightPropID]
-	if ok {
-		if obj.Weight, err = property.GetValueFloat(weightVal.Value); err != nil {
-			return nil, errors.Wrapf(err, "UserRepository.instantiate error. ")
-		}
+		obj.Phone = uint(phone)
 	}
 
 	return obj, nil
