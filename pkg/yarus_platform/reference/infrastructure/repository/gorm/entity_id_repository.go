@@ -53,8 +53,8 @@ func (r *EntityIDRepository) getSeqNameByClusterSysname(clusterSysname string) s
 }
 
 func (r *EntityIDRepository) getSeqNameByEntityTypeSysname(entityTypeSysname string) string {
-	if sysname, ok := r.isSeparatedEntityType(entityTypeSysname); ok {
-		return r.buildSeqName(sysname)
+	if clusterSysname, ok := r.isSeparatedEntityType(entityTypeSysname); ok {
+		return r.buildSeqName(clusterSysname)
 	}
 	return r.buildSeqName(config.DBClusterDefaultSysname)
 }
