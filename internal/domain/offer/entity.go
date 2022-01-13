@@ -70,7 +70,7 @@ func (e *Offer) SetStartedAt(ctx context.Context, value time.Time) error {
 }
 
 func (e *Offer) SetFinishedAt(ctx context.Context, value time.Time) error {
-	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameStartedAt, 0)
+	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameFinishedAt, 0)
 	if err != nil {
 		return err
 	}

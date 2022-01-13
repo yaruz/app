@@ -72,7 +72,7 @@ func (s *SearchService) Get(ctx context.Context, ID uint, typeID uint, langID ui
 	}
 	sql, params := sqlBuilder.GetQuery(ID)
 
-	db, err := s.mapReducer.GetDB(ctx, ID, typeID)
+	db, err := s.mapReducer.GetDB(ctx, typeID, ID)
 	if err != nil {
 		return nil, err
 	}

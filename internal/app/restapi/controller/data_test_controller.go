@@ -1087,6 +1087,7 @@ func (c dataTestController) dataCreate(ctx context.Context, langId uint) ([]user
 		if err := c.user.Create(ctx, user, langId); err != nil {
 			return nil, nil, nil, nil, err
 		}
+		users[i] = *user
 	}
 
 	for i := range advertisers {
@@ -1102,6 +1103,7 @@ func (c dataTestController) dataCreate(ctx context.Context, langId uint) ([]user
 		if err := c.advertiser.Create(ctx, advertiser, langId); err != nil {
 			return nil, nil, nil, nil, err
 		}
+		advertisers[i] = *advertiser
 	}
 
 	for i := range compaings {
@@ -1117,6 +1119,7 @@ func (c dataTestController) dataCreate(ctx context.Context, langId uint) ([]user
 		if err := c.advertisingCampaign.Create(ctx, compaing, langId); err != nil {
 			return nil, nil, nil, nil, err
 		}
+		compaings[i] = *compaing
 	}
 
 	for i := range offers {
@@ -1140,6 +1143,7 @@ func (c dataTestController) dataCreate(ctx context.Context, langId uint) ([]user
 		if err := c.offer.Create(ctx, offer, langId); err != nil {
 			return nil, nil, nil, nil, err
 		}
+		offers[i] = *offer
 	}
 
 	return users, advertisers, compaings, offers, nil
@@ -1148,7 +1152,9 @@ func (c dataTestController) dataCreate(ctx context.Context, langId uint) ([]user
 func (c dataTestController) dataUpdate(ctx context.Context, users []user.User, advertisers []advertiser.Advertiser, compaings []advertising_campaign.AdvertisingCampaign, offers []offer.Offer, langId uint) error {
 
 	for i := range users {
-		users[i].Email = "u_" + users[i].Email
+		if err := users[i].SetEmail(ctx, "u_"+users[i].Email); err != nil {
+			return err
+		}
 
 		if err := c.user.Update(ctx, &users[i], langId); err != nil {
 			return err
@@ -1156,25 +1162,31 @@ func (c dataTestController) dataUpdate(ctx context.Context, users []user.User, a
 	}
 
 	for i := range advertisers {
-		advertisers[i].Name = "u_" + users[i].Email
+		if err := advertisers[i].SetName(ctx, "u_"+advertisers[i].Name, langId); err != nil {
+			return err
+		}
 
-		if err := c.advertiser.Create(ctx, &advertisers[i], langId); err != nil {
+		if err := c.advertiser.Update(ctx, &advertisers[i], langId); err != nil {
 			return err
 		}
 	}
 
 	for i := range compaings {
-		compaings[i].Name = "u_" + users[i].Email
+		if err := compaings[i].SetName(ctx, "u_"+compaings[i].Name, langId); err != nil {
+			return err
+		}
 
-		if err := c.advertisingCampaign.Create(ctx, &compaings[i], langId); err != nil {
+		if err := c.advertisingCampaign.Update(ctx, &compaings[i], langId); err != nil {
 			return err
 		}
 	}
 
 	for i := range offers {
-		offers[i].FinishedAt = offers[i].FinishedAt.AddDate(0, 1, 0)
+		if err := offers[i].SetFinishedAt(ctx, offers[i].FinishedAt.AddDate(0, 1, 0)); err != nil {
+			return err
+		}
 
-		if err := c.offer.Create(ctx, &offers[i], langId); err != nil {
+		if err := c.offer.Update(ctx, &offers[i], langId); err != nil {
 			return err
 		}
 	}

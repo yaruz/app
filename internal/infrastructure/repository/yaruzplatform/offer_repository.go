@@ -42,13 +42,13 @@ func (r *OfferRepository) instantiate(ctx context.Context, entity *entity.Entity
 		Entity: entity,
 	}
 
-	сreatedAtPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, offer.PropertySysnameCreatedAt)
+	createdAtPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, offer.PropertySysnameCreatedAt)
 	if err != nil {
 		return nil, err
 	}
-	сreatedAtVal, ok := obj.PropertiesValues[сreatedAtPropID]
+	createdAtVal, ok := obj.PropertiesValues[createdAtPropID]
 	if ok {
-		if obj.CreatedAt, err = property.GetValueTime(сreatedAtVal.Value); err != nil {
+		if obj.CreatedAt, err = property.GetValueTime(createdAtVal.Value); err != nil {
 			return nil, errors.Wrapf(err, "OfferRepository.instantiate error. ")
 		}
 	}
@@ -70,7 +70,7 @@ func (r *OfferRepository) instantiate(ctx context.Context, entity *entity.Entity
 	}
 	finishedAtVal, ok := obj.PropertiesValues[finishedAtPropID]
 	if ok {
-		if obj.CreatedAt, err = property.GetValueTime(finishedAtVal.Value); err != nil {
+		if obj.FinishedAt, err = property.GetValueTime(finishedAtVal.Value); err != nil {
 			return nil, errors.Wrapf(err, "OfferRepository.instantiate error. ")
 		}
 	}
@@ -131,7 +131,9 @@ func (r *OfferRepository) Create(ctx context.Context, obj *offer.Offer, langID u
 		return errors.New("entity is not new")
 	}
 
-	return r.yaruzRepository.DataSubsystem().Entity.Create(ctx, obj.Entity, langID)
+	err := r.yaruzRepository.DataSubsystem().Entity.Create(ctx, obj.Entity, langID)
+	obj.ID = obj.Entity.ID
+	return err
 }
 
 // Update saves a changed Maintenance record in the database.

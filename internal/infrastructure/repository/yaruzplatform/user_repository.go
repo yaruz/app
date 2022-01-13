@@ -122,7 +122,9 @@ func (r *UserRepository) Create(ctx context.Context, obj *user.User, langID uint
 		return errors.New("entity is not new")
 	}
 
-	return r.yaruzRepository.DataSubsystem().Entity.Create(ctx, obj.Entity, langID)
+	err := r.yaruzRepository.DataSubsystem().Entity.Create(ctx, obj.Entity, langID)
+	obj.ID = obj.Entity.ID
+	return err
 }
 
 // Update saves a changed Maintenance record in the database.

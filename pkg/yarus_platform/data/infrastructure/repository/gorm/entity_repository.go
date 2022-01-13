@@ -40,7 +40,7 @@ func NewEntityRepository(repository *repository, valueRepositories *domain_entit
 func (r *EntityRepository) Create(ctx context.Context, entity *domain_entity.Entity, langID uint) error {
 	db, err := r.mapReducer.GetDB(ctx, entity.EntityTypeID, entity.ID)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	return db.DB().Transaction(func(tx *gorm.DB) (err error) {
@@ -55,7 +55,7 @@ func (r *EntityRepository) Create(ctx context.Context, entity *domain_entity.Ent
 
 // Update saves a changed Maintenance record in the database.
 func (r *EntityRepository) Update(ctx context.Context, entity *domain_entity.Entity, langID uint) error {
-	db, err := r.mapReducer.GetDB(ctx, entity.ID, entity.EntityTypeID)
+	db, err := r.mapReducer.GetDB(ctx, entity.EntityTypeID, entity.ID)
 	if err != nil {
 		return err
 	}
@@ -109,7 +109,7 @@ func (r *EntityRepository) afterSaveTx(ctx context.Context, entity *domain_entit
 
 // Delete (soft) deletes a Maintenance record in the database.
 func (r *EntityRepository) Delete(ctx context.Context, ID uint, typeID uint) error {
-	db, err := r.mapReducer.GetDB(ctx, ID, typeID)
+	db, err := r.mapReducer.GetDB(ctx, typeID, ID)
 	if err != nil {
 		return err
 	}
