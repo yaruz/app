@@ -22,7 +22,7 @@ import (
 // IService encapsulates usecase logic.
 type IService interface {
 	NewEntity() *EntityType
-	DataInit(ctx context.Context, EntityTypesConfig config.EntityTypes) error
+	DataInit(ctx context.Context, EntityTypesConfig config.EntityTypes, RelationsConfig config.Relations) error
 	Get(ctx context.Context, id uint) (*EntityType, error)
 	GetBySysname(ctx context.Context, sysname string, langID uint) (*EntityType, error)
 	First(ctx context.Context, entity *EntityType) (*EntityType, error)
@@ -38,7 +38,7 @@ type IService interface {
 	TUpdate(ctx context.Context, entity *EntityType, langID uint) (err error)
 	BindProperty(ctx context.Context, id uint, propertyID uint) error
 	UnbindProperty(ctx context.Context, id uint, propertyID uint) error
-	UnbindAllProperty(ctx context.Context, id uint) error
+	UnbindAllProperties(ctx context.Context, id uint) error
 	GetSysnames(ctx context.Context) ([]string, error)
 	GetSysnamesEmptyInterfaceSlice(ctx context.Context) ([]interface{}, error)
 	GetMapSysnameID(ctx context.Context) (map[string]uint, error)
@@ -89,7 +89,21 @@ func (s *service) tInitPropertiesAndRelations(ctx context.Context, entity *Entit
 	return err
 }
 
-func (s *service) DataInit(ctx context.Context, EntityTypesConfig config.EntityTypes) error {
+func (s *service) DataInit(ctx context.Context, EntityTypesConfig config.EntityTypes, RelationsConfig config.Relations) error {
+	if err := s.EntityTypesInit(ctx, EntityTypesConfig); err != nil {
+		return err
+	}
+
+	return s.RelationsInit(ctx, RelationsConfig)
+}
+
+func (s *service) EntityTypesInit(ctx context.Context, EntityTypesConfig config.EntityTypes) error {
+	var isNeedUpdate bool
+
+	langIDEng, err := s.langFinder.GetIDByCode(ctx, text_lang.CodeEng)
+	if err != nil {
+		return err
+	}
 
 	langsSl, err := s.langFinder.GetCodesEmptyInterfaceSlice(ctx)
 	if err != nil {
@@ -104,7 +118,7 @@ func (s *service) DataInit(ctx context.Context, EntityTypesConfig config.EntityT
 	for _, entityTypeConfig := range EntityTypesConfig {
 		entityType := New()
 		entityType.Sysname = entityTypeConfig.Sysname
-		if err := s.UpsertBySysname(ctx, entityType, 1); err != nil {
+		if err := s.UpsertBySysname(ctx, entityType, langIDEng); err != nil {
 			return err
 		}
 
@@ -121,12 +135,22 @@ func (s *service) DataInit(ctx context.Context, EntityTypesConfig config.EntityT
 				return err
 			}
 
-			name := texts.Name
-			description := texts.Description
-			entityType.Name = &name
-			entityType.Description = &description
-			if err := s.TUpdate(ctx, entityType, langID); err != nil {
-				return err
+			if texts.Name != "" {
+				name := texts.Name
+				entityType.Name = &name
+				isNeedUpdate = true
+			}
+
+			if texts.Description != "" {
+				description := texts.Description
+				entityType.Description = &description
+				isNeedUpdate = true
+			}
+
+			if isNeedUpdate {
+				if err := s.TUpdate(ctx, entityType, langID); err != nil {
+					return err
+				}
 			}
 		}
 		propertyIDs, err := s.propertyService.PropertyInit(ctx, entityTypeConfig.Properties, entityType.Sysname)
@@ -139,6 +163,95 @@ func (s *service) DataInit(ctx context.Context, EntityTypesConfig config.EntityT
 				return err
 			}
 		}
+	}
+
+	return nil
+}
+
+func (s *service) RelationsInit(ctx context.Context, relationsConfig config.Relations) error {
+	var isNeedUpdate bool
+
+	langIDEng, err := s.langFinder.GetIDByCode(ctx, text_lang.CodeEng)
+	if err != nil {
+		return err
+	}
+
+	langsSl, err := s.langFinder.GetCodesEmptyInterfaceSlice(ctx)
+	if err != nil {
+		return err
+	}
+
+	langsIDsMap, err := s.langFinder.GetMapCodeID(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, relationConfig := range relationsConfig {
+		undependedEntityTypeID, err := s.GetIDBySysname(ctx, relationConfig.UndependedEntityType)
+		if err != nil {
+			return err
+		}
+
+		undependedEntityType, err := s.TGet(ctx, undependedEntityTypeID, langIDEng)
+		if err != nil {
+			return err
+		}
+
+		dependedEntityTypeID, err := s.GetIDBySysname(ctx, relationConfig.DependedEntityType)
+		if err != nil {
+			return err
+		}
+
+		dependedEntityType, err := s.TGet(ctx, dependedEntityTypeID, langIDEng)
+		if err != nil {
+			return err
+		}
+
+		relation := s.relationService.NewEntity()
+		relation.Sysname = relationConfig.Sysname
+		relation.IsSpecific = relationConfig.IsSpecific
+		relation.IsMultiple = relationConfig.IsMultiple
+		relation.Options = relationConfig.Options
+		relation.SortOrder = relationConfig.SortOrder
+		relation.UndependedEntityType = undependedEntityType
+		relation.DependedEntityType = dependedEntityType
+
+		if err := s.relationService.UpsertBySysname(ctx, relation, langIDEng); err != nil {
+			return err
+		}
+
+		for lang, texts := range relationConfig.Texts {
+			if err := validation.Validate(lang, validation.In(langsSl...)); err != nil {
+				return errors.Wrapf(err, "PropertyInit error: invalid lang = %q", lang)
+			}
+			langID, ok := langsIDsMap[lang]
+			if !ok {
+				return errors.Errorf("PropertyInit error: not found lang = %q", lang)
+			}
+
+			if relation, err = s.relationService.TGet(ctx, relation.ID, langID); err != nil {
+				return err
+			}
+
+			if texts.Name != "" {
+				name := texts.Name
+				relation.Name = &name
+				isNeedUpdate = true
+			}
+
+			if texts.Description != "" {
+				description := texts.Description
+				relation.Description = &description
+				isNeedUpdate = true
+			}
+
+			if isNeedUpdate {
+				if err := s.relationService.TUpdate(ctx, relation, langID); err != nil {
+					return err
+				}
+			}
+		}
+
 	}
 
 	return nil
@@ -407,8 +520,8 @@ func (s *service) UnbindProperty(ctx context.Context, id uint, propertyID uint) 
 	return nil
 }
 
-func (s *service) UnbindAllProperty(ctx context.Context, id uint) error {
-	err := s.repository.UnbindAllProperty(ctx, id)
+func (s *service) UnbindAllProperties(ctx context.Context, id uint) error {
+	err := s.repository.UnbindAllProperties(ctx, id)
 	if err != nil {
 		return errors.Wrapf(err, "Can not for an entity ID = %v unbind all properties", id)
 	}

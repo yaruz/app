@@ -230,12 +230,12 @@ func (s *ReferenceSubsystem) setupServices(logger log.ILogger) {
 	s.TextSource = text_source.NewService(logger, s.textSourceRepository)
 	s.TextValue = text_value.NewService(logger, s.textValueRepository)
 	s.EntityType2Property = entity_type2property.NewService(logger, s.entityType2PropertyRepository)
-	s.Relation = entity_type.NewRelationService(logger, s.relationRepository)
 	s.PropertyGroup = property_group.NewService(logger, s.propertyGroupRepository)
 	s.PropertyType = property_type.NewService(logger, s.propertyTypeRepository, s.propertyType2PropertyViewTypeRepository, s.TextLang)
 	s.PropertyUnit = property_unit.NewService(logger, s.propertyUnitRepository, s.TextLang)
 	s.PropertyViewType = property_view_type.NewService(logger, s.propertyViewTypeRepository)
 	s.Property = property.NewService(logger, s.propertyRepository, s.PropertyType, s.PropertyUnit, s.PropertyViewType, s.PropertyGroup, s.TextLang)
+	s.Relation = entity_type.NewRelationService(logger, s.relationRepository, s.Property)
 	s.EntityType = entity_type.NewService(logger, s.entityTypeRepository, s.Relation, s.Property, s.TextLang)
 }
 
@@ -279,7 +279,7 @@ func (s *ReferenceSubsystem) dbDataInit(metadata *config.Metadata) error {
 		return err
 	}
 
-	err = s.EntityType.DataInit(ctx, metadata.EntityTypes)
+	err = s.EntityType.DataInit(ctx, metadata.EntityTypes, metadata.Relations)
 	if err != nil {
 		return err
 	}

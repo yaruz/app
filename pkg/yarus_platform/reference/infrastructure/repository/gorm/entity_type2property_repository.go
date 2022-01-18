@@ -115,7 +115,7 @@ func (r *EntityType2PropertyRepository) CreateTx(ctx context.Context, tx *gorm.D
 // Delete (soft) deletes a Maintenance record in the database.
 func (r *EntityType2PropertyRepository) Delete(ctx context.Context, entity *entity_type2property.EntityType2Property) error {
 
-	err := r.db.DB().Delete(r.model, entity).Error
+	err := r.db.DB().Unscoped().Delete(r.model, entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apperror.ErrNotFound
@@ -126,7 +126,7 @@ func (r *EntityType2PropertyRepository) Delete(ctx context.Context, entity *enti
 
 func (r *EntityType2PropertyRepository) DeleteTx(ctx context.Context, tx *gorm.DB, entity *entity_type2property.EntityType2Property) error {
 
-	err := r.db.GormTx(tx).Delete(r.model, entity).Error
+	err := r.db.GormTx(tx).Unscoped().Delete(r.model, entity).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return apperror.ErrNotFound

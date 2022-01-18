@@ -88,6 +88,9 @@ func (s *service) NewEntity() *Property {
 }
 
 func (s *service) PropertyInit(ctx context.Context, PropertiesConfig config.Properties, entityTypeSysname string) (propertyIDs []uint, err error) {
+	var isNeedUpdate bool
+
+	langIDEng, err := s.langFinder.GetIDByCode(ctx, text_lang.CodeEng)
 
 	langsSl, err := s.langFinder.GetCodesEmptyInterfaceSlice(ctx)
 	if err != nil {
@@ -138,7 +141,7 @@ func (s *service) PropertyInit(ctx context.Context, PropertiesConfig config.Prop
 		prop.IsMultiple = propertyConfig.IsMultiple
 		prop.SortOrder = propertyConfig.SortOrder
 		prop.Options = propertyConfig.Options
-		if err := s.UpsertBySysname(ctx, prop, 1); err != nil {
+		if err := s.UpsertBySysname(ctx, prop, langIDEng); err != nil {
 			return nil, err
 		}
 
@@ -155,12 +158,22 @@ func (s *service) PropertyInit(ctx context.Context, PropertiesConfig config.Prop
 				return nil, err
 			}
 
-			name := texts.Name
-			description := texts.Description
-			prop.Name = &name
-			prop.Description = &description
-			if err := s.TUpdate(ctx, prop, langID); err != nil {
-				return nil, err
+			if texts.Name != "" {
+				name := texts.Name
+				prop.Name = &name
+				isNeedUpdate = true
+			}
+
+			if texts.Description != "" {
+				description := texts.Description
+				prop.Description = &description
+				isNeedUpdate = true
+			}
+
+			if isNeedUpdate {
+				if err := s.TUpdate(ctx, prop, langID); err != nil {
+					return nil, err
+				}
 			}
 		}
 		propertyIDs = append(propertyIDs, prop.ID)
@@ -380,7 +393,7 @@ func (s *service) UpsertBySysname(ctx context.Context, entity *Property, langID 
 		entity.NameSourceID = found.NameSourceID
 		entity.DescriptionSourceID = found.DescriptionSourceID
 		entity.CreatedAt = found.CreatedAt
-		if found.SortOrder == 0 {
+		if found.SortOrder != SortOrderDefault {
 			entity.SortOrder = found.SortOrder
 		}
 		err = s.TUpdate(ctx, entity, langID)

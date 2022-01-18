@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
-	"gorm.io/gorm"
 )
 
 const (
@@ -19,8 +18,6 @@ type EntityType2Property struct {
 	IsDependent  bool                    `gorm:"type:boolean not null default false;primaryKey;" json:"isDependent"`
 	EntityType   *entity_type.EntityType `json:"entityType"`
 	CreatedAt    time.Time               `json:"createdAt"`
-	UpdatedAt    time.Time               `json:"updatedAt"`
-	DeletedAt    gorm.DeletedAt          `gorm:"index" json:"deletedAt,omitempty"`
 }
 
 func (e *EntityType2Property) TableName() string {

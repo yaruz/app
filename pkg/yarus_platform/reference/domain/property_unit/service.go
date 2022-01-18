@@ -70,6 +70,13 @@ func (s *service) NewEntity() *PropertyUnit {
 }
 
 func (s *service) DataInit(ctx context.Context, unitsConfig config.PropertyUnits) error {
+	var isNeedUpdate bool
+
+	langIDEng, err := s.langFinder.GetIDByCode(ctx, text_lang.CodeEng)
+	if err != nil {
+		return err
+	}
+
 	langsSl, err := s.langFinder.GetCodesEmptyInterfaceSlice(ctx)
 	if err != nil {
 		return err
@@ -83,7 +90,7 @@ func (s *service) DataInit(ctx context.Context, unitsConfig config.PropertyUnits
 	for _, unitConfig := range unitsConfig {
 		unit := New()
 		unit.Sysname = unitConfig.Sysname
-		if err := s.UpsertBySysname(ctx, unit, 1); err != nil {
+		if err := s.UpsertBySysname(ctx, unit, langIDEng); err != nil {
 			return err
 		}
 
@@ -100,12 +107,22 @@ func (s *service) DataInit(ctx context.Context, unitsConfig config.PropertyUnits
 				return err
 			}
 
-			name := texts.Name
-			description := texts.Description
-			unit.Name = &name
-			unit.Description = &description
-			if err := s.TUpdate(ctx, unit, langID); err != nil {
-				return err
+			if texts.Name != "" {
+				name := texts.Name
+				unit.Name = &name
+				isNeedUpdate = true
+			}
+
+			if texts.Description != "" {
+				description := texts.Description
+				unit.Description = &description
+				isNeedUpdate = true
+			}
+
+			if isNeedUpdate {
+				if err := s.TUpdate(ctx, unit, langID); err != nil {
+					return err
+				}
 			}
 		}
 	}

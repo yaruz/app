@@ -221,7 +221,7 @@ func (r *EntityTypeRepository) saveTx(ctx context.Context, tx *gorm.DB, entity *
 // Delete (soft) deletes a Maintenance record in the database.
 func (r *EntityTypeRepository) Delete(ctx context.Context, entity *entity_type.EntityType) error {
 	return r.db.DB().Transaction(func(tx *gorm.DB) error {
-		if err := r.unbindAllPropertyTx(ctx, tx, entity.ID); err != nil {
+		if err := r.unbindAllPropertiesTx(ctx, tx, entity.ID); err != nil {
 			return err
 		}
 
@@ -281,13 +281,13 @@ func (r *EntityTypeRepository) UnbindProperty(ctx context.Context, id uint, prop
 	})
 }
 
-func (r *EntityTypeRepository) unbindAllPropertyTx(ctx context.Context, tx *gorm.DB, id uint) error {
+func (r *EntityTypeRepository) unbindAllPropertiesTx(ctx context.Context, tx *gorm.DB, id uint) error {
 	return r.entityType2PropertyRepository.DeleteTx(ctx, tx, &entity_type2property.EntityType2Property{
 		EntityTypeID: id,
 	})
 }
 
-func (r *EntityTypeRepository) UnbindAllProperty(ctx context.Context, id uint) error {
+func (r *EntityTypeRepository) UnbindAllProperties(ctx context.Context, id uint) error {
 	return r.entityType2PropertyRepository.Delete(ctx, &entity_type2property.EntityType2Property{
 		EntityTypeID: id,
 	})

@@ -27,5 +27,5 @@ type Repository interface {
 	BindProperty(ctx context.Context, id uint, propertyID uint) error
 	BindPropertyIfNotBinded(ctx context.Context, id uint, propertyID uint) error
 	UnbindProperty(ctx context.Context, id uint, propertyID uint) error
-	UnbindAllProperty(ctx context.Context, id uint) error
+	UnbindAllProperties(ctx context.Context, id uint) error
 }

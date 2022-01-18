@@ -830,7 +830,7 @@ func (c referenceTestController) entityTypeBinding(ctx *routing.Context) error {
 		res = append(res, map[string]interface{}{"5. EntityType Unbind error: ": err.Error()})
 	}
 
-	err = c.yaruzPlatform.ReferenceSubsystem().EntityType.UnbindAllProperty(cntx, entity.ID)
+	err = c.yaruzPlatform.ReferenceSubsystem().EntityType.UnbindAllProperties(cntx, entity.ID)
 	if err != nil {
 		res = append(res, map[string]interface{}{"6. EntityType UnbindAll error: ": err.Error()})
 	}

@@ -74,6 +74,10 @@ func (s *service) NewEntity() *PropertyType {
 }
 
 func (s *service) DataInit(ctx context.Context) error {
+	langIDEng, err := s.langFinder.GetIDByCode(ctx, text_lang.CodeEng)
+	if err != nil {
+		return err
+	}
 
 	items := []PropertyType{
 		{
@@ -100,7 +104,7 @@ func (s *service) DataInit(ctx context.Context) error {
 	}
 
 	for _, i := range items {
-		if err := s.UpsertBySysname(ctx, &i, 1); err != nil {
+		if err := s.UpsertBySysname(ctx, &i, langIDEng); err != nil {
 			return err
 		}
 	}

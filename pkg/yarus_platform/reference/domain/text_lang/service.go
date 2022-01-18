@@ -45,6 +45,10 @@ type IService interface {
 	GetCfgnameByID(ctx context.Context, id uint) (string, error)
 }
 
+const (
+	CodeEng = "eng"
+)
+
 type service struct {
 	logger     log.ILogger
 	repository Repository

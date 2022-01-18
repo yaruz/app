@@ -21,6 +21,7 @@ const (
 	ParseFormateDate    = "2006-01-02"
 	ParseFormateDateRFC = time.RFC3339
 	ParseFormateTime    = time.RFC3339
+	SortOrderDefault    = 9999
 )
 
 // Property ...
@@ -32,9 +33,9 @@ type Property struct {
 	Name                *string                              `gorm:"-" json:"name"`
 	Description         *string                              `gorm:"-" json:"description"`
 	PropertyTypeID      uint                                 `gorm:"type:bigint not null REFERENCES \"property_type\"(id);index" json:"propertyTypeId"`
-	PropertyUnitID      *uint                                `gorm:"type:bigint null REFERENCES \"property_unit\"(id);index" json:"propertyUnitId"`
-	PropertyViewTypeID  *uint                                `gorm:"type:bigint null REFERENCES \"property_view_type\"(id);index" json:"propertyViewTypeId"`
-	PropertyGroupID     *uint                                `gorm:"type:bigint null REFERENCES \"property_group\"(id);index" json:"propertyGroupId"`
+	PropertyUnitID      *uint                                `gorm:"type:bigint null default null REFERENCES \"property_unit\"(id);index" json:"propertyUnitId"`
+	PropertyViewTypeID  *uint                                `gorm:"type:bigint null default null REFERENCES \"property_view_type\"(id);index" json:"propertyViewTypeId"`
+	PropertyGroupID     *uint                                `gorm:"type:bigint null default null REFERENCES \"property_group\"(id);index" json:"propertyGroupId"`
 	IsSpecific          bool                                 `gorm:"type:boolean not null default false;" json:"isSpecific"`
 	IsRange             bool                                 `gorm:"type:boolean not null default false;" json:"isRange"`
 	IsMultiple          bool                                 `gorm:"type:boolean not null default false;" json:"isMultiple"`

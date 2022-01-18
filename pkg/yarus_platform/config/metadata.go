@@ -5,6 +5,7 @@ type Metadata struct {
 	Languages     Languages
 	PropertyUnits PropertyUnits
 	EntityTypes   EntityTypes
+	Relations     Relations
 }
 
 type Languages []Language
@@ -49,4 +50,19 @@ type Property struct {
 	SortOrder        uint
 	Options          []map[string]interface{}
 	Texts            map[string]NameAndDescriptionText
+}
+
+type Relations []Relation
+
+type Relation struct {
+	Sysname              string
+	PropertyViewType     string
+	PropertyGroup        string
+	IsSpecific           bool
+	IsMultiple           bool
+	SortOrder            uint
+	Options              []map[string]interface{}
+	Texts                map[string]NameAndDescriptionText
+	UndependedEntityType string
+	DependedEntityType   string
 }

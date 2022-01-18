@@ -119,3 +119,21 @@ entitytypes:
             name: "date of finish"
           rus:
             name: "дата завершения"
+
+relations:
+  - sysname: "Advertiser.AdvertisingCampaigns"
+    texts:
+      eng:
+        name: "advertising campaigns"
+      rus:
+        name: "рекламные кампании"
+    UndependedEntityType: "AdvertisingCampaign"
+    DependedEntityType: "Advertiser"
+  - sysname: "AdvertisingCampaign.Offers"
+    texts:
+      eng:
+        name: "offers"
+      rus:
+        name: "предложения"
+    UndependedEntityType: "Offer"
+    DependedEntityType: "AdvertisingCampaign"

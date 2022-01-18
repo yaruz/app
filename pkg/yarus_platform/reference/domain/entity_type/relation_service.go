@@ -3,6 +3,8 @@ package entity_type
 import (
 	"context"
 
+	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
+
 	"github.com/minipkg/selection_condition"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
 
@@ -18,6 +20,7 @@ type RelationService interface {
 	First(ctx context.Context, entity *Relation) (*Relation, error)
 	Query(ctx context.Context, query *selection_condition.SelectionCondition) ([]Relation, error)
 	Count(ctx context.Context, cond *selection_condition.SelectionCondition) (int64, error)
+	UpsertBySysname(ctx context.Context, entity *Relation, langID uint) (err error)
 	Create(ctx context.Context, entity *Relation) error
 	Update(ctx context.Context, entity *Relation) error
 	Delete(ctx context.Context, entity *Relation) error
@@ -33,17 +36,19 @@ type RelationService interface {
 }
 
 type relationService struct {
-	logger     log.ILogger
-	repository RelationRepository
+	logger          log.ILogger
+	repository      RelationRepository
+	propertyService property.IService
 }
 
 var _ RelationService = (*relationService)(nil)
 
 // NewRelationService creates a new relationService.
-func NewRelationService(logger log.ILogger, repo RelationRepository) RelationService {
+func NewRelationService(logger log.ILogger, repo RelationRepository, propertyService property.IService) RelationService {
 	s := &relationService{
-		logger:     logger,
-		repository: repo,
+		logger:          logger,
+		repository:      repo,
+		propertyService: propertyService,
 	}
 	repo.SetDefaultConditions(s.defaultConditions())
 	return s
@@ -114,6 +119,31 @@ func (s *relationService) Count(ctx context.Context, cond *selection_condition.S
 		return 0, errors.Wrapf(err, "Can not count a list of items by query: %v", cond)
 	}
 	return count, nil
+}
+
+func (s *relationService) UpsertBySysname(ctx context.Context, entity *Relation, langID uint) (err error) {
+
+	found, err := s.propertyService.First(ctx, &property.Property{
+		Sysname: entity.Sysname,
+	})
+
+	if err != nil {
+		if err != yaruserror.ErrNotFound {
+			return err
+		}
+		err = s.TCreate(ctx, entity, langID)
+	} else {
+		entity.ID = found.ID
+		entity.NameSourceID = found.NameSourceID
+		entity.DescriptionSourceID = found.DescriptionSourceID
+		entity.CreatedAt = found.CreatedAt
+		if found.SortOrder != property.SortOrderDefault {
+			entity.SortOrder = found.SortOrder
+		}
+		err = s.TUpdate(ctx, entity, langID)
+	}
+
+	return err
 }
 
 func (s *relationService) Create(ctx context.Context, entity *Relation) error {
