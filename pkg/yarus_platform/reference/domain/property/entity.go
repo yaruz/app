@@ -42,10 +42,10 @@ type Property struct {
 	SortOrder           uint                                 `gorm:"type:smallint;not null;default:9999" json:"sortOrder"`
 	OptionsB            datatypes.JSON                       `json:"-"`
 	Options             []map[string]interface{}             `gorm:"-" json:"options"`
-	PropertyType        *property_type.PropertyType          `json:"propertyType"`
-	PropertyViewType    *property_view_type.PropertyViewType `json:"propertyViewType"`
-	PropertyUnit        *property_unit.PropertyUnit          `json:"propertyUnit"`
-	PropertyGroup       *property_group.PropertyGroup        `json:"propertyGroup"`
+	PropertyType        *property_type.PropertyType          `json:"propertyType,omitempty"`
+	PropertyViewType    *property_view_type.PropertyViewType `json:"propertyViewType,omitempty"`
+	PropertyUnit        *property_unit.PropertyUnit          `json:"propertyUnit,omitempty"`
+	PropertyGroup       *property_group.PropertyGroup        `json:"propertyGroup,omitempty"`
 
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`
@@ -324,7 +324,27 @@ func GetValueText(value interface{}) (string, error) {
 	return res, nil
 }
 
+func (e *Property) ClearEmptyAssociations() {
+
+	if e.PropertyType != nil && e.PropertyType.ID == 0 {
+		e.PropertyType = nil
+	}
+
+	if e.PropertyViewType != nil && e.PropertyViewType.ID == 0 {
+		e.PropertyViewType = nil
+	}
+
+	if e.PropertyUnit != nil && e.PropertyUnit.ID == 0 {
+		e.PropertyUnit = nil
+	}
+
+	if e.PropertyGroup != nil && e.PropertyGroup.ID == 0 {
+		e.PropertyGroup = nil
+	}
+}
+
 func (e *Property) AfterFind() error {
+	e.ClearEmptyAssociations()
 	return e.optionsB2Options()
 }
 

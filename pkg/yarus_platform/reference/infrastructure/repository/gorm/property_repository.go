@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"gorm.io/gorm/clause"
+
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_source"
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
@@ -181,7 +183,7 @@ func (r *PropertyRepository) Create(ctx context.Context, entity *property.Proper
 		return err
 	}
 
-	return r.db.DB().Create(entity).Error
+	return r.db.DB().Omit(clause.Associations).Create(entity).Error
 }
 
 func (r *PropertyRepository) TCreate(ctx context.Context, entity *property.Property, langID uint) (err error) {
@@ -207,7 +209,7 @@ func (r *PropertyRepository) TCreate(ctx context.Context, entity *property.Prope
 		if entity.DescriptionSourceID, err = r.textSourceRepository.CreateValueTx(ctx, tx, entity.Description, langID); err != nil {
 			return err
 		}
-		return tx.Create(entity).Error
+		return tx.Omit(clause.Associations).Create(entity).Error
 	})
 }
 
@@ -255,7 +257,7 @@ func (r *PropertyRepository) saveTx(ctx context.Context, tx *gorm.DB, entity *pr
 		return err
 	}
 
-	return r.db.GormTx(tx).Save(entity).Error
+	return r.db.GormTx(tx).Omit(clause.Associations).Save(entity).Error
 }
 
 // Delete (soft) deletes a Maintenance record in the database.

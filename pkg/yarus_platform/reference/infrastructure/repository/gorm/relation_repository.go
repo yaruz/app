@@ -3,6 +3,8 @@ package gorm
 import (
 	"context"
 
+	"gorm.io/gorm/clause"
+
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_source"
 
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
@@ -356,7 +358,7 @@ func (r *RelationRepository) Create(ctx context.Context, entity *entity_type.Rel
 	}
 
 	return r.db.DB().Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(entity).Error; err != nil {
+		if err := tx.Omit(clause.Associations).Create(entity).Error; err != nil {
 			return err
 		}
 
@@ -386,7 +388,7 @@ func (r *RelationRepository) TCreate(ctx context.Context, entity *entity_type.Re
 		if entity.Property.DescriptionSourceID, err = r.textSourceRepository.CreateValueTx(ctx, tx, entity.Property.Description, langID); err != nil {
 			return err
 		}
-		if err := tx.Create(entity).Error; err != nil {
+		if err := tx.Omit(clause.Associations).Create(entity).Error; err != nil {
 			return err
 		}
 
@@ -451,7 +453,7 @@ func (r *RelationRepository) saveTx(ctx context.Context, tx *gorm.DB, entity *en
 			return err
 		}
 
-		return tx.Save(entity).Error
+		return tx.Omit(clause.Associations).Save(entity).Error
 	})
 }
 
