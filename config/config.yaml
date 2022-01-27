@@ -13,7 +13,7 @@ log:
 db:
   reference:
     dialect:        "postgres"
-    dsn:            "host=db_reference port=5432 dbname=reference user=postgres password=1gjcnuhtc1! sslmode=disable"
+    dsn:            "host=db port=5432 dbname=reference user=postgres password=1gjcnuhtc1! sslmode=disable"
     isautomigrate:  True
     log:
       loglevel:     4
@@ -23,15 +23,7 @@ db:
       capacity:  3
       items:
         - dialect:        "postgres"
-          dsn:            "host=db_data1 port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
-          log:
-            loglevel:     4
-        - dialect:        "postgres"
-          dsn:            "host=db_data2 port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
-          log:
-            loglevel:     4
-        - dialect:        "postgres"
-          dsn:            "host=db_data3 port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
+          dsn:            "host=db port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
           log:
             loglevel:     4
 
@@ -43,15 +35,7 @@ db:
           - Offer
         items:
           - dialect:        "postgres"
-            dsn:            "host=db_data_p1 port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
-            log:
-              loglevel:     4
-          - dialect:        "postgres"
-            dsn:            "host=db_data_p2 port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
-            log:
-              loglevel:     4
-          - dialect:        "postgres"
-            dsn:            "host=db_data_p3 port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
+            dsn:            "host=db port=5432 dbname=data_rotated user=postgres password=1gjcnuhtc1! sslmode=disable"
             log:
               loglevel:     4
 

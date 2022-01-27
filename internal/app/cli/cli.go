@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"github.com/spf13/cobra"
 	commonApp "github.com/yaruz/app/internal/app"
 	"github.com/yaruz/app/internal/pkg/config"
@@ -21,7 +20,7 @@ func New(commonApp *commonApp.App, cfg config.Configuration) *App {
 
 // Run is func to run the App
 func (app *App) Run() error {
-	return app.rootCmd.ExecuteContext(context.Background())
+	return app.rootCmd.Execute()
 }
 
 var app = &App{
