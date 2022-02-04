@@ -15,7 +15,7 @@ const (
 
 // TextLang ...
 type TextLang struct {
-	ID        uint           `gorm:"type:smallserial;primaryKey" json:"id"`
+	ID        uint           `gorm:"type:serial;primaryKey" json:"id"`
 	Code      string         `gorm:"type:varchar(100) not null;unique;index" json:"code"`
 	Name      string         `gorm:"type:varchar(100) not null" json:"name"`
 	Cfgname   string         `gorm:"type:varchar(100) not null" json:"cfgname"`

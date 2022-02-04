@@ -25,6 +25,9 @@ import (
 	"github.com/casdoor/casdoor-go-sdk/auth"
 )
 
+//go:embed token_jwt_key.pem
+var JwtPublicKey string
+
 type accountController struct {
 	Logger  log.ILogger
 	Service user.IService
@@ -37,23 +40,22 @@ func RegisterAccountHandlers(r *routing.RouteGroup, service user.IService, logge
 		Service: service,
 	}
 
-	r.Get(`/user/<id:\d+>`, c.get)
+	c.initAuthConfig()
+
+	r.Get(`/account/signin`, c.signin)
+	//r.Get(`/user/<id:\d+>`, c.get)
 	//r.Get("/users", c.list)
 
 }
 
-func init() {
-	InitAuthConfig()
-}
-
-func InitAuthConfig() {
-	casdoorEndpoint := "http://localhost:80"
-	clientId := "clientId"
-	clientSecret := "clientSecret"
+func (c *accountController) initAuthConfig() {
+	casdoorEndpoint := "http://localhost:8000"
+	clientId := "e296b46552e53745bcdd"
+	clientSecret := "7f2d38c913155d8e5b4b5944a1760d42ae0c97c5"
 	casdoorOrganization := "org"
-	casdoorApplication := "app"
+	casdoorApplication := "exchange"
 
-	auth.InitConfig(casdoorEndpoint, clientId, clientSecret, "JwtPublicKey", casdoorOrganization, casdoorApplication)
+	auth.InitConfig(casdoorEndpoint, clientId, clientSecret, JwtPublicKey, casdoorOrganization, casdoorApplication)
 }
 
 // @Title Signin
@@ -63,9 +65,9 @@ func InitAuthConfig() {
 // @Success 200 {object} controllers.api_controller.Response The Response object
 // @router /signin [post]
 // @Tag Account API
-func (c *accountController) Signin(ctx *routing.Context) error {
-	code := "code"
-	state := "state"
+func (c *accountController) signin(ctx *routing.Context) error {
+	code := ctx.Request.URL.Query().Get("code")
+	state := ctx.Request.URL.Query().Get("state")
 
 	token, err := auth.GetOAuthToken(code, state)
 	if err != nil {
@@ -94,7 +96,7 @@ func (c *accountController) Signin(ctx *routing.Context) error {
 // @Success 200 {object} controllers.api_controller.Response The Response object
 // @router /signout [post]
 // @Tag Account API
-func (c *accountController) Signout(ctx *routing.Context) error {
+func (c *accountController) signout(ctx *routing.Context) error {
 	//claims := c.GetSessionClaims()
 	//if claims != nil {
 	//_, err := object.UpdateMemberOnlineStatus(&claims.User, false, util.GetCurrentTime())
@@ -115,7 +117,7 @@ func (c *accountController) Signout(ctx *routing.Context) error {
 // @Success 200 {object} controllers.api_controller.Response The Response object
 // @router /get-account [get]
 // @Tag Account API
-//func (c *accountController) GetAccount() {
+//func (c *accountController) getAccount() {
 //	if c.RequireSignedIn() {
 //		return
 //	}
@@ -125,7 +127,7 @@ func (c *accountController) Signout(ctx *routing.Context) error {
 //	c.ResponseOk(claims)
 //}
 //
-//func (c *accountController) UpdateAccountBalance(amount int) {
+//func (c *accountController) updateAccountBalance(amount int) {
 //	user := c.GetSessionUser()
 //	user.Score += amount
 //	c.SetSessionUser(user)
