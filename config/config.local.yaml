@@ -46,7 +46,14 @@ db:
     password: ""
     dbname:   0
 
+auth:
+  endpoint:     "http://localhost:8000"
+  clientId:     "5e431f823a2bf338a213"
+  clientSecret: "6b4a40bf3dd051f717900b75b2ca56c166007834"
+  organization: "org"
+  application:  "socbazar"
+  jwtsigningkey: "LxsKJywDL5O5PvgODZhBH12KE6k2yL8E"
+  jwtexpiration: 72
+  sessionlifetime: 96
 
-jwtsigningkey: "LxsKJywDL5O5PvgODZhBH12KE6k2yL8E"
-jwtexpiration: 72
-sessionlifetime: 96
+CacheLifeTime:  240

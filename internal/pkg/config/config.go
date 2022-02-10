@@ -26,13 +26,9 @@ type Configuration struct {
 	}
 	Log           log.Config
 	DB            DB
+	Auth          Auth
 	YaruzMetadata yaruz_config.Metadata
-	// JWT signing key. required.
-	JWTSigningKey string
-	// JWT expiration in hours. Defaults to 72 hours (3 days)
-	JWTExpiration   uint
-	SessionLifeTime uint
-	CacheLifeTime   uint
+	CacheLifeTime uint
 }
 
 type DB struct {
@@ -41,6 +37,17 @@ type DB struct {
 	DataSharding yaruz_config.Sharding
 	Search       minipkg_gorm.Config
 	Redis        redis.Config
+}
+
+type Auth struct {
+	Endpoint        string
+	ClientId        string
+	ClientSecret    string
+	Organization    string
+	Application     string
+	JWTSigningKey   string
+	JWTExpiration   uint
+	SessionlifeTime uint
 }
 
 func (c *Configuration) YaruzConfig() *yaruz_config.Configuration {
@@ -162,10 +169,7 @@ func Get4UnitTest(logAppPostfix string) *Configuration {
 			},
 			Redis: redis.Config{},
 		},
-		JWTSigningKey:   "test",
-		JWTExpiration:   1,
-		SessionLifeTime: 1,
-		CacheLifeTime:   1,
+		CacheLifeTime: 1,
 	}
 	addition4Test(cfg, logAppPostfix)
 

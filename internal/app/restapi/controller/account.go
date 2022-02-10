@@ -43,6 +43,7 @@ func RegisterAccountHandlers(r *routing.RouteGroup, service user.IService, logge
 	c.initAuthConfig()
 
 	r.Get(`/account/signin`, c.signin)
+	r.Get(`/account/fb-signin`, c.fbSignin)
 	//r.Get(`/user/<id:\d+>`, c.get)
 	//r.Get("/users", c.list)
 
@@ -50,10 +51,10 @@ func RegisterAccountHandlers(r *routing.RouteGroup, service user.IService, logge
 
 func (c *accountController) initAuthConfig() {
 	casdoorEndpoint := "http://localhost:8000"
-	clientId := "e296b46552e53745bcdd"
-	clientSecret := "7f2d38c913155d8e5b4b5944a1760d42ae0c97c5"
+	clientId := "5e431f823a2bf338a213"
+	clientSecret := "6b4a40bf3dd051f717900b75b2ca56c166007834"
 	casdoorOrganization := "org"
-	casdoorApplication := "exchange"
+	casdoorApplication := "socbazar"
 
 	auth.InitConfig(casdoorEndpoint, clientId, clientSecret, JwtPublicKey, casdoorOrganization, casdoorApplication)
 }
@@ -89,6 +90,17 @@ func (c *accountController) signin(ctx *routing.Context) error {
 	//c.SetSessionClaims(claims)
 
 	return ctx.Write(claims)
+}
+
+func (c *accountController) fbSignin(ctx *routing.Context) error {
+	code := ctx.Request.URL.Query().Get("code")
+	token := ctx.Request.URL.Query().Get("token")
+
+	if code != "" {
+		
+	}
+
+	return ctx.Write(true)
 }
 
 // @Title Signout

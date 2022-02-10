@@ -5,9 +5,10 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/casdoor/casdoor-go-sdk/auth"
+	"github.com/yaruz/app/internal/pkg/config"
 	"time"
-
-	"github.com/yaruz/app/internal/pkg/session"
 
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/pbkdf2"
@@ -20,6 +21,10 @@ import (
 
 // Service encapsulates the authentication logic.
 type Service interface {
+	GetSignUpUrl() string
+	GetSignInUrl() string
+	SignIn(code string, state string) (auth.Claims, error)
+	SignUp()
 	// authenticate authenticates a user using username and password.
 	// It returns a JWT token if authentication succeeds. Otherwise, an error is returned.
 	Login(ctx context.Context, username, password string) (string, error)
@@ -28,24 +33,24 @@ type Service interface {
 	StringTokenValidation(ctx context.Context, stringToken string) (resCtx context.Context, isValid bool, err error)
 }
 
-// Identity represents an authenticated user identity.
-type Identity interface {
-	// GetID returns the user ID.
-	GetID() string
-	// GetName returns the user name.
-	GetName() string
-}
-
 type UserService interface {
 }
 
 type service struct {
-	signingKey        string
-	tokenExpiration   uint
-	userService       user.IService
-	logger            log.ILogger
-	sessionRepository SessionRepository
-	tokenRepository   TokenRepository
+	//signingKey        string
+	//tokenExpiration   uint
+	userService user.IService
+	logger      log.ILogger
+	//sessionRepository SessionRepository
+	//tokenRepository   TokenRepository
+	Endpoint        string
+	ClientId        string
+	ClientSecret    string
+	Organization    string
+	Application     string
+	JWTSigningKey   string
+	JWTExpiration   uint
+	SessionlifeTime uint
 }
 
 type contextKey int
@@ -57,14 +62,18 @@ const (
 )
 
 // NewService creates a new authentication service.
-func NewService(signingKey string, tokenExpiration uint, userService user.IService, logger log.ILogger, sessionRepo SessionRepository, tokenRepo TokenRepository) *service {
+func NewService(logger log.ILogger, cfg config.Auth, userService user.IService) *service {
 	return &service{
-		signingKey:        signingKey,
-		tokenExpiration:   tokenExpiration,
-		userService:       userService,
-		logger:            logger,
-		sessionRepository: sessionRepo,
-		tokenRepository:   tokenRepo,
+		logger:          logger,
+		Endpoint:        cfg.Endpoint,
+		ClientId:        cfg.ClientId,
+		ClientSecret:    cfg.ClientSecret,
+		Organization:    cfg.Organization,
+		Application:     cfg.Application,
+		JWTSigningKey:   cfg.JWTSigningKey,
+		JWTExpiration:   cfg.JWTExpiration,
+		SessionlifeTime: cfg.SessionlifeTime,
+		userService:     userService,
 	}
 }
 
