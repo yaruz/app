@@ -1,4 +1,4 @@
-package auth
+package session
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/casdoor/casdoor-go-sdk/auth"
+	auth2 "github.com/yaruz/app/internal/pkg/auth"
 	"github.com/yaruz/app/internal/pkg/config"
 	"time"
 
@@ -41,7 +42,7 @@ type service struct {
 	//tokenExpiration   uint
 	userService user.IService
 	logger      log.ILogger
-	//sessionRepository SessionRepository
+	//sessionRepository Repository
 	//tokenRepository   TokenRepository
 	Endpoint        string
 	ClientId        string
@@ -75,6 +76,17 @@ func NewService(logger log.ILogger, cfg config.Auth, userService user.IService) 
 		SessionlifeTime: cfg.SessionlifeTime,
 		userService:     userService,
 	}
+}
+
+func (s service) NewSession(ctx context.Context, userId uint, langId uint) (*session.Session, error) {
+	user, err := s.userService.Get(ctx, userId, langId)
+	if err != nil {
+		return nil, err
+	}
+	return &session.Session{
+		UserID: userId,
+		User:   *user,
+	}, nil
 }
 
 func (s service) NewUser(username, password string) (*user.User, error) {
@@ -158,7 +170,7 @@ func (s service) getTokenExpirationTime() time.Time {
 }
 
 func (s service) getStringTokenByUser(user user.User) (string, error) {
-	token := s.tokenRepository.NewTokenByData(TokenData{
+	token := s.tokenRepository.NewTokenByData(auth2.TokenData{
 		UserID:              user.ID,
 		UserName:            user.Name,
 		ExpirationTokenTime: s.getTokenExpirationTime(),

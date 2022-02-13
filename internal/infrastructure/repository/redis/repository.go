@@ -14,13 +14,3 @@ type repository struct {
 	db         redis.IDB
 	Conditions selection_condition.SelectionCondition
 }
-
-const DefaultLimit = 100
-
-func (r *repository) SetDefaultConditions(defaultConditions selection_condition.SelectionCondition) {
-	r.Conditions = defaultConditions
-
-	if r.Conditions.Limit == 0 {
-		r.Conditions.Limit = DefaultLimit
-	}
-}
