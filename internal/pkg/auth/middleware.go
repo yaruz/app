@@ -1,15 +1,11 @@
 package auth
 
 import (
-	"context"
 	"net/http"
 	"strings"
 
-	"github.com/yaruz/app/internal/pkg/session"
-
-	"github.com/minipkg/log"
-
 	routing "github.com/go-ozzo/ozzo-routing/v2"
+	"github.com/minipkg/log"
 )
 
 // Middleware returns a JWT-based authentication middleware.
@@ -39,9 +35,9 @@ func Middleware(logger log.ILogger, authService Service) routing.Handler {
 
 // CurrentUser returns the user identity from the given context.
 // Nil is returned if no user identity is found in the context.
-func CurrentSession(ctx context.Context) *session.Session {
-	if sess, ok := ctx.Value(userSessionKey).(*session.Session); ok {
-		return sess
-	}
-	return nil
-}
+//func CurrentSession(ctx context.Context) *session.Session {
+//	if sess, ok := ctx.Value(userSessionKey).(*session.Session); ok {
+//		return sess
+//	}
+//	return nil
+//}

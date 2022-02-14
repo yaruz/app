@@ -20,7 +20,7 @@ type UserRepository struct {
 
 var _ user.Repository = (*UserRepository)(nil)
 
-// New creates a new UserRepository
+// NewUserRepository creates a new UserRepository
 func NewUserRepository(repository *repository) (*UserRepository, error) {
 	return &UserRepository{repository: *repository}, nil
 }
@@ -53,17 +53,17 @@ func (r *UserRepository) instantiate(ctx context.Context, entity *entity.Entity)
 		}
 	}
 
-	phonePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnamePhone)
+	accountIDPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnameAccountID)
 	if err != nil {
 		return nil, err
 	}
-	phoneVal, ok := obj.PropertiesValues[phonePropID]
+	accountIDVal, ok := obj.PropertiesValues[accountIDPropID]
 	if ok {
-		phone, err := property.GetValueInt(phoneVal.Value)
+		accountID, err := property.GetValueText(accountIDVal.Value)
 		if err != nil {
 			return nil, errors.Wrapf(err, "UserRepository.instantiate error. ")
 		}
-		obj.Phone = uint(phone)
+		obj.AccountID = accountID
 	}
 
 	return obj, nil

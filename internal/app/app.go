@@ -4,24 +4,25 @@ import (
 	"context"
 	golog "log"
 
-	"github.com/yaruz/app/internal/domain/advertiser"
-	"github.com/yaruz/app/internal/domain/advertising_campaign"
-	"github.com/yaruz/app/internal/domain/offer"
-
-	"github.com/yaruz/app/internal/infrastructure/repository/yaruzplatform"
-
-	"github.com/yaruz/app/pkg/yarus_platform"
-
 	"github.com/pkg/errors"
 
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/db/redis"
 	"github.com/minipkg/db/redis/cache"
 	"github.com/minipkg/log"
+
+	"github.com/yaruz/app/pkg/yarus_platform"
+
+	"github.com/yaruz/app/internal/domain/advertiser"
+	"github.com/yaruz/app/internal/domain/advertising_campaign"
+	"github.com/yaruz/app/internal/domain/offer"
+	"github.com/yaruz/app/internal/domain/session"
+	"github.com/yaruz/app/internal/domain/sn_account"
+	"github.com/yaruz/app/internal/domain/user"
+	redisrepo "github.com/yaruz/app/internal/infrastructure/repository/redis"
+	"github.com/yaruz/app/internal/infrastructure/repository/yaruzplatform"
 	"github.com/yaruz/app/internal/pkg/apperror"
 	"github.com/yaruz/app/internal/pkg/config"
-
-	"github.com/yaruz/app/internal/domain/user"
 )
 
 // App struct is the common part of all applications
@@ -50,6 +51,9 @@ type Auth struct {
 type Domain struct {
 	User                          user.IService
 	userRepository                user.Repository
+	SessionRepository             session.Repository
+	SnAccount                     sn_account.IService
+	snAccountRepository           sn_account.Repository
 	Advertiser                    advertiser.IService
 	advertiserRepository          advertiser.Repository
 	AdvertisingCampaign           advertising_campaign.IService
@@ -117,6 +121,11 @@ func (app *App) Init() (err error) {
 func (app *App) SetupRepositories() (err error) {
 	var ok bool
 
+	app.Domain.SessionRepository, err = redisrepo.NewSessionRepository(app.Infra.Redis, app.Cfg.Auth.SessionlifeTime)
+	if err != nil {
+		golog.Fatalf("Can not get session repository, error happened: %v", err)
+	}
+
 	userRepo, err := yaruzplatform.GetRepository(app.Infra.Logger, app.Infra.YaruzRepository, user.EntityType)
 	if err != nil {
 		golog.Fatalf("Can not get yaruz repository for entity %q, error happened: %v", user.EntityType, err)
@@ -125,6 +134,16 @@ func (app *App) SetupRepositories() (err error) {
 	app.Domain.userRepository, ok = userRepo.(user.Repository)
 	if !ok {
 		return errors.Errorf("Can not cast yaruz repository for entity %q to %vRepository. Repo: %v", user.EntityType, user.EntityType, userRepo)
+	}
+
+	snAccountRepo, err := yaruzplatform.GetRepository(app.Infra.Logger, app.Infra.YaruzRepository, sn_account.EntityType)
+	if err != nil {
+		golog.Fatalf("Can not get yaruz repository for entity %q, error happened: %v", sn_account.EntityType, err)
+	}
+
+	app.Domain.snAccountRepository, ok = snAccountRepo.(sn_account.Repository)
+	if !ok {
+		return errors.Errorf("Can not cast yaruz repository for entity %q to %vRepository. Repo: %v", sn_account.EntityType, sn_account.EntityType, snAccountRepo)
 	}
 
 	advertiserRepo, err := yaruzplatform.GetRepository(app.Infra.Logger, app.Infra.YaruzRepository, advertiser.EntityType)
@@ -169,6 +188,7 @@ func (app *App) SetupRepositories() (err error) {
 
 func (app *App) SetupServices() {
 	app.Domain.User = user.NewService(app.Infra.Logger, app.Domain.userRepository)
+	app.Domain.SnAccount = sn_account.NewService(app.Infra.Logger, app.Domain.snAccountRepository)
 	app.Domain.Advertiser = advertiser.NewService(app.Infra.Logger, app.Domain.advertiserRepository)
 	app.Domain.AdvertisingCampaign = advertising_campaign.NewService(app.Infra.Logger, app.Domain.advertisingCampaignRepository)
 	app.Domain.Offer = offer.NewService(app.Infra.Logger, app.Domain.offerRepository)

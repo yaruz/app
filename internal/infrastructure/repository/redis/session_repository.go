@@ -16,6 +16,7 @@ import (
 )
 
 const (
+	keyFormatForSession = "%s%s"
 	keyPrefixForSession = "session_"
 )
 
@@ -27,7 +28,7 @@ type SessionRepository struct {
 
 var _ session.Repository = (*SessionRepository)(nil)
 
-// New creates a new SessionRepository
+// NewSessionRepository creates a new SessionRepository
 func NewSessionRepository(dbase redis.IDB, sessionLifeTimeInHours uint) (*SessionRepository, error) {
 	r := &SessionRepository{
 		repository: repository{
@@ -39,10 +40,10 @@ func NewSessionRepository(dbase redis.IDB, sessionLifeTimeInHours uint) (*Sessio
 }
 
 func (r SessionRepository) Key(userId uint) string {
-	return fmt.Sprintf("%s%s", keyPrefixForSession, strconv.FormatUint(uint64(userId), 10))
+	return fmt.Sprintf(keyFormatForSession, keyPrefixForSession, strconv.FormatUint(uint64(userId), 10))
 }
 
-// GetByUserID returns the Session with the specified user ID.
+// Get returns the Session with the specified user ID.
 func (r SessionRepository) Get(ctx context.Context, userId uint) (*session.Session, error) {
 	var entity session.Session
 	res, err := r.db.DB().Get(ctx, r.Key(userId)).Result()
@@ -75,7 +76,7 @@ func (r SessionRepository) Update(ctx context.Context, entity *session.Session) 
 func (r SessionRepository) Set(ctx context.Context, entity *session.Session) error {
 	//var _ encoding.BinaryMarshaler = entity
 
-	if err := r.db.DB().Set(ctx, r.Key(entity.JwtClaims.User.Id), entity, r.SessionLifeTime).Err(); err != nil {
+	if err := r.db.DB().Set(ctx, r.Key(entity.User.ID), entity, r.SessionLifeTime).Err(); err != nil {
 		return errors.Wrapf(apperror.ErrInternal, "Create() error: %v", err)
 	}
 	return nil

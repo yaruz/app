@@ -56,13 +56,13 @@ entitytypes:
             name: "email"
           rus:
             name: "email"
-      - sysname: "User.Phone"
-        propertytype: "int"
+      - sysname: "User.AccountID"
+        propertytype: "text"
         texts:
           eng:
-            name: "phone"
+            name: "account ID"
           rus:
-            name: "телефон"
+            name: "ID аккаунта"
   - sysname: "Advertiser"
     texts:
       eng:
@@ -121,6 +121,14 @@ entitytypes:
             name: "дата завершения"
 
 relations:
+  - sysname: "User.SnAccount"
+    texts:
+      eng:
+        name: "social nets accounts"
+      rus:
+        name: "аккаунты в социальных сетях"
+    UndependedEntityType: "SnAccount"
+    DependedEntityType: "User"
   - sysname: "Advertiser.AdvertisingCampaigns"
     texts:
       eng:

@@ -1080,7 +1080,7 @@ func (c dataTestController) dataCreate(ctx context.Context, langId uint) ([]user
 			return nil, nil, nil, nil, err
 		}
 
-		if err = user.SetPhone(ctx, users[i].Phone); err != nil {
+		if err = user.SetAccountID(ctx, users[i].Phone); err != nil {
 			return nil, nil, nil, nil, err
 		}
 

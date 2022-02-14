@@ -1,23 +1,24 @@
-package session
+package auth
 
 import (
 	"bytes"
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/casdoor/casdoor-go-sdk/auth"
-	auth2 "github.com/yaruz/app/internal/pkg/auth"
-	"github.com/yaruz/app/internal/pkg/config"
 	"time"
 
 	"github.com/pkg/errors"
-	"golang.org/x/crypto/pbkdf2"
 
-	"github.com/yaruz/app/internal/domain/user"
+	"github.com/casdoor/casdoor-go-sdk/auth"
+	"golang.org/x/crypto/pbkdf2"
 
 	"github.com/minipkg/log"
 	"github.com/minipkg/ozzo_routing/errorshandler"
+
+	"github.com/yaruz/app/internal/pkg/config"
+
+	"github.com/yaruz/app/internal/domain/session"
+	"github.com/yaruz/app/internal/domain/user"
 )
 
 // Service encapsulates the authentication logic.
@@ -28,9 +29,9 @@ type Service interface {
 	SignUp()
 	// authenticate authenticates a user using username and password.
 	// It returns a JWT token if authentication succeeds. Otherwise, an error is returned.
-	Login(ctx context.Context, username, password string) (string, error)
-	Register(ctx context.Context, username, password string) (string, error)
-	NewUser(username, password string) (*user.User, error)
+	//Login(ctx context.Context, username, password string) (string, error)
+	//Register(ctx context.Context, username, password string) (string, error)
+	//NewUser(username, password string) (*user.User, error)
 	StringTokenValidation(ctx context.Context, stringToken string) (resCtx context.Context, isValid bool, err error)
 }
 
@@ -42,7 +43,7 @@ type service struct {
 	//tokenExpiration   uint
 	userService user.IService
 	logger      log.ILogger
-	//sessionRepository Repository
+	session     session.Repository
 	//tokenRepository   TokenRepository
 	Endpoint        string
 	ClientId        string
@@ -63,7 +64,7 @@ const (
 )
 
 // NewService creates a new authentication service.
-func NewService(logger log.ILogger, cfg config.Auth, userService user.IService) *service {
+func NewService(logger log.ILogger, cfg config.Auth, userService user.IService, session session.Repository) *service {
 	return &service{
 		logger:          logger,
 		Endpoint:        cfg.Endpoint,
@@ -75,6 +76,7 @@ func NewService(logger log.ILogger, cfg config.Auth, userService user.IService) 
 		JWTExpiration:   cfg.JWTExpiration,
 		SessionlifeTime: cfg.SessionlifeTime,
 		userService:     userService,
+		session:         session,
 	}
 }
 
@@ -84,8 +86,7 @@ func (s service) NewSession(ctx context.Context, userId uint, langId uint) (*ses
 		return nil, err
 	}
 	return &session.Session{
-		UserID: userId,
-		User:   *user,
+		User: *user,
 	}, nil
 }
 
@@ -170,7 +171,7 @@ func (s service) getTokenExpirationTime() time.Time {
 }
 
 func (s service) getStringTokenByUser(user user.User) (string, error) {
-	token := s.tokenRepository.NewTokenByData(auth2.TokenData{
+	token := s.tokenRepository.NewTokenByData(TokenData{
 		UserID:              user.ID,
 		UserName:            user.Name,
 		ExpirationTokenTime: s.getTokenExpirationTime(),
