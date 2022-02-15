@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"github.com/yaruz/app/internal/pkg/auth"
 	golog "log"
 
 	"github.com/pkg/errors"
@@ -51,6 +52,7 @@ type Auth struct {
 type Domain struct {
 	User                          user.IService
 	userRepository                user.Repository
+	Auth                          auth.Service
 	SessionRepository             session.Repository
 	SnAccount                     sn_account.IService
 	snAccountRepository           sn_account.Repository
@@ -188,6 +190,7 @@ func (app *App) SetupRepositories() (err error) {
 
 func (app *App) SetupServices() {
 	app.Domain.User = user.NewService(app.Infra.Logger, app.Domain.userRepository)
+	app.Domain.Auth = auth.NewService(app.Infra.Logger, app.Cfg.Auth, app.Domain.User, app.Domain.SessionRepository)
 	app.Domain.SnAccount = sn_account.NewService(app.Infra.Logger, app.Domain.snAccountRepository)
 	app.Domain.Advertiser = advertiser.NewService(app.Infra.Logger, app.Domain.advertiserRepository)
 	app.Domain.AdvertisingCampaign = advertising_campaign.NewService(app.Infra.Logger, app.Domain.advertisingCampaignRepository)

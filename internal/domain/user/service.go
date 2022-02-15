@@ -13,6 +13,7 @@ import (
 type IService interface {
 	New(ctx context.Context) (*User, error)
 	Get(ctx context.Context, id uint, langID uint) (*User, error)
+	GetByAccountID(ctx context.Context, accountId string, langID uint) (*User, error)
 	Query(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) ([]User, error)
 	First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*User, error)
 	Count(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (uint, error)
@@ -55,6 +56,16 @@ func (s *service) Get(ctx context.Context, id uint, langID uint) (*User, error) 
 		return nil, errors.Wrapf(err, "Can not get a %v by id: %v", EntityType, id)
 	}
 	return entity, nil
+}
+
+func (s *service) GetByAccountID(ctx context.Context, accountId string, langID uint) (*User, error) {
+	return s.repository.First(ctx, &selection_condition.SelectionCondition{
+		Where: selection_condition.WhereCondition{
+			Field:     PropertySysnameAccountID,
+			Condition: selection_condition.ConditionEq,
+			Value:     accountId,
+		},
+	}, langID)
 }
 
 // Query returns the items with the specified offset and limit.

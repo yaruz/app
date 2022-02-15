@@ -52,12 +52,12 @@ func (e *User) SetEmail(ctx context.Context, value string) error {
 }
 
 func (e *User) SetAccountID(ctx context.Context, value string) error {
-	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameAccountID, 0)
+	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameAccountID, 1)
 	if err != nil {
 		return err
 	}
 
-	if err = e.Entity.SetValueForProperty(prop, value, 0); err != nil {
+	if err = e.Entity.SetValueForProperty(prop, value, 1); err != nil {
 		return err
 	}
 

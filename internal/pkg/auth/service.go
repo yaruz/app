@@ -80,14 +80,57 @@ func NewService(logger log.ILogger, cfg config.Auth, userService user.IService, 
 	}
 }
 
-func (s service) NewSession(ctx context.Context, userId uint, langId uint) (*session.Session, error) {
-	user, err := s.userService.Get(ctx, userId, langId)
+func (s service) NewSession(ctx context.Context, accountId string, langId uint) (*session.Session, error) {
+	user, err := s.userService.GetByAccountID(ctx, accountId, langId)
 	if err != nil {
 		return nil, err
 	}
 	return &session.Session{
 		User: *user,
 	}, nil
+}
+
+func (s service) createSession(ctx context.Context, user user.User) (string, error) {
+	sess, err := s.NewSession(ctx, user.ID)
+	if err != nil {
+		return "", err
+	}
+	sess.Token = token
+	sess.User = user
+	sess.Data = session.Data{
+		UserID:              user.ID,
+		UserName:            user.Name,
+		ExpirationTokenTime: s.getTokenExpirationTime(),
+	}
+
+	err = s.sessionRepository.Create(ctx, sess)
+	if err != nil {
+		return "", err
+	}
+
+	ctx = context.WithValue(
+		ctx,
+		userSessionKey,
+		sess,
+	)
+	sess.Ctx = ctx
+	return token, nil
+}
+
+func (s service) updateSession(ctx context.Context, user user.User, sess *session.Session) (string, error) {
+	token, err := s.getStringTokenByUser(user)
+	if err != nil {
+		return "", err
+	}
+	sess.Token = token
+	sess.User = user
+	sess.Data = session.Data{
+		UserID:              user.ID,
+		UserName:            user.Name,
+		ExpirationTokenTime: s.getTokenExpirationTime(),
+	}
+
+	return token, s.sessionRepository.Update(ctx, sess)
 }
 
 func (s service) NewUser(username, password string) (*user.User, error) {
@@ -116,54 +159,6 @@ func (s service) Login(ctx context.Context, username, password string) (string, 
 		return s.createSession(ctx, *user)
 	}
 	return s.updateSession(ctx, *user, session)
-}
-
-func (s service) updateSession(ctx context.Context, user user.User, sess *session.Session) (string, error) {
-	token, err := s.getStringTokenByUser(user)
-	if err != nil {
-		return "", err
-	}
-	sess.Token = token
-	sess.User = user
-	sess.Data = session.Data{
-		UserID:              user.ID,
-		UserName:            user.Name,
-		ExpirationTokenTime: s.getTokenExpirationTime(),
-	}
-
-	return token, s.sessionRepository.Update(ctx, sess)
-}
-
-func (s service) createSession(ctx context.Context, user user.User) (string, error) {
-	token, err := s.getStringTokenByUser(user)
-	if err != nil {
-		return "", err
-	}
-
-	sess, err := s.sessionRepository.NewEntity(ctx, user.ID)
-	if err != nil {
-		return "", err
-	}
-	sess.Token = token
-	sess.User = user
-	sess.Data = session.Data{
-		UserID:              user.ID,
-		UserName:            user.Name,
-		ExpirationTokenTime: s.getTokenExpirationTime(),
-	}
-
-	err = s.sessionRepository.Create(ctx, sess)
-	if err != nil {
-		return "", err
-	}
-
-	ctx = context.WithValue(
-		ctx,
-		userSessionKey,
-		sess,
-	)
-	sess.Ctx = ctx
-	return token, nil
 }
 
 func (s service) getTokenExpirationTime() time.Time {
