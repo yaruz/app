@@ -19,6 +19,7 @@ const (
 	SysnameDate     = "date"
 	SysnameTime     = "time"
 	SysnameText     = "text"
+	SysnameUText    = "utext"
 	IDRelation      = 1
 	IDBoolean       = 2
 	IDInt           = 3
@@ -26,7 +27,8 @@ const (
 	IDDate          = 5
 	IDTime          = 6
 	IDText          = 7
-	Count           = 6 // для табличной интерпретации
+	IDUText         = 8
+	Count           = 7 // для табличной интерпретации
 )
 
 var ValidTypesIDs = []interface{}{
@@ -37,6 +39,7 @@ var ValidTypesIDs = []interface{}{
 	uint(IDDate),
 	uint(IDTime),
 	uint(IDText),
+	uint(IDUText),
 }
 
 var fl float64

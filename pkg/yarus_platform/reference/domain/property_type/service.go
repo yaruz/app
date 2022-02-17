@@ -3,17 +3,14 @@ package property_type
 import (
 	"context"
 
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_lang"
-
-	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
-
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type2property_view_type"
-
-	"github.com/minipkg/selection_condition"
-
 	"github.com/pkg/errors"
 
 	"github.com/minipkg/log"
+	"github.com/minipkg/selection_condition"
+
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type2property_view_type"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_lang"
+	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 )
 
 // IService encapsulates usecase logic.
@@ -100,6 +97,9 @@ func (s *service) DataInit(ctx context.Context) error {
 		},
 		{
 			Sysname: SysnameText,
+		},
+		{
+			Sysname: SysnameUText,
 		},
 	}
 

@@ -2,17 +2,18 @@ package gorm
 
 import (
 	"github.com/pkg/errors"
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/bool_value"
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/date_value"
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/float_value"
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/int_value"
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/time_value"
 
 	"github.com/minipkg/log"
 	"github.com/minipkg/selection_condition"
 
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/bool_value"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/date_value"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/float_value"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/int_value"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_value"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/time_value"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/utext_value"
 )
 
 // IRepository is an interface of repository
@@ -44,9 +45,6 @@ func GetRepository(logger log.ILogger, mapReducer IMapReducer, entityName string
 
 		r.model = entity.New()
 		repo, err = NewEntityRepository(r, valueRepositories)
-	case text_value.EntityName:
-		r.model = text_value.New()
-		repo, err = NewTextValueRepository(r, langFinder)
 	case bool_value.EntityName:
 		r.model = bool_value.New()
 		repo, err = NewBoolValueRepository(r)
@@ -62,6 +60,9 @@ func GetRepository(logger log.ILogger, mapReducer IMapReducer, entityName string
 	case time_value.EntityName:
 		r.model = time_value.New()
 		repo, err = NewTimeValueRepository(r)
+	case utext_value.EntityName:
+		r.model = utext_value.New()
+		repo, err = NewUTextValueRepository(r)
 	default:
 		err = errors.Errorf("Text for entity %q not found", entityName)
 	}
@@ -69,15 +70,6 @@ func GetRepository(logger log.ILogger, mapReducer IMapReducer, entityName string
 }
 
 func (r *repository) getValueRepositories(logger log.ILogger, mapReducer IMapReducer, langFinder entity.LangFinder) (*entity.ValueRepositories, error) {
-	textValueRepo, err := GetRepository(logger, mapReducer, text_value.EntityName, langFinder)
-	if err != nil {
-		return nil, errors.Wrapf(err, "Can not get db repository for entity %q, error happened: %v", text_value.EntityName, err)
-	}
-	textValueRepository, ok := textValueRepo.(text_value.Repository)
-	if !ok {
-		return nil, errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", text_value.EntityName, text_value.EntityName, textValueRepo)
-	}
-
 	boolValueRepo, err := GetRepository(logger, mapReducer, bool_value.EntityName, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Can not get db repository for entity %q, error happened: %v", bool_value.EntityName, err)
@@ -123,12 +115,31 @@ func (r *repository) getValueRepositories(logger log.ILogger, mapReducer IMapRed
 		return nil, errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", time_value.EntityName, time_value.EntityName, timeValueRepo)
 	}
 
+	textValueRepo, err := GetRepository(logger, mapReducer, text_value.EntityName, langFinder)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Can not get db repository for entity %q, error happened: %v", text_value.EntityName, err)
+	}
+	textValueRepository, ok := textValueRepo.(text_value.Repository)
+	if !ok {
+		return nil, errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", text_value.EntityName, text_value.EntityName, textValueRepo)
+	}
+
+	utextValueRepo, err := GetRepository(logger, mapReducer, utext_value.EntityName, langFinder)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Can not get db repository for entity %q, error happened: %v", utext_value.EntityName, err)
+	}
+	utextValueRepository, ok := utextValueRepo.(utext_value.Repository)
+	if !ok {
+		return nil, errors.Errorf("Can not cast DB repository for entity %q to %vRepository. Repo: %v", utext_value.EntityName, utext_value.EntityName, utextValueRepo)
+	}
+
 	return &entity.ValueRepositories{
-		Text:  textValueRepository,
 		Bool:  boolValueRepository,
 		Int:   intValueRepository,
 		Float: floatValueRepository,
 		Date:  dateValueRepository,
 		Time:  timeValueRepository,
+		Text:  textValueRepository,
+		UText: utextValueRepository,
 	}, nil
 }

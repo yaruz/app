@@ -43,6 +43,8 @@ func (v *PropertyValue) SetValue(value interface{}, langID uint) (err error) {
 		v.Value, err = property.GetValueTime(value)
 	case property_type.IDText:
 		v.Value, err = property.GetValueText(value)
+	case property_type.IDUText:
+		v.Value, err = property.GetValueText(value)
 	default:
 		err = errors.Errorf("Can not set value to PropertyValue: unknown PropertyTypeID = %v.", v.Property.PropertyTypeID)
 	}

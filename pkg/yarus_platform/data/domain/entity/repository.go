@@ -7,18 +7,19 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/date_value"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/float_value"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/int_value"
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/time_value"
-
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_value"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/time_value"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/utext_value"
 )
 
 type ValueRepositories struct {
-	Text  text_value.Repository
 	Bool  bool_value.Repository
 	Int   int_value.Repository
 	Float float_value.Repository
 	Date  date_value.Repository
 	Time  time_value.Repository
+	Text  text_value.Repository
+	UText utext_value.Repository
 }
 
 // Repository encapsulates the logic to access albums from the data source.

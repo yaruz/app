@@ -123,6 +123,12 @@ LOOP:
 					err = errors.Errorf("value type must be a text, value: %#v", itemVal)
 					break LOOP
 				}
+
+			case property_type.IDUText:
+				if _, err := GetValueText(itemVal); err != nil {
+					err = errors.Errorf("value type must be a text, value: %#v", itemVal)
+					break LOOP
+				}
 			}
 		}
 	}

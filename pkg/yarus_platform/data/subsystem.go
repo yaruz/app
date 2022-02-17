@@ -12,6 +12,7 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/int_value"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_value"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/time_value"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/utext_value"
 	"github.com/yaruz/app/pkg/yarus_platform/data/infrastructure/repository/gorm"
 	"github.com/yaruz/app/pkg/yarus_platform/infrastructure"
 	"github.com/yaruz/app/pkg/yarus_platform/reference"
@@ -52,6 +53,7 @@ func (d *DataSubsystem) autoMigrate(sharding infrastructure.Sharding) error {
 				&date_value.DateValue{},
 				&time_value.TimeValue{},
 				&text_value.TextValue{},
+				&utext_value.UTextValue{},
 			)
 		})
 	}

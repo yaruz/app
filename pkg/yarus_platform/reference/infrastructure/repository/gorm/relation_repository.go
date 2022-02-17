@@ -3,23 +3,22 @@ package gorm
 import (
 	"context"
 
-	"gorm.io/gorm/clause"
-
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_source"
-
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
-
-	"github.com/yaruz/app/internal/pkg/apperror"
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
-
 	"github.com/pkg/errors"
+
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/selection_condition"
+
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type2property"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_source"
 	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
-	"gorm.io/gorm"
+
+	"github.com/yaruz/app/internal/pkg/apperror"
 )
 
 // RelationRepository is a repository for the model entity

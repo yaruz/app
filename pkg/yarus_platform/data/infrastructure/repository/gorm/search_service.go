@@ -17,6 +17,7 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/int_value"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_value"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/time_value"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/utext_value"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
 	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 )
@@ -193,6 +194,7 @@ func (s *SearchService) instantiateItems(searchResults []SearchResult) []entity.
 		s.processDateValue(e, &propValsMap, &searchResult)
 		s.processTimeValue(e, &propValsMap, &searchResult)
 		s.processTextValue(e, &propValsMap, &searchResult)
+		s.processUTextValue(e, &propValsMap, &searchResult)
 
 		entitiesMap[e.ID] = e
 	}
@@ -315,6 +317,25 @@ func (s *SearchService) processTextValue(e *entity.Entity, propValsMap *map[uint
 				LangID:     searchResult.TxtLangID,
 				PropertyID: searchResult.TxtPropertyID,
 				Value:      searchResult.TxtValue,
+			})
+		}
+	}
+}
+
+func (s *SearchService) processUTextValue(e *entity.Entity, propValsMap *map[uint]map[uint]map[uint]struct{}, searchResult *SearchResult) {
+	if searchResult.IID > 0 {
+		if _, ok := (*propValsMap)[e.ID][property_type.IDUText][searchResult.IID]; !ok {
+			(*propValsMap)[e.ID][property_type.IDUText][searchResult.IID] = struct{}{}
+
+			if e.UTextValues == nil {
+				e.UTextValues = make([]utext_value.UTextValue, 0, 1)
+			}
+
+			e.UTextValues = append(e.UTextValues, utext_value.UTextValue{
+				ID:         searchResult.UTxtID,
+				EntityID:   e.ID,
+				PropertyID: searchResult.UTxtPropertyID,
+				Value:      searchResult.UTxtValue,
 			})
 		}
 	}

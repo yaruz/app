@@ -2,17 +2,16 @@ package gorm
 
 import (
 	"context"
+	
+	"github.com/pkg/errors"
 
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_lang"
-
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
+	"gorm.io/gorm"
 
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/log"
 	"github.com/minipkg/selection_condition"
-	"github.com/pkg/errors"
-	"gorm.io/gorm"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type2property"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_group"
@@ -20,6 +19,7 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type2property_view_type"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_unit"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_view_type"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_lang"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_source"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_value"
 )

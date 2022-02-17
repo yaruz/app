@@ -14,6 +14,7 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/int_value"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/text_value"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/time_value"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/utext_value"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/entity_type"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type"
@@ -81,12 +82,13 @@ type Entity struct {
 	EntityTypeID     uint                     `gorm:"type:bigint not null;index" json:"entityTypeID"`
 	PropertiesValues map[uint]PropertyValue   `gorm:"-" json:"propertiesValues"`
 	RelationsValues  map[uint]RelationValue   `gorm:"-" json:"relationsValues"`
-	TextValues       []text_value.TextValue   `json:"-"`
 	BoolValues       []bool_value.BoolValue   `json:"-"`
 	IntValues        []int_value.IntValue     `json:"-"`
 	FloatValues      []float_value.FloatValue `json:"-"`
 	DateValues       []date_value.DateValue   `json:"-"`
 	TimeValues       []time_value.TimeValue   `json:"-"`
+	TextValues       []text_value.TextValue   `json:"-"`
+	UTextValues      []utext_value.UTextValue `json:"-"`
 	PropertyFinder   PropertyFinder           `gorm:"-" json:"-"`
 }
 
@@ -149,6 +151,8 @@ func (e *Entity) DeletePropertyValues(propertyID uint) {
 			e.deletePropertyTimeValues(propertyID)
 		case property_type.IDText:
 			e.deletePropertyTextValues(propertyID)
+		case property_type.IDUText:
+			e.deletePropertyUTextValues(propertyID)
 		}
 	} else if relOk {
 		delete(e.RelationsValues, propertyID)
@@ -222,9 +226,20 @@ func (e *Entity) deletePropertyTextValues(propertyID uint) {
 	e.TextValues = items
 }
 
+// Удаляет все значения UTextValues для заданного propertyID
+func (e *Entity) deletePropertyUTextValues(propertyID uint) {
+	items := make([]utext_value.UTextValue, 0, len(e.UTextValues))
+	for i := range e.UTextValues {
+		if e.UTextValues[i].PropertyID != propertyID {
+			items = append(items, e.UTextValues[i])
+		}
+	}
+	e.UTextValues = items
+}
+
 // Возвращает количество всех значений всех свойств
 func (e *Entity) PropertiesValuesCount() int {
-	return len(e.BoolValues) + len(e.IntValues) + len(e.FloatValues) + len(e.DateValues) + len(e.TimeValues) + len(e.TextValues)
+	return len(e.BoolValues) + len(e.IntValues) + len(e.FloatValues) + len(e.DateValues) + len(e.TimeValues) + len(e.TextValues) + len(e.UTextValues)
 }
 
 // Возвращает слайс ID всех свойств, значения которых заданны для entity
@@ -252,6 +267,10 @@ func (e *Entity) GetPropertiesIDs() []interface{} {
 	}
 
 	for _, val := range e.TextValues {
+		propertiesIdsMap[val.PropertyID] = struct{}{}
+	}
+
+	for _, val := range e.UTextValues {
 		propertiesIdsMap[val.PropertyID] = struct{}{}
 	}
 
@@ -310,6 +329,12 @@ func (e *Entity) propertiesValuesInit(langID uint) error {
 	}
 
 	for _, propertyValue := range e.TextValues {
+		if err := e.setValueToExistingPropertyValue(propertyValue.PropertyID, propertyValue.Value, langID); err != nil {
+			return err
+		}
+	}
+
+	for _, propertyValue := range e.UTextValues {
 		if err := e.setValueToExistingPropertyValue(propertyValue.PropertyID, propertyValue.Value, langID); err != nil {
 			return err
 		}
@@ -416,6 +441,13 @@ func (e *Entity) AddValueForProperty(prop *property.Property, value interface{},
 		e.TextValues = append(e.TextValues, text_value.TextValue{
 			EntityID:   e.ID,
 			LangID:     propertyValue.LangID,
+			PropertyID: propertyID,
+			Value:      value,
+		})
+	case property_type.IDUText:
+		value, _ := property.GetValueText(propertyValue.Value)
+		e.UTextValues = append(e.UTextValues, utext_value.UTextValue{
+			EntityID:   e.ID,
 			PropertyID: propertyID,
 			Value:      value,
 		})

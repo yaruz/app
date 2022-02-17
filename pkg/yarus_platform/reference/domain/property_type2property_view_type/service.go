@@ -3,11 +3,10 @@ package property_type2property_view_type
 import (
 	"context"
 
-	"github.com/minipkg/selection_condition"
-
 	"github.com/pkg/errors"
 
 	"github.com/minipkg/log"
+	"github.com/minipkg/selection_condition"
 )
 
 // IService encapsulates usecase logic.

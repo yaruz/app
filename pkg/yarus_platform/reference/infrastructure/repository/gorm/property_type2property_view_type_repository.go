@@ -4,15 +4,15 @@ import (
 	"context"
 	"errors"
 
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type2property_view_type"
-
-	"github.com/yaruz/app/internal/pkg/apperror"
 	"gorm.io/gorm"
 
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/selection_condition"
 
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property_type2property_view_type"
 	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
+
+	"github.com/yaruz/app/internal/pkg/apperror"
 )
 
 // PropertyType2PropertyViewTypeRepository is a repository for the model entity
