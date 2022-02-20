@@ -40,14 +40,15 @@ type DB struct {
 }
 
 type Auth struct {
-	Endpoint        string
-	ClientId        string
-	ClientSecret    string
-	Organization    string
-	Application     string
-	JWTSigningKey   string
-	JWTExpiration   uint
-	SessionlifeTime uint
+	Endpoint          string
+	ClientId          string
+	ClientSecret      string
+	Organization      string
+	Application       string
+	SignInRedirectURL string
+	JWTSigningKey     string
+	JWTExpiration     uint
+	SessionlifeTime   uint
 }
 
 func (c *Configuration) YaruzConfig() *yaruz_config.Configuration {

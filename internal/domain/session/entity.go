@@ -8,7 +8,7 @@ import (
 )
 
 type Session struct {
-	JwtClaims  auth.Claims
-	User       user.User
+	JwtClaims  *auth.Claims
+	User       *user.User
 	SnAccounts []sn_account.SnAccount
 }

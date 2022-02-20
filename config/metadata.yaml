@@ -50,14 +50,14 @@ entitytypes:
         name: "пользователь"
     properties:
       - sysname: "User.Email"
-        propertytype: "text"
+        propertytype: "utext"
         texts:
           eng:
             name: "email"
           rus:
             name: "email"
       - sysname: "User.AccountID"
-        propertytype: "text"
+        propertytype: "utext"
         texts:
           eng:
             name: "account ID"

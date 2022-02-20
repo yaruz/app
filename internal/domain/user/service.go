@@ -59,7 +59,7 @@ func (s *service) Get(ctx context.Context, id uint, langID uint) (*User, error) 
 }
 
 func (s *service) GetByAccountID(ctx context.Context, accountId string, langID uint) (*User, error) {
-	return s.repository.First(ctx, &selection_condition.SelectionCondition{
+	return s.First(ctx, &selection_condition.SelectionCondition{
 		Where: selection_condition.WhereCondition{
 			Field:     PropertySysnameAccountID,
 			Condition: selection_condition.ConditionEq,

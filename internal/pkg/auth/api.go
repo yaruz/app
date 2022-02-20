@@ -4,34 +4,20 @@ import (
 	"net/http"
 
 	routing "github.com/go-ozzo/ozzo-routing/v2"
-	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/go-ozzo/ozzo-validation/v4/is"
 
 	"github.com/minipkg/log"
 	"github.com/minipkg/ozzo_routing/errorshandler"
 )
 
-type identity struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-func (i identity) Validate() error {
-	return validation.ValidateStruct(&i,
-		validation.Field(&i.Username, validation.Required, validation.Length(2, 100), is.Alphanumeric),
-		validation.Field(&i.Password, validation.Required, validation.Length(4, 100)),
-	)
-}
-
 // RegisterHandlers registers handlers for different HTTP requests.
-//	POST /api/register - регистрация
-//	POST /api/login - логин
+//	POST /api/signup - регистрация
+//	POST /api/signin - логин
 func RegisterHandlers(rg *routing.RouteGroup, service Service, logger log.ILogger) {
-	rg.Post("/login", login(service, logger))
-	rg.Post("/register", register(service, logger))
+	rg.Post("/signin", signin(service, logger))
+	rg.Post("/signup", signup(service, logger))
 }
 
-func register(service Service, logger log.ILogger) routing.Handler {
+func signup(service Service, logger log.ILogger) routing.Handler {
 	return func(c *routing.Context) error {
 		var req identity
 
@@ -58,8 +44,8 @@ func register(service Service, logger log.ILogger) routing.Handler {
 	}
 }
 
-// login returns a handler that handles user login request.
-func login(service Service, logger log.ILogger) routing.Handler {
+// signin returns a handler that handles user signin request.
+func signin(service Service, logger log.ILogger) routing.Handler {
 	return func(c *routing.Context) error {
 		var req identity
 

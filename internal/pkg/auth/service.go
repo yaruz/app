@@ -1,20 +1,15 @@
 package auth
 
 import (
-	"bytes"
 	"context"
-	"crypto/rand"
-	"crypto/sha256"
-	"time"
+	_ "embed"
+	"fmt"
 
 	"github.com/pkg/errors"
 
 	"github.com/casdoor/casdoor-go-sdk/auth"
-	"golang.org/x/crypto/pbkdf2"
-
 	"github.com/minipkg/log"
-	"github.com/minipkg/ozzo_routing/errorshandler"
-
+	"github.com/yaruz/app/internal/pkg/apperror"
 	"github.com/yaruz/app/internal/pkg/config"
 
 	"github.com/yaruz/app/internal/domain/session"
@@ -25,8 +20,9 @@ import (
 type Service interface {
 	GetSignUpUrl() string
 	GetSignInUrl() string
-	SignIn(code string, state string) (auth.Claims, error)
-	SignUp()
+	GetForgetUrl() string
+	SignIn(ctx context.Context, code, state string, langId uint) (context.Context, error)
+	SignUp(ctx context.Context, code, state string, langId uint) (context.Context, error)
 	// authenticate authenticates a user using username and password.
 	// It returns a JWT token if authentication succeeds. Otherwise, an error is returned.
 	//Login(ctx context.Context, username, password string) (string, error)
@@ -45,67 +41,70 @@ type service struct {
 	logger      log.ILogger
 	session     session.Repository
 	//tokenRepository   TokenRepository
-	Endpoint        string
-	ClientId        string
-	ClientSecret    string
-	Organization    string
-	Application     string
-	JWTSigningKey   string
-	JWTExpiration   uint
-	SessionlifeTime uint
+	Endpoint          string
+	ClientId          string
+	ClientSecret      string
+	Organization      string
+	Application       string
+	SignInRedirectURL string
+	JWTSigningKey     string
+	JWTExpiration     uint
+	SessionlifeTime   uint
 }
 
 type contextKey int
 
 const (
-	saltSize                  = 64
-	iterations                = 1e4
 	userSessionKey contextKey = iota
 )
 
+//go:embed token_jwt_key.pem
+var JwtPublicKey string
+
 // NewService creates a new authentication service.
 func NewService(logger log.ILogger, cfg config.Auth, userService user.IService, session session.Repository) *service {
-	return &service{
-		logger:          logger,
-		Endpoint:        cfg.Endpoint,
-		ClientId:        cfg.ClientId,
-		ClientSecret:    cfg.ClientSecret,
-		Organization:    cfg.Organization,
-		Application:     cfg.Application,
-		JWTSigningKey:   cfg.JWTSigningKey,
-		JWTExpiration:   cfg.JWTExpiration,
-		SessionlifeTime: cfg.SessionlifeTime,
-		userService:     userService,
-		session:         session,
+	s := &service{
+		logger:            logger,
+		Endpoint:          cfg.Endpoint,
+		ClientId:          cfg.ClientId,
+		ClientSecret:      cfg.ClientSecret,
+		Organization:      cfg.Organization,
+		Application:       cfg.Application,
+		SignInRedirectURL: cfg.SignInRedirectURL,
+		JWTSigningKey:     cfg.JWTSigningKey,
+		JWTExpiration:     cfg.JWTExpiration,
+		SessionlifeTime:   cfg.SessionlifeTime,
+		userService:       userService,
+		session:           session,
 	}
+	auth.InitConfig(s.Endpoint, s.ClientId, s.ClientSecret, JwtPublicKey, s.Organization, s.Application)
+	return s
 }
 
-func (s service) NewSession(ctx context.Context, accountId string, langId uint) (*session.Session, error) {
-	user, err := s.userService.GetByAccountID(ctx, accountId, langId)
-	if err != nil {
-		return nil, err
+func (s service) NewSession(ctx context.Context, jwtClaims *auth.Claims, user *user.User, langId uint) (*session.Session, error) {
+	if user == nil {
+		var err error
+
+		if user, err = s.userService.GetByAccountID(ctx, jwtClaims.User.Id, langId); err != nil {
+			return nil, err
+		}
 	}
+
 	return &session.Session{
-		User: *user,
+		User:      user,
+		JwtClaims: jwtClaims,
 	}, nil
 }
 
-func (s service) createSession(ctx context.Context, user user.User) (string, error) {
-	sess, err := s.NewSession(ctx, user.ID)
+func (s service) createSession(ctx context.Context, jwtClaims *auth.Claims, user *user.User, langId uint) (context.Context, *session.Session, error) {
+	sess, err := s.NewSession(ctx, jwtClaims, user, langId)
 	if err != nil {
-		return "", err
-	}
-	sess.Token = token
-	sess.User = user
-	sess.Data = session.Data{
-		UserID:              user.ID,
-		UserName:            user.Name,
-		ExpirationTokenTime: s.getTokenExpirationTime(),
+		return ctx, nil, err
 	}
 
-	err = s.sessionRepository.Create(ctx, sess)
+	err = s.session.Create(ctx, sess)
 	if err != nil {
-		return "", err
+		return ctx, nil, err
 	}
 
 	ctx = context.WithValue(
@@ -113,140 +112,137 @@ func (s service) createSession(ctx context.Context, user user.User) (string, err
 		userSessionKey,
 		sess,
 	)
-	sess.Ctx = ctx
-	return token, nil
+
+	return ctx, sess, nil
 }
 
-func (s service) updateSession(ctx context.Context, user user.User, sess *session.Session) (string, error) {
-	token, err := s.getStringTokenByUser(user)
+func (s service) UpdateSession(ctx context.Context, sess *session.Session) (context.Context, *session.Session, error) {
+	err := s.session.Update(ctx, sess)
 	if err != nil {
-		return "", err
+		return ctx, nil, err
 	}
-	sess.Token = token
+
+	ctx = context.WithValue(
+		ctx,
+		userSessionKey,
+		sess,
+	)
+
+	return ctx, sess, nil
+}
+
+func (s service) updateSession(ctx context.Context, sess *session.Session, jwtClaims *auth.Claims, user *user.User, langId uint) (context.Context, *session.Session, error) {
+	if user == nil {
+		var err error
+
+		if user, err = s.userService.GetByAccountID(ctx, jwtClaims.User.Id, langId); err != nil {
+			return ctx, nil, err
+		}
+	}
+
 	sess.User = user
-	sess.Data = session.Data{
-		UserID:              user.ID,
-		UserName:            user.Name,
-		ExpirationTokenTime: s.getTokenExpirationTime(),
+	sess.JwtClaims = jwtClaims
+
+	err := s.session.Update(ctx, sess)
+	if err != nil {
+		return ctx, nil, err
 	}
 
-	return token, s.sessionRepository.Update(ctx, sess)
+	ctx = context.WithValue(
+		ctx,
+		userSessionKey,
+		sess,
+	)
+
+	return ctx, sess, nil
 }
 
-func (s service) NewUser(username, password string) (*user.User, error) {
-	user := s.userService.NewEntity()
-	user.Name = username
+func (s service) GetSession(ctx context.Context) *session.Session {
+	return ctx.Value(userSessionKey).(*session.Session)
+}
 
-	salt, err := generateRandomBytes(saltSize)
-	if err != nil {
-		return user, errors.Wrapf(err, "could not get salt: %v", err)
-	}
-	user.Passhash = string(hashPassword([]byte(password), salt))
-	return user, nil
+func (s service) GetSignUpUrl() string {
+	return fmt.Sprintf("%s/signup/%s", s.Endpoint, s.Application)
+}
+
+func (s service) GetSignInUrl() string {
+	return fmt.Sprintf("%s/login/oauth/authorize?client_id=%s&response_type=code&scope=read&state=%s&redirect_uri=%s", s.Endpoint, s.ClientId, s.Application, s.SignInRedirectURL)
+}
+
+func (s service) GetForgetUrl() string {
+	return fmt.Sprintf("%s/forget/%s", s.Endpoint, s.Application)
 }
 
 // Login authenticates a user and generates a JWT token if authentication succeeds.
 // Otherwise, an error is returned.
-func (s service) Login(ctx context.Context, username, password string) (string, error) {
-	user, err := s.authenticate(ctx, username, password)
-
+func (s service) SignIn(ctx context.Context, code, state string, langId uint) (context.Context, error) {
+	token, err := auth.GetOAuthToken(code, state)
 	if err != nil {
-		return "", err
+		return ctx, err
 	}
 
-	session, err := s.sessionRepository.Get(ctx, user.ID)
+	if err = s.StringTokenValidation(token.AccessToken); err != nil {
+		return ctx, err
+	}
+
+	jwtClaims, err := auth.ParseJwtToken(token.AccessToken)
 	if err != nil {
-		return s.createSession(ctx, *user)
+		return ctx, err
 	}
-	return s.updateSession(ctx, *user, session)
-}
+	jwtClaims.AccessToken = token.AccessToken
 
-func (s service) getTokenExpirationTime() time.Time {
-	return time.Now().Add(time.Duration(int64(s.tokenExpiration)) * time.Hour)
-}
-
-func (s service) getStringTokenByUser(user user.User) (string, error) {
-	token := s.tokenRepository.NewTokenByData(TokenData{
-		UserID:              user.ID,
-		UserName:            user.Name,
-		ExpirationTokenTime: s.getTokenExpirationTime(),
-	})
-	return token.GenerateStringToken(s.signingKey)
-}
-
-// authenticate authenticates a user using username and password.
-// If username and password are correct, an *user.User is returned. Otherwise, error is returned.
-func (s service) authenticate(ctx context.Context, username, password string) (*user.User, error) {
-	logger := s.logger.With(ctx, "user", username)
-
-	user := s.userService.NewEntity()
-	user.Name = username
-
-	user, err := s.userService.First(ctx, user)
+	user, err := s.userService.GetByAccountID(ctx, jwtClaims.User.Id, langId)
 	if err != nil {
-		return user, errorshandler.BadRequest("User not found")
+		if !errors.Is(err, apperror.ErrNotFound) {
+			return ctx, err
+		}
+		user, err = s.signUp(ctx, jwtClaims, langId)
 	}
 
-	if comparePassword([]byte(user.Passhash), []byte(password)) {
-		logger.Infof("authentication successful")
-		return user, nil
+	sess, err := s.session.Get(ctx, user.ID)
+	if err != nil && !errors.Is(err, apperror.ErrNotFound) {
+		return ctx, err
 	}
 
-	logger.Infof("authentication failed")
-	return user, errorshandler.Unauthorized("")
+	if sess == nil {
+		ctx, sess, err = s.createSession(ctx, jwtClaims, user, langId)
+	} else {
+		ctx, sess, err = s.updateSession(ctx, sess, jwtClaims, user, langId)
+	}
+
+	//affected, err := object.UpdateMemberOnlineStatus(&claims.User, true, util.GetCurrentTime())
+	//if err != nil {
+	//	c.ResponseError(err.Error())
+	//	return
+	//}
+
+	return ctx, nil
 }
 
-func (s service) Register(ctx context.Context, username, password string) (string, error) {
-	user, err := s.NewUser(username, password)
+func (s service) signUp(ctx context.Context, jwtClaims *auth.Claims, langId uint) (*user.User, error) {
+	user, err := s.userService.New(ctx)
 	if err != nil {
-		return "", errorshandler.InternalServerError(err.Error())
+		return nil, err
 	}
 
-	if err := s.userService.Create(ctx, user); err != nil {
-		return "", errorshandler.BadRequest(err.Error())
-	}
-
-	return s.createSession(ctx, *user)
-}
-
-func (s service) StringTokenValidation(ctx context.Context, stringToken string) (resCtx context.Context, isValid bool, err error) {
-	resCtx = ctx
-	token, err := s.tokenRepository.ParseStringToken(stringToken, s.signingKey)
+	err = user.SetAccountID(ctx, jwtClaims.User.Id)
 	if err != nil {
-		return resCtx, isValid, err
+		return nil, err
 	}
 
-	session, err := s.sessionRepository.Get(ctx, token.GetData().UserID)
+	err = user.SetEmail(ctx, jwtClaims.User.Email)
 	if err != nil {
-		return resCtx, isValid, err
+		return nil, err
 	}
-	isValid = true
 
-	resCtx = context.WithValue(
-		ctx,
-		userSessionKey,
-		session,
-	)
-	session.Ctx = resCtx
-	return resCtx, isValid, nil
+	return user, s.userService.Create(ctx, user, langId)
 }
 
-// Source: https://play.golang.org/p/tAZtO7L6pm
-// hash provided clear text password and compare it to provided hash
-func comparePassword(hash, pw []byte) bool {
-	return bytes.Equal(hash, hashPassword(pw, hash[:saltSize]))
-}
-
-// hash the password with the provided salt using the pbkdf2 algorithm
-// return byte slice containing salt (first 64 bytes) and hash (last 32 bytes) => total of 96 bytes
-func hashPassword(pw, salt []byte) []byte {
-	ret := make([]byte, len(salt))
-	copy(ret, salt)
-	return append(ret, pbkdf2.Key(pw, salt, iterations, sha256.Size, sha256.New)...)
-}
-
-func generateRandomBytes(n int) ([]byte, error) {
-	b := make([]byte, n)
-	_, err := rand.Read(b)
-	return b, err
+func (s service) StringTokenValidation(stringToken string) error {
+	//	temporary validation method
+	_, err := auth.ParseJwtToken(stringToken)
+	if err != nil {
+		return err
+	}
+	return nil
 }

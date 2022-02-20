@@ -15,48 +15,31 @@
 package controller
 
 import (
-	_ "embed"
 	routing "github.com/go-ozzo/ozzo-routing/v2"
 	"github.com/minipkg/log"
 	"github.com/yaruz/app/internal/domain/user"
-
-	//"github.com/casbin/casnode/object"
-	//"github.com/casbin/casnode/util"
-	"github.com/casdoor/casdoor-go-sdk/auth"
+	"github.com/yaruz/app/internal/pkg/auth"
 )
 
-//go:embed token_jwt_key.pem
-var JwtPublicKey string
-
 type accountController struct {
-	Logger  log.ILogger
-	Service user.IService
+	Logger log.ILogger
+	User   user.IService
+	Auth   auth.Service
 }
 
 // RegisterHandlers sets up the routing of the HTTP handlers.
-func RegisterAccountHandlers(r *routing.RouteGroup, service user.IService, logger log.ILogger, authHandler routing.Handler) {
+func RegisterAccountHandlers(r *routing.RouteGroup, userService user.IService, authService auth.Service, logger log.ILogger, authHandler routing.Handler) {
 	c := accountController{
-		Logger:  logger,
-		Service: service,
+		Logger: logger,
+		User:   userService,
+		Auth:   authService,
 	}
-
-	c.initAuthConfig()
 
 	r.Get(`/account/signin`, c.signin)
 	r.Get(`/account/fb-signin`, c.fbSignin)
 	//r.Get(`/user/<id:\d+>`, c.get)
 	//r.Get("/users", c.list)
 
-}
-
-func (c *accountController) initAuthConfig() {
-	casdoorEndpoint := "http://localhost:8000"
-	clientId := "5e431f823a2bf338a213"
-	clientSecret := "6b4a40bf3dd051f717900b75b2ca56c166007834"
-	casdoorOrganization := "org"
-	casdoorApplication := "socbazar"
-
-	auth.InitConfig(casdoorEndpoint, clientId, clientSecret, JwtPublicKey, casdoorOrganization, casdoorApplication)
 }
 
 // @Title Signin
@@ -66,30 +49,13 @@ func (c *accountController) initAuthConfig() {
 // @Success 200 {object} controllers.api_controller.Response The Response object
 // @router /signin [post]
 // @Tag Account API
-func (c *accountController) signin(ctx *routing.Context) error {
-	code := ctx.Request.URL.Query().Get("code")
-	state := ctx.Request.URL.Query().Get("state")
+func (c *accountController) signin(rctx *routing.Context) error {
+	code := rctx.Request.URL.Query().Get("code")
+	state := rctx.Request.URL.Query().Get("state")
 
-	token, err := auth.GetOAuthToken(code, state)
-	if err != nil {
-		return err
-	}
+	_, err := c.Auth.SignIn(rctx.Request.Context(), code, state, langId)
 
-	claims, err := auth.ParseJwtToken(token.AccessToken)
-	if err != nil {
-		return err
-	}
-
-	//affected, err := object.UpdateMemberOnlineStatus(&claims.User, true, util.GetCurrentTime())
-	//if err != nil {
-	//	c.ResponseError(err.Error())
-	//	return
-	//}
-
-	claims.AccessToken = token.AccessToken
-	//c.SetSessionClaims(claims)
-
-	return ctx.Write(claims)
+	return rctx.Write(err)
 }
 
 func (c *accountController) fbSignin(ctx *routing.Context) error {
@@ -97,7 +63,7 @@ func (c *accountController) fbSignin(ctx *routing.Context) error {
 	token := ctx.Request.URL.Query().Get("token")
 
 	if code != "" {
-		
+
 	}
 
 	return ctx.Write(true)

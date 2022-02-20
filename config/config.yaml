@@ -52,6 +52,7 @@ auth:
   clientSecret: "6b4a40bf3dd051f717900b75b2ca56c166007834"
   organization: "org"
   application:  "socbazar"
+  SignInRedirectURL:  "http://localhost/api/account/signin"
   jwtsigningkey: "LxsKJywDL5O5PvgODZhBH12KE6k2yL8E"
   jwtexpiration: 72
   sessionlifetime: 96
