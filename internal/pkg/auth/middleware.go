@@ -10,14 +10,14 @@ import (
 
 // Middleware returns a JWT-based authentication middleware.
 func Middleware(logger log.ILogger, authService Service) routing.Handler {
-	return func(c *routing.Context) error {
-		ctx := c.Request.Context()
-		header := c.Request.Header.Get("Authorization")
+	return func(rctx *routing.Context) error {
+		ctx := rctx.Request.Context()
+		header := rctx.Request.Header.Get("Authorization")
 		message := ""
 		if strings.HasPrefix(header, "Bearer ") {
 			ctx, ok, err := authService.StringTokenValidation(ctx, header[7:])
 			if err == nil && ok {
-				*c.Request = *c.Request.WithContext(ctx)
+				*rctx.Request = *rctx.Request.WithContext(ctx)
 				return nil
 			}
 			if err != nil {
@@ -25,7 +25,7 @@ func Middleware(logger log.ILogger, authService Service) routing.Handler {
 			}
 
 		}
-		c.Response.Header().Set("WWW-Authenticate", `Bearer realm="API"`)
+		rctx.Response.Header().Set("WWW-Authenticate", `Bearer realm="API"`)
 		if message != "" {
 			return routing.NewHTTPError(http.StatusUnauthorized, message)
 		}
