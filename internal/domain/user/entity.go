@@ -20,6 +20,10 @@ type User struct {
 	Email     string
 }
 
+type AccountSettings struct {
+	LangID uint
+}
+
 var _ entity.Searchable = (*User)(nil)
 
 func (e User) EntityType() string {

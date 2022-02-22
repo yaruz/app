@@ -69,6 +69,8 @@ func (c *accountController) fbSignin(ctx *routing.Context) error {
 	return ctx.Write(true)
 }
 
+// todo: POST AccountSettings
+
 // @Title Signout
 // @Description sign out the current member
 // @Success 200 {object} controllers.api_controller.Response The Response object
