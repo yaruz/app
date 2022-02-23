@@ -27,7 +27,7 @@ type Service interface {
 	AccountSettingsUpdate(ctx context.Context, accountSettings *user.AccountSettings) (context.Context, error)
 	SessionInit(ctx context.Context, token string, accountSettings *user.AccountSettings) (context.Context, error)
 	SignIn(ctx context.Context, code, state string, accountSettings *user.AccountSettings) (context.Context, error)
-	StringTokenValidation(stringToken string) error
+	StringTokenValidation(ctx context.Context, stringToken string) error
 }
 
 var _ Service = service{}
@@ -276,7 +276,7 @@ func (s service) SignIn(ctx context.Context, code, state string, accountSettings
 		return ctx, err
 	}
 
-	if err = s.StringTokenValidation(token.AccessToken); err != nil {
+	if err = s.StringTokenValidation(ctx, token.AccessToken); err != nil {
 		return ctx, err
 	}
 
@@ -341,7 +341,7 @@ func (s service) signUp(ctx context.Context, jwtClaims *auth.Claims, langId uint
 	return user, s.userService.Create(ctx, user, langId)
 }
 
-func (s service) StringTokenValidation(stringToken string) error {
+func (s service) StringTokenValidation(ctx context.Context, stringToken string) error {
 	//	temporary validation method
 	_, err := auth.ParseJwtToken(stringToken)
 	if err != nil {

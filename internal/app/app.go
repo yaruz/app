@@ -195,7 +195,6 @@ func (app *App) SetupServices() {
 	app.Domain.Advertiser = advertiser.NewService(app.Infra.Logger, app.Domain.advertiserRepository)
 	app.Domain.AdvertisingCampaign = advertising_campaign.NewService(app.Infra.Logger, app.Domain.advertisingCampaignRepository)
 	app.Domain.Offer = offer.NewService(app.Infra.Logger, app.Domain.offerRepository)
-	//app.Auth.Service = auth.NewService(app.Cfg.JWTSigningKey, app.Cfg.JWTExpiration, app.Domain.User.Service, app.Infra.Logger, app.Auth.SessionRepository, app.Auth.TokenRepository)
 }
 
 // Run is func to run the App

@@ -1,6 +1,7 @@
 package restapi
 
 import (
+	"github.com/yaruz/app/internal/pkg/auth"
 	"log"
 	"net/http"
 	"time"
@@ -29,7 +30,12 @@ const Version = "1.0.0"
 // App is the application for API
 type App struct {
 	*commonApp.App
-	Server *http.Server
+	Server      *http.Server
+	controllers []Controller
+}
+
+type Controller interface {
+	RegisterHandlers()
 }
 
 // New func is a constructor for the ApiApp
@@ -78,19 +84,32 @@ func (app *App) buildHandler() *routing.Router {
 		ozzo_routing.SetHeader("Content-Type", "application/json; charset=UTF-8"),
 	)
 
-	authMiddleware := routing.Handler(func(context *routing.Context) error {
-		return nil
-	})
-	//authMiddleware := auth.Middleware(app.Infra.Logger, app.Auth.Service)
+	authMiddleware := auth.Middleware(app.Infra.Logger, app.Domain.Auth)
 	//
 	//auth.RegisterHandlers(api.Group(""),
 	//	app.Auth.Service,
 	//	app.Infra.Logger,
 	//)
 
-	app.RegisterHandlers(api, authMiddleware)
+	app.setupControllers(api, authMiddleware)
+
+	app.RegisterHandlers()
 
 	return router
+}
+
+func (app *App) setupControllers(rg *routing.RouteGroup, authMiddleware routing.Handler) {
+	app.controllers = append(app.controllers, controller.NewAccountController(rg, app.Domain.User, app.Domain.Auth, app.Infra.Logger, authMiddleware))
+	//app.controllers = append(app.controllers, controller.NewReferenceTestController(rgTest, app.Infra.YaruzRepository, app.Infra.Logger, authMiddleware))
+	//app.controllers = append(app.controllers, controller.NewDataTestController(rgTest, app.Infra.YaruzRepository, app.Domain.User, app.Domain.Advertiser, app.Domain.AdvertisingCampaign, app.Domain.Offer, app.Infra.Logger, authMiddleware))
+}
+
+// RegisterHandlers sets up the routing of the HTTP handlers.
+func (app *App) RegisterHandlers() {
+
+	for _, c := range app.controllers {
+		c.RegisterHandlers()
+	}
 }
 
 // Run is func to run the ApiApp
@@ -114,13 +133,4 @@ func (app *App) Run() error {
 		return err
 	}
 	return nil
-}
-
-// RegisterHandlers sets up the routing of the HTTP handlers.
-func (app *App) RegisterHandlers(rg *routing.RouteGroup, authMiddleware routing.Handler) {
-	//	Example
-	rgTest := rg.Group("/test")
-	controller.RegisterReferenceTestHandlers(rgTest, app.Infra.YaruzRepository, app.Infra.Logger, authMiddleware)
-	controller.RegisterDataTestHandlers(rgTest, app.Infra.YaruzRepository, app.Domain.User, app.Domain.Advertiser, app.Domain.AdvertisingCampaign, app.Domain.Offer, app.Infra.Logger, authMiddleware)
-	controller.RegisterAccountHandlers(rg, app.Domain.User, app.Domain.Auth, app.Infra.Logger, authMiddleware)
 }

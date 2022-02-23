@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"github.com/yaruz/app/internal/domain/user"
 	"net/http"
 	"strings"
 
@@ -13,24 +14,40 @@ func Middleware(logger log.ILogger, authService Service) routing.Handler {
 	return func(rctx *routing.Context) error {
 		ctx := rctx.Request.Context()
 		header := rctx.Request.Header.Get("Authorization")
-		message := ""
-		if strings.HasPrefix(header, "Bearer ") {
-			ctx, ok, err := authService.StringTokenValidation(ctx, header[7:])
-			if err == nil && ok {
-				*rctx.Request = *rctx.Request.WithContext(ctx)
-				return nil
-			}
-			if err != nil {
-				message = err.Error()
-			}
+		token := ""
+		var err error
 
+		if strings.HasPrefix(header, "Bearer ") {
+			token = header[7:]
+		} else {
+			return UnauthorizedError(rctx, "")
 		}
-		rctx.Response.Header().Set("WWW-Authenticate", `Bearer realm="API"`)
-		if message != "" {
-			return routing.NewHTTPError(http.StatusUnauthorized, message)
+
+		if err = authService.StringTokenValidation(ctx, token); err != nil {
+			return UnauthorizedError(rctx, err.Error())
 		}
-		return routing.NewHTTPError(http.StatusUnauthorized)
+
+		if ctx, err = authService.SessionInit(ctx, token, getAccountSettings(rctx)); err != nil {
+			return UnauthorizedError(rctx, err.Error())
+		}
+
+		*rctx.Request = *rctx.Request.WithContext(ctx)
+		return nil
 	}
+}
+
+func UnauthorizedError(rctx *routing.Context, message string) routing.HTTPError {
+	rctx.Response.Header().Set("WWW-Authenticate", `Bearer realm="API"`)
+
+	if message != "" {
+		return routing.NewHTTPError(http.StatusUnauthorized, message)
+	}
+	return routing.NewHTTPError(http.StatusUnauthorized)
+}
+
+func getAccountSettings(rctx *routing.Context) *user.AccountSettings {
+	// todo
+	return nil
 }
 
 // CurrentUser returns the user identity from the given context.

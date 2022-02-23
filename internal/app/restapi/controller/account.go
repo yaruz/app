@@ -22,21 +22,26 @@ import (
 )
 
 type accountController struct {
-	Logger log.ILogger
-	User   user.IService
-	Auth   auth.Service
+	RouteGroup *routing.RouteGroup
+	Logger     log.ILogger
+	User       user.IService
+	Auth       auth.Service
+}
+
+func NewAccountController(r *routing.RouteGroup, userService user.IService, authService auth.Service, logger log.ILogger, authHandler routing.Handler) *accountController {
+	return &accountController{
+		RouteGroup: r,
+		Logger:     logger,
+		User:       userService,
+		Auth:       authService,
+	}
 }
 
 // RegisterHandlers sets up the routing of the HTTP handlers.
-func RegisterAccountHandlers(r *routing.RouteGroup, userService user.IService, authService auth.Service, logger log.ILogger, authHandler routing.Handler) {
-	c := accountController{
-		Logger: logger,
-		User:   userService,
-		Auth:   authService,
-	}
+func (c *accountController) RegisterHandlers() {
 
-	r.Get(`/account/signin`, c.signin)
-	r.Get(`/account/fb-signin`, c.fbSignin)
+	c.RouteGroup.Get(`/account/signin`, c.signin)
+	c.RouteGroup.Get(`/account/fb-signin`, c.fbSignin)
 	//r.Get(`/user/<id:\d+>`, c.get)
 	//r.Get("/users", c.list)
 
