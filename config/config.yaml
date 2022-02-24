@@ -56,5 +56,7 @@ auth:
   jwtsigningkey: "LxsKJywDL5O5PvgODZhBH12KE6k2yL8E"
   jwtexpiration: 72
   sessionlifetime: 96
+  DefaultAccountSettings:
+    Lang: "eng"
 
 CacheLifeTime:  240

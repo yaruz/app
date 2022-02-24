@@ -4,6 +4,9 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	routing "github.com/go-ozzo/ozzo-routing/v2"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_lang"
+	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 	"strconv"
 
 	"github.com/pkg/errors"
@@ -28,6 +31,7 @@ type Service interface {
 	SessionInit(ctx context.Context, token string, accountSettings *user.AccountSettings) (context.Context, error)
 	SignIn(ctx context.Context, code, state string, accountSettings *user.AccountSettings) (context.Context, error)
 	StringTokenValidation(ctx context.Context, stringToken string) error
+	RoutingGetAccountSettingsWithDefaults(rctx *routing.Context) (*user.AccountSettings, error)
 }
 
 var _ Service = service{}
@@ -41,16 +45,18 @@ type service struct {
 	userService user.IService
 	logger      log.ILogger
 	session     session.Repository
+	langFinder  text_lang.LangFinder
 	//tokenRepository   TokenRepository
-	Endpoint          string
-	ClientId          string
-	ClientSecret      string
-	Organization      string
-	Application       string
-	SignInRedirectURL string
-	JWTSigningKey     string
-	JWTExpiration     uint
-	SessionlifeTime   uint
+	Endpoint               string
+	ClientId               string
+	ClientSecret           string
+	Organization           string
+	Application            string
+	SignInRedirectURL      string
+	JWTSigningKey          string
+	JWTExpiration          uint
+	SessionlifeTime        uint
+	defaultAccountSettings *user.AccountSettings
 }
 
 type contextKey int
@@ -63,7 +69,7 @@ const (
 var JwtPublicKey string
 
 // NewService creates a new authentication service.
-func NewService(logger log.ILogger, cfg config.Auth, userService user.IService, session session.Repository) *service {
+func NewService(ctx context.Context, logger log.ILogger, cfg config.Auth, userService user.IService, session session.Repository, langFinder text_lang.LangFinder) (*service, error) {
 	s := &service{
 		logger:            logger,
 		Endpoint:          cfg.Endpoint,
@@ -77,9 +83,37 @@ func NewService(logger log.ILogger, cfg config.Auth, userService user.IService, 
 		SessionlifeTime:   cfg.SessionlifeTime,
 		userService:       userService,
 		session:           session,
+		langFinder:        langFinder,
 	}
+	defaultLangID, err := s.langFinder.GetIDByCode(ctx, cfg.DefaultAccountSettings.Lang)
+	if err != nil {
+		return nil, err
+	}
+
+	s.defaultAccountSettings = &user.AccountSettings{
+		LangID: defaultLangID,
+	}
+
 	auth.InitConfig(s.Endpoint, s.ClientId, s.ClientSecret, JwtPublicKey, s.Organization, s.Application)
-	return s
+	return s, nil
+}
+
+func (s service) RoutingGetAccountSettingsWithDefaults(rctx *routing.Context) (*user.AccountSettings, error) {
+	ctx := rctx.Request.Context()
+	accountSettings := s.defaultAccountSettings
+
+	if lang := rctx.Request.Header.Get("langID"); lang != "" {
+		langID, err := s.langFinder.GetIDByCode(ctx, lang)
+		if err != nil {
+			if err != yaruserror.ErrNotFound {
+				return nil, err
+			}
+		} else {
+			accountSettings.LangID = langID
+		}
+	}
+
+	return accountSettings, nil
 }
 
 func (s service) newSession(ctx context.Context, jwtClaims *auth.Claims, user *user.User, accountSettings *user.AccountSettings) *session.Session {
@@ -225,7 +259,6 @@ func (s service) AccountSettingsUpdate(ctx context.Context, accountSettings *use
 }
 
 func (s service) SessionInit(ctx context.Context, token string, accountSettings *user.AccountSettings) (context.Context, error) {
-	// todo: +передать токен на фронт
 	jwtClaims, err := auth.ParseJwtToken(token)
 	if err != nil {
 		return ctx, err

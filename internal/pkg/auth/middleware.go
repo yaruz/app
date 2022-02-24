@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"github.com/yaruz/app/internal/domain/user"
 	"net/http"
 	"strings"
 
@@ -10,8 +9,9 @@ import (
 )
 
 // Middleware returns a JWT-based authentication middleware.
-func Middleware(logger log.ILogger, authService Service) routing.Handler {
+func Middleware(logger log.ILogger, s Service) routing.Handler {
 	return func(rctx *routing.Context) error {
+		// todo: все сообщения при ошибках нужно выдавать не наружу, а в логи
 		ctx := rctx.Request.Context()
 		header := rctx.Request.Header.Get("Authorization")
 		token := ""
@@ -23,11 +23,16 @@ func Middleware(logger log.ILogger, authService Service) routing.Handler {
 			return UnauthorizedError(rctx, "")
 		}
 
-		if err = authService.StringTokenValidation(ctx, token); err != nil {
+		if err = s.StringTokenValidation(ctx, token); err != nil {
 			return UnauthorizedError(rctx, err.Error())
 		}
 
-		if ctx, err = authService.SessionInit(ctx, token, getAccountSettings(rctx)); err != nil {
+		accountSettings, err := s.RoutingGetAccountSettingsWithDefaults(rctx)
+		if err != nil {
+			return routing.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
+		if ctx, err = s.SessionInit(ctx, token, accountSettings); err != nil {
 			return UnauthorizedError(rctx, err.Error())
 		}
 
@@ -43,11 +48,6 @@ func UnauthorizedError(rctx *routing.Context, message string) routing.HTTPError 
 		return routing.NewHTTPError(http.StatusUnauthorized, message)
 	}
 	return routing.NewHTTPError(http.StatusUnauthorized)
-}
-
-func getAccountSettings(rctx *routing.Context) *user.AccountSettings {
-	// todo
-	return nil
 }
 
 // CurrentUser returns the user identity from the given context.

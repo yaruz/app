@@ -19,6 +19,7 @@ import (
 	"github.com/minipkg/log"
 	"github.com/yaruz/app/internal/domain/user"
 	"github.com/yaruz/app/internal/pkg/auth"
+	"net/http"
 )
 
 type accountController struct {
@@ -47,6 +48,9 @@ func (c *accountController) RegisterHandlers() {
 
 }
 
+// todo: settings
+// todo: все настройки + настройки по умолчанию
+
 // @Title Signin
 // @Description sign in as a member
 // @Param   code     QueryString    string  true        "The code to sign in"
@@ -55,21 +59,29 @@ func (c *accountController) RegisterHandlers() {
 // @router /signin [post]
 // @Tag Account API
 func (c *accountController) signin(rctx *routing.Context) error {
+	var err error
+	ctx := rctx.Request.Context()
+
 	code := rctx.Request.URL.Query().Get("code")
 	state := rctx.Request.URL.Query().Get("state")
 
-	_, err := c.Auth.SignIn(rctx.Request.Context(), code, state, langId)
+	accountSettings, err := c.Auth.RoutingGetAccountSettingsWithDefaults(rctx)
+	if err != nil {
+		return routing.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
 
-	return rctx.Write(err)
+	if ctx, err = c.Auth.SignIn(ctx, code, state, accountSettings); err != nil {
+		// todo: нужный статус
+		return routing.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	sess := c.Auth.GetSession(ctx)
+
+	return rctx.Write(struct {
+		Token string `json:"token"`
+	}{sess.JwtClaims.AccessToken})
 }
 
 func (c *accountController) fbSignin(ctx *routing.Context) error {
-	code := ctx.Request.URL.Query().Get("code")
-	token := ctx.Request.URL.Query().Get("token")
-
-	if code != "" {
-
-	}
 
 	return ctx.Write(true)
 }
