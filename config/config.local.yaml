@@ -57,6 +57,6 @@ auth:
   jwtexpiration: 72
   sessionlifetime: 96
   DefaultAccountSettings:
-    Lang: "eng"
+    Lang: "rus"
 
 CacheLifeTime:  240

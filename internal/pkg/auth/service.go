@@ -382,3 +382,33 @@ func (s service) StringTokenValidation(ctx context.Context, stringToken string) 
 	}
 	return nil
 }
+
+func (s *service) CheckAuthMiddleware(rctx *routing.Context) error {
+	// todo: все сообщения при ошибках нужно выдавать не наружу, а в логи
+	ctx := rctx.Request.Context()
+	header := rctx.Request.Header.Get("Authorization")
+	token := ""
+	var err error
+
+	if strings.HasPrefix(header, "Bearer ") {
+		token = header[7:]
+	} else {
+		return UnauthorizedError(rctx, "")
+	}
+
+	if err = s.StringTokenValidation(ctx, token); err != nil {
+		return UnauthorizedError(rctx, err.Error())
+	}
+
+	accountSettings, err := s.RoutingGetAccountSettingsWithDefaults(rctx)
+	if err != nil {
+		return routing.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	if ctx, err = s.SessionInit(ctx, token, accountSettings); err != nil {
+		return UnauthorizedError(rctx, err.Error())
+	}
+
+	*rctx.Request = *rctx.Request.WithContext(ctx)
+	return nil
+}

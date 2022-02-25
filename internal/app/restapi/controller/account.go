@@ -42,6 +42,9 @@ func NewAccountController(r *routing.RouteGroup, userService user.IService, auth
 func (c *accountController) RegisterHandlers() {
 
 	c.RouteGroup.Get(`/account/signin`, c.signin)
+
+	c.RouteGroup.Use(c.Auth.CheckAuthMiddleware)
+
 	c.RouteGroup.Get(`/account/fb-signin`, c.fbSignin)
 	//r.Get(`/user/<id:\d+>`, c.get)
 	//r.Get("/users", c.list)
@@ -50,6 +53,7 @@ func (c *accountController) RegisterHandlers() {
 
 // todo: settings
 // todo: все настройки + настройки по умолчанию
+// todo: post обновление настроек
 
 // @Title Signin
 // @Description sign in as a member
