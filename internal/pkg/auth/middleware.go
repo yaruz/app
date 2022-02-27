@@ -8,10 +8,6 @@ import (
 	"github.com/minipkg/log"
 )
 
-func (s *Service) CheckAuthMiddleware(rctx *routing.Context) error {
-
-}
-
 // Middleware returns a JWT-based authentication middleware.
 func Middleware(logger log.ILogger, s Service) routing.Handler {
 	return func(rctx *routing.Context) error {
