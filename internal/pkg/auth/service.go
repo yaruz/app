@@ -34,9 +34,10 @@ type Service interface {
 	SignIn(ctx context.Context, code, state string, accountSettings *user.AccountSettings) (context.Context, error)
 	StringTokenValidation(ctx context.Context, stringToken string) error
 	RoutingGetAccountSettingsWithDefaults(rctx *routing.Context) (*user.AccountSettings, error)
+	CheckAuthMiddleware(rctx *routing.Context) error
 }
 
-var _ Service = service{}
+var _ Service = &service{}
 
 type UserService interface {
 }
@@ -100,7 +101,7 @@ func NewService(ctx context.Context, logger log.ILogger, cfg config.Auth, userSe
 	return s, nil
 }
 
-func (s service) RoutingGetAccountSettingsWithDefaults(rctx *routing.Context) (*user.AccountSettings, error) {
+func (s *service) RoutingGetAccountSettingsWithDefaults(rctx *routing.Context) (*user.AccountSettings, error) {
 	ctx := rctx.Request.Context()
 	accountSettings := s.defaultAccountSettings
 
@@ -118,7 +119,7 @@ func (s service) RoutingGetAccountSettingsWithDefaults(rctx *routing.Context) (*
 	return accountSettings, nil
 }
 
-func (s service) newSession(ctx context.Context, jwtClaims *auth.Claims, user *user.User, accountSettings *user.AccountSettings) *session.Session {
+func (s *service) newSession(ctx context.Context, jwtClaims *auth.Claims, user *user.User, accountSettings *user.AccountSettings) *session.Session {
 	return &session.Session{
 		User:            user,
 		JwtClaims:       jwtClaims,
@@ -126,7 +127,7 @@ func (s service) newSession(ctx context.Context, jwtClaims *auth.Claims, user *u
 	}
 }
 
-func (s service) createSession(ctx context.Context, jwtClaims *auth.Claims, user *user.User, accountSettings *user.AccountSettings) (context.Context, *session.Session, error) {
+func (s *service) createSession(ctx context.Context, jwtClaims *auth.Claims, user *user.User, accountSettings *user.AccountSettings) (context.Context, *session.Session, error) {
 	if jwtClaims == nil || user == nil || accountSettings == nil {
 		return ctx, nil, errors.Wrapf(apperror.ErrBadParams, "jwtClaims == %v \nuser == %v \naccountSettings == %v", jwtClaims, user, accountSettings)
 	}
@@ -146,7 +147,7 @@ func (s service) createSession(ctx context.Context, jwtClaims *auth.Claims, user
 	return ctx, sess, nil
 }
 
-func (s service) UpdateSession(ctx context.Context, sess *session.Session) (context.Context, *session.Session, error) {
+func (s *service) UpdateSession(ctx context.Context, sess *session.Session) (context.Context, *session.Session, error) {
 	err := s.session.Update(ctx, sess)
 	if err != nil {
 		return ctx, nil, err
@@ -161,7 +162,7 @@ func (s service) UpdateSession(ctx context.Context, sess *session.Session) (cont
 	return ctx, sess, nil
 }
 
-func (s service) updateSession(ctx context.Context, sess *session.Session, jwtClaims *auth.Claims, user *user.User, accountSettings *user.AccountSettings) (context.Context, *session.Session, error) {
+func (s *service) updateSession(ctx context.Context, sess *session.Session, jwtClaims *auth.Claims, user *user.User, accountSettings *user.AccountSettings) (context.Context, *session.Session, error) {
 	if user != nil {
 		sess.User = user
 	}
@@ -177,23 +178,23 @@ func (s service) updateSession(ctx context.Context, sess *session.Session, jwtCl
 	return s.UpdateSession(ctx, sess)
 }
 
-func (s service) GetSession(ctx context.Context) *session.Session {
+func (s *service) GetSession(ctx context.Context) *session.Session {
 	return ctx.Value(userSessionKey).(*session.Session)
 }
 
-func (s service) GetSignUpUrl() string {
+func (s *service) GetSignUpUrl() string {
 	return fmt.Sprintf("%s/signup/%s", s.Endpoint, s.Application)
 }
 
-func (s service) GetSignInUrl() string {
+func (s *service) GetSignInUrl() string {
 	return fmt.Sprintf("%s/login/oauth/authorize?client_id=%s&response_type=code&scope=read&state=%s&redirect_uri=%s", s.Endpoint, s.ClientId, s.Application, s.SignInRedirectURL)
 }
 
-func (s service) GetForgetUrl() string {
+func (s *service) GetForgetUrl() string {
 	return fmt.Sprintf("%s/forget/%s", s.Endpoint, s.Application)
 }
 
-func (s service) accountGetUintParam(account *auth.User, paramName string) (uint, error) {
+func (s *service) accountGetUintParam(account *auth.User, paramName string) (uint, error) {
 	var param uint
 
 	if pStr, ok := account.Properties[paramName]; !ok {
@@ -207,11 +208,11 @@ func (s service) accountGetUintParam(account *auth.User, paramName string) (uint
 	return param, nil
 }
 
-func (s service) accountSetUserID(account *auth.User, userID uint) {
+func (s *service) accountSetUserID(account *auth.User, userID uint) {
 	account.Properties[s.Application+"ID"] = strconv.Itoa(int(userID))
 }
 
-func (s service) accountGetUserID(account *auth.User) (uint, error) {
+func (s *service) accountGetUserID(account *auth.User) (uint, error) {
 	userID, err := s.accountGetUintParam(account, s.Application+"ID")
 	if err != nil {
 		return 0, err
@@ -220,11 +221,11 @@ func (s service) accountGetUserID(account *auth.User) (uint, error) {
 	return userID, nil
 }
 
-func (s service) accountSetSettings(account *auth.User, accountSettings *user.AccountSettings) {
+func (s *service) accountSetSettings(account *auth.User, accountSettings *user.AccountSettings) {
 	account.Properties["langID"] = strconv.Itoa(int(accountSettings.LangID))
 }
 
-func (s service) accountGetSettings(account *auth.User) (*user.AccountSettings, error) {
+func (s *service) accountGetSettings(account *auth.User) (*user.AccountSettings, error) {
 	langID, err := s.accountGetUintParam(account, "langID")
 	if err != nil {
 		return nil, err
@@ -235,7 +236,7 @@ func (s service) accountGetSettings(account *auth.User) (*user.AccountSettings, 
 	}, nil
 }
 
-func (s service) AccountSettingsUpdate(ctx context.Context, accountSettings *user.AccountSettings) (context.Context, error) {
+func (s *service) AccountSettingsUpdate(ctx context.Context, accountSettings *user.AccountSettings) (context.Context, error) {
 	sess := s.GetSession(ctx)
 
 	if sess.AccountSettings.LangID == accountSettings.LangID {
@@ -260,7 +261,7 @@ func (s service) AccountSettingsUpdate(ctx context.Context, accountSettings *use
 	return ctx, nil
 }
 
-func (s service) SessionInit(ctx context.Context, token string, accountSettings *user.AccountSettings) (context.Context, error) {
+func (s *service) SessionInit(ctx context.Context, token string, accountSettings *user.AccountSettings) (context.Context, error) {
 	jwtClaims, err := auth.ParseJwtToken(token)
 	if err != nil {
 		return ctx, err
@@ -305,7 +306,7 @@ func (s service) SessionInit(ctx context.Context, token string, accountSettings 
 
 // Login authenticates a user and generates a JWT token if authentication succeeds.
 // Otherwise, an error is returned.
-func (s service) SignIn(ctx context.Context, code, state string, accountSettings *user.AccountSettings) (context.Context, error) {
+func (s *service) SignIn(ctx context.Context, code, state string, accountSettings *user.AccountSettings) (context.Context, error) {
 	token, err := auth.GetOAuthToken(code, state)
 	if err != nil {
 		return ctx, err
@@ -357,7 +358,7 @@ func (s service) SignIn(ctx context.Context, code, state string, accountSettings
 	return ctx, nil
 }
 
-func (s service) signUp(ctx context.Context, jwtClaims *auth.Claims, langId uint) (*user.User, error) {
+func (s *service) signUp(ctx context.Context, jwtClaims *auth.Claims, langId uint) (*user.User, error) {
 	user, err := s.userService.New(ctx)
 	if err != nil {
 		return nil, err
@@ -376,7 +377,7 @@ func (s service) signUp(ctx context.Context, jwtClaims *auth.Claims, langId uint
 	return user, s.userService.Create(ctx, user, langId)
 }
 
-func (s service) StringTokenValidation(ctx context.Context, stringToken string) error {
+func (s *service) StringTokenValidation(ctx context.Context, stringToken string) error {
 	//	temporary validation method
 	_, err := auth.ParseJwtToken(stringToken)
 	if err != nil {

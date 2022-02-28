@@ -964,23 +964,18 @@ func (c dataTestController) dataCreate(ctx context.Context, langId uint) ([]user
 	users := []user.User{
 		{
 			Email: "mail1@mail.ru",
-			Phone: 79998886655,
 		},
 		{
 			Email: "mail2@mail.ru",
-			Phone: 79998886644,
 		},
 		{
 			Email: "mail3@mail.ru",
-			Phone: 79998885544,
 		},
 		{
 			Email: "mail4@mail.ru",
-			Phone: 79998885533,
 		},
 		{
 			Email: "mail5@mail.ru",
-			Phone: 79998884433,
 		},
 	}
 
@@ -1077,10 +1072,6 @@ func (c dataTestController) dataCreate(ctx context.Context, langId uint) ([]user
 		}
 
 		if err = user.SetEmail(ctx, users[i].Email); err != nil {
-			return nil, nil, nil, nil, err
-		}
-
-		if err = user.SetAccountID(ctx, users[i].Phone); err != nil {
 			return nil, nil, nil, nil, err
 		}
 

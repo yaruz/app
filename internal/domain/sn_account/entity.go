@@ -7,52 +7,35 @@ import (
 )
 
 const (
-	EntityType               = "SnAccount"
-	PropertySysnameEmail     = "SnAccount.Email"
-	PropertySysnameAccountID = "SnAccount.AccountID"
+	EntityType          = "SNAccount"
+	PropertySysnameSNID = "SNAccount.SNID"
 )
 
-// SnAccount is the SnAccount entity
-type SnAccount struct {
+// SNAccount is the SNAccount entity
+type SNAccount struct {
 	*entity.Entity
-	ID        uint
-	AccountID string
-	Email     string
+	ID   uint
+	SNID string
 }
 
-var _ entity.Searchable = (*SnAccount)(nil)
+var _ entity.Searchable = (*SNAccount)(nil)
 
-func (e SnAccount) EntityType() string {
+func (e SNAccount) EntityType() string {
 	return EntityType
 }
 
-func (e SnAccount) Validate() error {
+func (e SNAccount) Validate() error {
 	return nil
 }
 
-func (e *SnAccount) GetMapNameSysname() map[string]string {
+func (e *SNAccount) GetMapNameSysname() map[string]string {
 	return map[string]string{
-		"Email":     PropertySysnameEmail,
-		"AccountID": PropertySysnameAccountID,
+		"SNID": PropertySysnameSNID,
 	}
 }
 
-func (e *SnAccount) SetEmail(ctx context.Context, value string) error {
-	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameEmail, 1)
-	if err != nil {
-		return err
-	}
-
-	if err = e.Entity.SetValueForProperty(prop, value, 1); err != nil {
-		return err
-	}
-
-	e.Email = value
-	return nil
-}
-
-func (e *SnAccount) SetAccountID(ctx context.Context, value string) error {
-	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameAccountID, 0)
+func (e *SNAccount) SetAccountID(ctx context.Context, value string) error {
+	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameSNID, 0)
 	if err != nil {
 		return err
 	}
@@ -61,6 +44,6 @@ func (e *SnAccount) SetAccountID(ctx context.Context, value string) error {
 		return err
 	}
 
-	e.AccountID = value
+	e.SNID = value
 	return nil
 }

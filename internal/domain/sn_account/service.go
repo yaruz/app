@@ -9,15 +9,15 @@ import (
 	"github.com/minipkg/log"
 )
 
-// IService encapsulates usecase logic for SnAccount.
+// IService encapsulates usecase logic for SNAccount.
 type IService interface {
-	New(ctx context.Context) (*SnAccount, error)
-	Get(ctx context.Context, id uint, langID uint) (*SnAccount, error)
-	Query(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) ([]SnAccount, error)
-	First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*SnAccount, error)
+	New(ctx context.Context) (*SNAccount, error)
+	Get(ctx context.Context, id uint, langID uint) (*SNAccount, error)
+	Query(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) ([]SNAccount, error)
+	First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*SNAccount, error)
 	Count(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (uint, error)
-	Create(ctx context.Context, obj *SnAccount, langID uint) error
-	Update(ctx context.Context, obj *SnAccount, langID uint) error
+	Create(ctx context.Context, obj *SNAccount, langID uint) error
+	Update(ctx context.Context, obj *SNAccount, langID uint) error
 	Delete(ctx context.Context, id uint) error
 }
 
@@ -44,12 +44,12 @@ func (s service) defaultConditions() *selection_condition.SelectionCondition {
 	return &selection_condition.SelectionCondition{}
 }
 
-func (s *service) New(ctx context.Context) (*SnAccount, error) {
+func (s *service) New(ctx context.Context) (*SNAccount, error) {
 	return s.repository.New(ctx)
 }
 
 // Get returns the entity with the specified ID.
-func (s *service) Get(ctx context.Context, id uint, langID uint) (*SnAccount, error) {
+func (s *service) Get(ctx context.Context, id uint, langID uint) (*SNAccount, error) {
 	entity, err := s.repository.Get(ctx, id, langID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Can not get a %v by id: %v", EntityType, id)
@@ -58,11 +58,11 @@ func (s *service) Get(ctx context.Context, id uint, langID uint) (*SnAccount, er
 }
 
 // Query returns the items with the specified offset and limit.
-func (s *service) Query(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) ([]SnAccount, error) {
+func (s *service) Query(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) ([]SNAccount, error) {
 	return s.repository.Query(ctx, condition, langID)
 }
 
-func (s *service) First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*SnAccount, error) {
+func (s *service) First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*SNAccount, error) {
 	return s.repository.First(ctx, condition, langID)
 }
 
@@ -71,11 +71,11 @@ func (s *service) Count(ctx context.Context, condition *selection_condition.Sele
 	return s.repository.Count(ctx, condition, langID)
 }
 
-func (s *service) Create(ctx context.Context, obj *SnAccount, langID uint) error {
+func (s *service) Create(ctx context.Context, obj *SNAccount, langID uint) error {
 	return s.repository.Create(ctx, obj, langID)
 }
 
-func (s *service) Update(ctx context.Context, obj *SnAccount, langID uint) error {
+func (s *service) Update(ctx context.Context, obj *SNAccount, langID uint) error {
 	return s.repository.Update(ctx, obj, langID)
 }
 

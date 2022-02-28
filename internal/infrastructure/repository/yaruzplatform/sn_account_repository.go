@@ -24,52 +24,41 @@ func NewSnAccountRepository(repository *repository) (*SnAccountRepository, error
 	return &SnAccountRepository{repository: *repository}, nil
 }
 
-func (r *SnAccountRepository) New(ctx context.Context) (*sn_account.SnAccount, error) {
+func (r *SnAccountRepository) New(ctx context.Context) (*sn_account.SNAccount, error) {
 	entity, err := r.repository.NewEntityByEntityType(ctx, sn_account.EntityType)
 	if err != nil {
 		return nil, err
 	}
-	return &sn_account.SnAccount{
+	return &sn_account.SNAccount{
 		Entity: entity,
 	}, nil
 }
 
-func (r *SnAccountRepository) instantiate(ctx context.Context, entity *entity.Entity) (*sn_account.SnAccount, error) {
+func (r *SnAccountRepository) instantiate(ctx context.Context, entity *entity.Entity) (*sn_account.SNAccount, error) {
 	entity.PropertyFinder = r.GetPropertyFinder()
-	obj := &sn_account.SnAccount{
+	obj := &sn_account.SNAccount{
 		ID:     entity.ID,
 		Entity: entity,
 	}
 
-	emailPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, sn_account.PropertySysnameEmail)
+	SNIDPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, sn_account.PropertySysnameSNID)
 	if err != nil {
 		return nil, err
 	}
-	emailVal, ok := obj.PropertiesValues[emailPropID]
+	SNIDVal, ok := obj.PropertiesValues[SNIDPropID]
 	if ok {
-		if obj.Email, err = property.GetValueText(emailVal.Value); err != nil {
-			return nil, errors.Wrapf(err, "SnAccountRepository.instantiate error. ")
-		}
-	}
-
-	accountIDPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, sn_account.PropertySysnameAccountID)
-	if err != nil {
-		return nil, err
-	}
-	accountIDVal, ok := obj.PropertiesValues[accountIDPropID]
-	if ok {
-		accountID, err := property.GetValueText(accountIDVal.Value)
+		accountID, err := property.GetValueText(SNIDVal.Value)
 		if err != nil {
 			return nil, errors.Wrapf(err, "SnAccountRepository.instantiate error. ")
 		}
-		obj.AccountID = accountID
+		obj.SNID = accountID
 	}
 
 	return obj, nil
 }
 
 // Get reads the album with the specified ID from the database.
-func (r *SnAccountRepository) Get(ctx context.Context, id uint, langID uint) (*sn_account.SnAccount, error) {
+func (r *SnAccountRepository) Get(ctx context.Context, id uint, langID uint) (*sn_account.SNAccount, error) {
 	entityTypeID, err := r.yaruzRepository.ReferenceSubsystem().EntityType.GetIDBySysname(ctx, sn_account.EntityType)
 	if err != nil {
 		return nil, err
@@ -83,8 +72,8 @@ func (r *SnAccountRepository) Get(ctx context.Context, id uint, langID uint) (*s
 	return r.instantiate(ctx, e)
 }
 
-func (r *SnAccountRepository) First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*sn_account.SnAccount, error) {
-	e, err := r.yaruzRepository.DataSubsystem().Entity.First(ctx, condition, &sn_account.SnAccount{}, langID)
+func (r *SnAccountRepository) First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*sn_account.SNAccount, error) {
+	e, err := r.yaruzRepository.DataSubsystem().Entity.First(ctx, condition, &sn_account.SNAccount{}, langID)
 	if err != nil {
 		return nil, err
 	}
@@ -92,14 +81,14 @@ func (r *SnAccountRepository) First(ctx context.Context, condition *selection_co
 }
 
 // Query retrieves records with the specified offset and limit from the database.
-func (r *SnAccountRepository) Query(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) ([]sn_account.SnAccount, error) {
+func (r *SnAccountRepository) Query(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) ([]sn_account.SNAccount, error) {
 
-	entities, err := r.yaruzRepository.DataSubsystem().Entity.Query(ctx, condition, &sn_account.SnAccount{}, langID)
+	entities, err := r.yaruzRepository.DataSubsystem().Entity.Query(ctx, condition, &sn_account.SNAccount{}, langID)
 	if err != nil {
 		return nil, err
 	}
 
-	items := make([]sn_account.SnAccount, len(entities))
+	items := make([]sn_account.SNAccount, len(entities))
 	for i, e := range entities {
 		obj, err := r.instantiate(ctx, &e)
 		if err != nil {
@@ -112,11 +101,11 @@ func (r *SnAccountRepository) Query(ctx context.Context, condition *selection_co
 }
 
 func (r *SnAccountRepository) Count(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (uint, error) {
-	return r.yaruzRepository.DataSubsystem().Entity.Count(ctx, condition, &sn_account.SnAccount{}, langID)
+	return r.yaruzRepository.DataSubsystem().Entity.Count(ctx, condition, &sn_account.SNAccount{}, langID)
 }
 
 // Create saves a new record in the database.
-func (r *SnAccountRepository) Create(ctx context.Context, obj *sn_account.SnAccount, langID uint) error {
+func (r *SnAccountRepository) Create(ctx context.Context, obj *sn_account.SNAccount, langID uint) error {
 	if obj.ID > 0 {
 		return errors.New("entity is not new")
 	}
@@ -127,7 +116,7 @@ func (r *SnAccountRepository) Create(ctx context.Context, obj *sn_account.SnAcco
 }
 
 // Update saves a changed Maintenance record in the database.
-func (r *SnAccountRepository) Update(ctx context.Context, obj *sn_account.SnAccount, langID uint) error {
+func (r *SnAccountRepository) Update(ctx context.Context, obj *sn_account.SNAccount, langID uint) error {
 	if obj.ID == 0 {
 		return errors.New("entity is new")
 	}

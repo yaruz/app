@@ -11,5 +11,5 @@ type Session struct {
 	JwtClaims       *auth.Claims
 	User            *user.User
 	AccountSettings *user.AccountSettings
-	SnAccounts      []sn_account.SnAccount
+	SnAccounts      []sn_account.SNAccount
 }

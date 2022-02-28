@@ -60,6 +60,9 @@ func GetRepository(logger log.ILogger, mapReducer IMapReducer, entityName string
 	case time_value.EntityName:
 		r.model = time_value.New()
 		repo, err = NewTimeValueRepository(r)
+	case text_value.EntityName:
+		r.model = text_value.New()
+		repo, err = NewTextValueRepository(r, langFinder)
 	case utext_value.EntityName:
 		r.model = utext_value.New()
 		repo, err = NewUTextValueRepository(r)

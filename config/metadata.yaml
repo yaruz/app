@@ -63,6 +63,20 @@ entitytypes:
             name: "account ID"
           rus:
             name: "ID аккаунта"
+  - sysname: "SNAccount"
+    texts:
+      eng:
+        name: "social net account"
+      rus:
+        name: "аккаунт в социальной сети"
+    properties:
+      - sysname: "SNAccount.SNID"
+        propertytype: "utext"
+        texts:
+          eng:
+            name: "social net account ID"
+          rus:
+            name: "идентификатор аккаунта в социальной сети"
   - sysname: "Advertiser"
     texts:
       eng:
@@ -121,13 +135,13 @@ entitytypes:
             name: "дата завершения"
 
 relations:
-  - sysname: "User.SnAccount"
+  - sysname: "User.SNAccount"
     texts:
       eng:
         name: "social nets accounts"
       rus:
         name: "аккаунты в социальных сетях"
-    UndependedEntityType: "SnAccount"
+    UndependedEntityType: "SNAccount"
     DependedEntityType: "User"
   - sysname: "Advertiser.AdvertisingCampaigns"
     texts:
