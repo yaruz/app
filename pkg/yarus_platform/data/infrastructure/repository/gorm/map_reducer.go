@@ -2,6 +2,7 @@ package gorm
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -116,9 +117,16 @@ func (s *MapReducer) Query(ctx context.Context, parser *SelectionConditionParser
 	return s.queryReceiver(s.queryStarter(dbs, f))
 }
 
-func (s *MapReducer) queryStarter(dbs []minipkg_gorm.IDB, f func(db minipkg_gorm.IDB) ([]SearchResult, error)) (resultCh chan []SearchResult, errorsCh chan error) {
-	errorsCh = make(chan error)
-	resultCh = make(chan []SearchResult)
+func (s *MapReducer) queryStarter(dbs []minipkg_gorm.IDB, f func(db minipkg_gorm.IDB) ([]SearchResult, error)) (chan []SearchResult, chan error) {
+	var errorsCh = make(chan error, len(dbs))
+	var resultCh = make(chan []SearchResult, len(dbs))
+
+	select {
+	case err, ok := <-errorsCh:
+		fmt.Println("Какого хуя?!", err, ok)
+	default:
+		fmt.Println("Хуй!")
+	}
 
 	defer func() {
 		close(errorsCh)
@@ -131,6 +139,13 @@ func (s *MapReducer) queryStarter(dbs []minipkg_gorm.IDB, f func(db minipkg_gorm
 		go s.queryProcessing(wg, db, f, resultCh, errorsCh)
 	}
 	wg.Wait()
+
+	select {
+	case err := <-errorsCh:
+		fmt.Println("Какого хуя?!", err)
+	default:
+		fmt.Println("Хуй!")
+	}
 
 	return resultCh, errorsCh
 }
@@ -169,7 +184,11 @@ func (s *MapReducer) queryReceiver(resultCh chan []SearchResult, errorsCh chan e
 	for searchResult := range resultCh {
 		res = append(res, searchResult...)
 	}
-	return res, nil
+
+	if res == nil {
+		err = yaruserror.ErrNotFound
+	}
+	return res, err
 }
 
 func (s *MapReducer) Count(ctx context.Context, parser *SelectionConditionParser, entityWhereConditions selection_condition.WhereConditions, f func(db minipkg_gorm.IDB) (uint, error)) (uint, error) {

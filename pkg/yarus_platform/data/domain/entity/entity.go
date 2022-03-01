@@ -67,6 +67,7 @@ type PropertyFinder interface {
 }
 
 type Searchable interface {
+	GetValidPropertySysnames() []string
 	GetMapNameSysname() map[string]string
 }
 

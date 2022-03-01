@@ -2,7 +2,6 @@ package advertiser
 
 import (
 	"context"
-
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
 )
 
@@ -10,6 +9,10 @@ const (
 	EntityType          = "Advertiser"
 	PropertySysnameName = "Advertiser.Name"
 )
+
+var validPropertySysnames = []string{
+	PropertySysnameName,
+}
 
 // Advertiser is the user entity
 type Advertiser struct {
@@ -26,6 +29,10 @@ func (e Advertiser) EntityType() string {
 
 func (e Advertiser) Validate() error {
 	return nil
+}
+
+func (e *Advertiser) GetValidPropertySysnames() []string {
+	return validPropertySysnames
 }
 
 func (e *Advertiser) GetMapNameSysname() map[string]string {

@@ -108,6 +108,9 @@ func (s *SearchService) First(ctx context.Context, condition *selection_conditio
 		}
 		return searchResult, nil
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	return s.instantiateItem(searchResults), nil
 }

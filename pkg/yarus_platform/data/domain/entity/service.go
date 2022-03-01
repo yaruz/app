@@ -2,6 +2,7 @@ package entity
 
 import (
 	"context"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 
 	"github.com/pkg/errors"
 
@@ -466,11 +467,26 @@ func (s *service) normalizeSortOrderCondition(sortOrder []map[string]string, ins
 	return resSortOrder, nil
 }
 
+func (s *service) propertySysnameValidate(propertySysname string, instant Searchable) error {
+	var validPropertySysnames []interface{}
+
+	for _, str := range instant.GetValidPropertySysnames() {
+		validPropertySysnames = append(validPropertySysnames, str)
+	}
+
+	return validation.Validate(propertySysname, validation.In(validPropertySysnames...))
+}
+
 func (s *service) getInstantSysnameByName(name string, instant Searchable) (string, error) {
+	//	if it is a system ID
 	if name == FieldName_ID || name == FieldName_EntityTypeID || name == FieldName_EntityType {
 		return name, nil
 	}
-
+	//	if it is a valide sysname
+	if err := s.propertySysnameValidate(name, instant); err == nil {
+		return name, nil
+	}
+	//	if it is a valide name
 	sysname, ok := instant.GetMapNameSysname()[name]
 	if !ok {
 		return "", errors.Errorf("Name %s not found in map %v .", name, instant.GetMapNameSysname())

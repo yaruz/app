@@ -14,6 +14,12 @@ const (
 	PropertySysnameFinishedAt = "Offer.FinishedAt"
 )
 
+var validPropertySysnames = []string{
+	PropertySysnameCreatedAt,
+	PropertySysnameStartedAt,
+	PropertySysnameFinishedAt,
+}
+
 // Offer is the user entity
 type Offer struct {
 	*entity.Entity
@@ -31,6 +37,10 @@ func (e Offer) EntityType() string {
 
 func (e Offer) Validate() error {
 	return nil
+}
+
+func (e *Offer) GetValidPropertySysnames() []string {
+	return validPropertySysnames
 }
 
 func (e *Offer) GetMapNameSysname() map[string]string {

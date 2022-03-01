@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
 )
 
@@ -11,6 +10,11 @@ const (
 	PropertySysnameEmail     = "User.Email"
 	PropertySysnameAccountID = "User.AccountID"
 )
+
+var validPropertySysnames = []string{
+	PropertySysnameEmail,
+	PropertySysnameAccountID,
+}
 
 // User is the user entity
 type User struct {
@@ -32,6 +36,10 @@ func (e User) EntityType() string {
 
 func (e User) Validate() error {
 	return nil
+}
+
+func (e *User) GetValidPropertySysnames() []string {
+	return validPropertySysnames
 }
 
 func (e *User) GetMapNameSysname() map[string]string {

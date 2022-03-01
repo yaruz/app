@@ -11,6 +11,10 @@ const (
 	PropertySysnameSNID = "SNAccount.SNID"
 )
 
+var validPropertySysnames = []string{
+	PropertySysnameSNID,
+}
+
 // SNAccount is the SNAccount entity
 type SNAccount struct {
 	*entity.Entity
@@ -26,6 +30,10 @@ func (e SNAccount) EntityType() string {
 
 func (e SNAccount) Validate() error {
 	return nil
+}
+
+func (e *SNAccount) GetValidPropertySysnames() []string {
+	return validPropertySysnames
 }
 
 func (e *SNAccount) GetMapNameSysname() map[string]string {
