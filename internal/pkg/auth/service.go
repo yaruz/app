@@ -307,20 +307,10 @@ func (s *service) SessionInit(ctx context.Context, token string, accountSettings
 // Login authenticates a user and generates a JWT token if authentication succeeds.
 // Otherwise, an error is returned.
 func (s *service) SignIn(ctx context.Context, code, state string, accountSettings *user.AccountSettings) (context.Context, error) {
-	token, err := auth.GetOAuthToken(code, state)
+	jwtClaims, err := s.getAndParseToken(ctx, code, state)
 	if err != nil {
 		return ctx, err
 	}
-
-	if err = s.StringTokenValidation(ctx, token.AccessToken); err != nil {
-		return ctx, err
-	}
-
-	jwtClaims, err := auth.ParseJwtToken(token.AccessToken)
-	if err != nil {
-		return ctx, err
-	}
-	jwtClaims.AccessToken = token.AccessToken
 
 	user, err := s.userService.GetByAccountID(ctx, jwtClaims.User.Id, accountSettings.LangID)
 	if err != nil {
@@ -337,9 +327,9 @@ func (s *service) SignIn(ctx context.Context, code, state string, accountSetting
 		}
 	} else if errors.Is(err, apperror.ErrNotFound) {
 		s.accountSetUserID(&jwtClaims.User, user.ID)
-		ok, err := auth.UpdateUserForColumns(&jwtClaims.User, []string{"properties"})
-		if !ok || err != nil {
-			return ctx, errors.Wrapf(apperror.ErrInternal, fmt.Sprintf("User not updated. Ok = %t, err = %q.", ok, err.Error()))
+
+		if jwtClaims, err = s.accountPropertiesUpdate(ctx, &jwtClaims.User, code, state); err != nil {
+			return ctx, err
 		}
 	} else {
 		if err != nil {
@@ -347,7 +337,7 @@ func (s *service) SignIn(ctx context.Context, code, state string, accountSetting
 		}
 	}
 
-	ctx, err = s.SessionInit(ctx, token.AccessToken, accountSettings)
+	ctx, err = s.SessionInit(ctx, jwtClaims.AccessToken, accountSettings)
 
 	//affected, err := object.UpdateMemberOnlineStatus(&claims.User, true, util.GetCurrentTime())
 	//if err != nil {
@@ -356,6 +346,38 @@ func (s *service) SignIn(ctx context.Context, code, state string, accountSetting
 	//}
 
 	return ctx, nil
+}
+
+func (s *service) accountPropertiesUpdate(ctx context.Context, user *auth.User, code, state string) (*auth.Claims, error) {
+	ok, err := auth.UpdateUserForColumns(user, []string{"properties"})
+	if !ok || err != nil {
+		return nil, errors.Wrapf(apperror.ErrInternal, fmt.Sprintf("User not updated. Ok = %t, err = %q.", ok, err.Error()))
+	}
+
+	jwtClaims, err := s.getAndParseToken(ctx, code, state)
+	if err != nil {
+		return nil, err
+	}
+	return jwtClaims, nil
+}
+
+func (s *service) getAndParseToken(ctx context.Context, code, state string) (*auth.Claims, error) {
+	token, err := auth.GetOAuthToken(code, state)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = s.StringTokenValidation(ctx, token.AccessToken); err != nil {
+		return nil, err
+	}
+
+	jwtClaims, err := auth.ParseJwtToken(token.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	jwtClaims.AccessToken = token.AccessToken
+
+	return jwtClaims, nil
 }
 
 func (s *service) signUp(ctx context.Context, jwtClaims *auth.Claims, langId uint) (*user.User, error) {

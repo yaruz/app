@@ -2,6 +2,8 @@ package yaruzplatform
 
 import (
 	"context"
+	"github.com/yaruz/app/internal/pkg/apperror"
+	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 
 	"github.com/pkg/errors"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
@@ -60,11 +62,17 @@ func (r *AdvertiserRepository) instantiate(ctx context.Context, entity *entity.E
 func (r *AdvertiserRepository) Get(ctx context.Context, id uint, langID uint) (*advertiser.Advertiser, error) {
 	entityTypeID, err := r.yaruzRepository.ReferenceSubsystem().EntityType.GetIDBySysname(ctx, advertiser.EntityType)
 	if err != nil {
+		if errors.Is(err, yaruserror.ErrNotFound) {
+			return nil, apperror.ErrNotFound
+		}
 		return nil, err
 	}
 
 	e, err := r.yaruzRepository.DataSubsystem().Entity.Get(ctx, id, entityTypeID, langID)
 	if err != nil {
+		if errors.Is(err, yaruserror.ErrNotFound) {
+			return nil, apperror.ErrNotFound
+		}
 		return nil, err
 	}
 
@@ -74,6 +82,9 @@ func (r *AdvertiserRepository) Get(ctx context.Context, id uint, langID uint) (*
 func (r *AdvertiserRepository) First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*advertiser.Advertiser, error) {
 	e, err := r.yaruzRepository.DataSubsystem().Entity.First(ctx, condition, &advertiser.Advertiser{}, langID)
 	if err != nil {
+		if errors.Is(err, yaruserror.ErrNotFound) {
+			return nil, apperror.ErrNotFound
+		}
 		return nil, err
 	}
 	return r.instantiate(ctx, e)
@@ -84,6 +95,9 @@ func (r *AdvertiserRepository) Query(ctx context.Context, condition *selection_c
 
 	entities, err := r.yaruzRepository.DataSubsystem().Entity.Query(ctx, condition, &advertiser.Advertiser{}, langID)
 	if err != nil {
+		if errors.Is(err, yaruserror.ErrNotFound) {
+			return nil, apperror.ErrNotFound
+		}
 		return nil, err
 	}
 
@@ -127,6 +141,9 @@ func (r *AdvertiserRepository) Update(ctx context.Context, obj *advertiser.Adver
 func (r *AdvertiserRepository) Delete(ctx context.Context, id uint) error {
 	entityTypeID, err := r.yaruzRepository.ReferenceSubsystem().EntityType.GetIDBySysname(ctx, advertiser.EntityType)
 	if err != nil {
+		if errors.Is(err, yaruserror.ErrNotFound) {
+			return apperror.ErrNotFound
+		}
 		return err
 	}
 

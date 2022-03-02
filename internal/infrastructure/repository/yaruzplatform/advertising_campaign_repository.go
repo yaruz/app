@@ -2,6 +2,8 @@ package yaruzplatform
 
 import (
 	"context"
+	"github.com/yaruz/app/internal/pkg/apperror"
+	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 
 	"github.com/pkg/errors"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
@@ -60,11 +62,17 @@ func (r *AdvertisingCampaignRepository) instantiate(ctx context.Context, entity 
 func (r *AdvertisingCampaignRepository) Get(ctx context.Context, id uint, langID uint) (*advertising_campaign.AdvertisingCampaign, error) {
 	entityTypeID, err := r.yaruzRepository.ReferenceSubsystem().EntityType.GetIDBySysname(ctx, advertising_campaign.EntityType)
 	if err != nil {
+		if errors.Is(err, yaruserror.ErrNotFound) {
+			return nil, apperror.ErrNotFound
+		}
 		return nil, err
 	}
 
 	e, err := r.yaruzRepository.DataSubsystem().Entity.Get(ctx, id, entityTypeID, langID)
 	if err != nil {
+		if errors.Is(err, yaruserror.ErrNotFound) {
+			return nil, apperror.ErrNotFound
+		}
 		return nil, err
 	}
 
@@ -74,6 +82,9 @@ func (r *AdvertisingCampaignRepository) Get(ctx context.Context, id uint, langID
 func (r *AdvertisingCampaignRepository) First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*advertising_campaign.AdvertisingCampaign, error) {
 	e, err := r.yaruzRepository.DataSubsystem().Entity.First(ctx, condition, &advertising_campaign.AdvertisingCampaign{}, langID)
 	if err != nil {
+		if errors.Is(err, yaruserror.ErrNotFound) {
+			return nil, apperror.ErrNotFound
+		}
 		return nil, err
 	}
 	return r.instantiate(ctx, e)
@@ -84,6 +95,9 @@ func (r *AdvertisingCampaignRepository) Query(ctx context.Context, condition *se
 
 	entities, err := r.yaruzRepository.DataSubsystem().Entity.Query(ctx, condition, &advertising_campaign.AdvertisingCampaign{}, langID)
 	if err != nil {
+		if errors.Is(err, yaruserror.ErrNotFound) {
+			return nil, apperror.ErrNotFound
+		}
 		return nil, err
 	}
 
@@ -127,6 +141,9 @@ func (r *AdvertisingCampaignRepository) Update(ctx context.Context, obj *adverti
 func (r *AdvertisingCampaignRepository) Delete(ctx context.Context, id uint) error {
 	entityTypeID, err := r.yaruzRepository.ReferenceSubsystem().EntityType.GetIDBySysname(ctx, advertising_campaign.EntityType)
 	if err != nil {
+		if errors.Is(err, yaruserror.ErrNotFound) {
+			return apperror.ErrNotFound
+		}
 		return err
 	}
 

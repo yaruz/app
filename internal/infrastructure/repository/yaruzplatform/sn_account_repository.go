@@ -3,6 +3,8 @@ package yaruzplatform
 import (
 	"context"
 	"github.com/pkg/errors"
+	"github.com/yaruz/app/internal/pkg/apperror"
+	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 
 	"github.com/minipkg/selection_condition"
 
@@ -61,11 +63,17 @@ func (r *SnAccountRepository) instantiate(ctx context.Context, entity *entity.En
 func (r *SnAccountRepository) Get(ctx context.Context, id uint, langID uint) (*sn_account.SNAccount, error) {
 	entityTypeID, err := r.yaruzRepository.ReferenceSubsystem().EntityType.GetIDBySysname(ctx, sn_account.EntityType)
 	if err != nil {
+		if errors.Is(err, yaruserror.ErrNotFound) {
+			return nil, apperror.ErrNotFound
+		}
 		return nil, err
 	}
 
 	e, err := r.yaruzRepository.DataSubsystem().Entity.Get(ctx, id, entityTypeID, langID)
 	if err != nil {
+		if errors.Is(err, yaruserror.ErrNotFound) {
+			return nil, apperror.ErrNotFound
+		}
 		return nil, err
 	}
 
@@ -75,6 +83,9 @@ func (r *SnAccountRepository) Get(ctx context.Context, id uint, langID uint) (*s
 func (r *SnAccountRepository) First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*sn_account.SNAccount, error) {
 	e, err := r.yaruzRepository.DataSubsystem().Entity.First(ctx, condition, &sn_account.SNAccount{}, langID)
 	if err != nil {
+		if errors.Is(err, yaruserror.ErrNotFound) {
+			return nil, apperror.ErrNotFound
+		}
 		return nil, err
 	}
 	return r.instantiate(ctx, e)
@@ -85,6 +96,9 @@ func (r *SnAccountRepository) Query(ctx context.Context, condition *selection_co
 
 	entities, err := r.yaruzRepository.DataSubsystem().Entity.Query(ctx, condition, &sn_account.SNAccount{}, langID)
 	if err != nil {
+		if errors.Is(err, yaruserror.ErrNotFound) {
+			return nil, apperror.ErrNotFound
+		}
 		return nil, err
 	}
 
@@ -128,6 +142,9 @@ func (r *SnAccountRepository) Update(ctx context.Context, obj *sn_account.SNAcco
 func (r *SnAccountRepository) Delete(ctx context.Context, id uint) error {
 	entityTypeID, err := r.yaruzRepository.ReferenceSubsystem().EntityType.GetIDBySysname(ctx, sn_account.EntityType)
 	if err != nil {
+		if errors.Is(err, yaruserror.ErrNotFound) {
+			return apperror.ErrNotFound
+		}
 		return err
 	}
 

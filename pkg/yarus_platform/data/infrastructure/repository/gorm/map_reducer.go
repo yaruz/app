@@ -2,7 +2,6 @@ package gorm
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -121,13 +120,6 @@ func (s *MapReducer) queryStarter(dbs []minipkg_gorm.IDB, f func(db minipkg_gorm
 	var errorsCh = make(chan error, len(dbs))
 	var resultCh = make(chan []SearchResult, len(dbs))
 
-	select {
-	case err, ok := <-errorsCh:
-		fmt.Println("Какого хуя?!", err, ok)
-	default:
-		fmt.Println("Хуй!")
-	}
-
 	defer func() {
 		close(errorsCh)
 		close(resultCh)
@@ -139,13 +131,6 @@ func (s *MapReducer) queryStarter(dbs []minipkg_gorm.IDB, f func(db minipkg_gorm
 		go s.queryProcessing(wg, db, f, resultCh, errorsCh)
 	}
 	wg.Wait()
-
-	select {
-	case err := <-errorsCh:
-		fmt.Println("Какого хуя?!", err)
-	default:
-		fmt.Println("Хуй!")
-	}
 
 	return resultCh, errorsCh
 }
@@ -174,15 +159,21 @@ func (s *MapReducer) queryProcessing(wg *sync.WaitGroup, db minipkg_gorm.IDB, f 
 func (s *MapReducer) queryReceiver(resultCh chan []SearchResult, errorsCh chan error) ([]SearchResult, error) {
 	var res []SearchResult
 	var err error
+	var ok bool
 
 	select {
-	case err = <-errorsCh:
-		return nil, err
+	case err, ok = <-errorsCh:
+		// todo: в канале может быть несколько ошибок. Хорошо бы их все либо вернуть, либо залогировать
+		if ok {
+			return nil, err
+		}
 	default:
 	}
 
 	for searchResult := range resultCh {
+		//if searchResult != nil {
 		res = append(res, searchResult...)
+		//}
 	}
 
 	if res == nil {

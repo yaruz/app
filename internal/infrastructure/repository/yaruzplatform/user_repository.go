@@ -2,6 +2,8 @@ package yaruzplatform
 
 import (
 	"context"
+	"github.com/yaruz/app/internal/pkg/apperror"
+	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 
 	"github.com/pkg/errors"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
@@ -73,11 +75,17 @@ func (r *UserRepository) instantiate(ctx context.Context, entity *entity.Entity)
 func (r *UserRepository) Get(ctx context.Context, id uint, langID uint) (*user.User, error) {
 	entityTypeID, err := r.yaruzRepository.ReferenceSubsystem().EntityType.GetIDBySysname(ctx, user.EntityType)
 	if err != nil {
+		if errors.Is(err, yaruserror.ErrNotFound) {
+			return nil, apperror.ErrNotFound
+		}
 		return nil, err
 	}
 
 	e, err := r.yaruzRepository.DataSubsystem().Entity.Get(ctx, id, entityTypeID, langID)
 	if err != nil {
+		if errors.Is(err, yaruserror.ErrNotFound) {
+			return nil, apperror.ErrNotFound
+		}
 		return nil, err
 	}
 
@@ -87,6 +95,9 @@ func (r *UserRepository) Get(ctx context.Context, id uint, langID uint) (*user.U
 func (r *UserRepository) First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*user.User, error) {
 	e, err := r.yaruzRepository.DataSubsystem().Entity.First(ctx, condition, &user.User{}, langID)
 	if err != nil {
+		if errors.Is(err, yaruserror.ErrNotFound) {
+			return nil, apperror.ErrNotFound
+		}
 		return nil, err
 	}
 	return r.instantiate(ctx, e)
@@ -97,6 +108,9 @@ func (r *UserRepository) Query(ctx context.Context, condition *selection_conditi
 
 	entities, err := r.yaruzRepository.DataSubsystem().Entity.Query(ctx, condition, &user.User{}, langID)
 	if err != nil {
+		if errors.Is(err, yaruserror.ErrNotFound) {
+			return nil, apperror.ErrNotFound
+		}
 		return nil, err
 	}
 
@@ -140,6 +154,9 @@ func (r *UserRepository) Update(ctx context.Context, obj *user.User, langID uint
 func (r *UserRepository) Delete(ctx context.Context, id uint) error {
 	entityTypeID, err := r.yaruzRepository.ReferenceSubsystem().EntityType.GetIDBySysname(ctx, user.EntityType)
 	if err != nil {
+		if errors.Is(err, yaruserror.ErrNotFound) {
+			return apperror.ErrNotFound
+		}
 		return err
 	}
 
