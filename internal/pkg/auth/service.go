@@ -4,22 +4,20 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"github.com/casdoor/casdoor-go-sdk/auth"
 	routing "github.com/go-ozzo/ozzo-routing/v2"
+	"github.com/minipkg/log"
+	"github.com/pkg/errors"
+	"github.com/yaruz/app/internal/domain/session"
+	"github.com/yaruz/app/internal/domain/user"
+	"github.com/yaruz/app/internal/pkg/apperror"
+	"github.com/yaruz/app/internal/pkg/config"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_lang"
 	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
+	"golang.org/x/oauth2"
 	"net/http"
 	"strconv"
 	"strings"
-
-	"github.com/pkg/errors"
-
-	"github.com/casdoor/casdoor-go-sdk/auth"
-	"github.com/minipkg/log"
-	"github.com/yaruz/app/internal/pkg/apperror"
-	"github.com/yaruz/app/internal/pkg/config"
-
-	"github.com/yaruz/app/internal/domain/session"
-	"github.com/yaruz/app/internal/domain/user"
 )
 
 // Service encapsulates the authentication logic.
@@ -28,9 +26,9 @@ type Service interface {
 	GetSignInUrl() string
 	GetForgetUrl() string
 	GetSession(ctx context.Context) *session.Session
+	SessionInit(ctx context.Context, token string, accountSettings *user.AccountSettings) (context.Context, error)
 	UpdateSession(ctx context.Context, sess *session.Session) (context.Context, *session.Session, error)
 	AccountSettingsUpdate(ctx context.Context, accountSettings *user.AccountSettings) (context.Context, error)
-	SessionInit(ctx context.Context, token string, accountSettings *user.AccountSettings) (context.Context, error)
 	SignIn(ctx context.Context, code, state string, accountSettings *user.AccountSettings) (context.Context, error)
 	StringTokenValidation(ctx context.Context, stringToken string) error
 	RoutingGetAccountSettingsWithDefaults(rctx *routing.Context) (*user.AccountSettings, error)
@@ -65,7 +63,11 @@ type service struct {
 type contextKey int
 
 const (
-	userSessionKey contextKey = iota
+	timeOutInSec                     = 5
+	URI_RefreshToken                 = "/api/login/oauth/refresh_token"
+	userSessionKey        contextKey = iota
+	grantTypeRefreshToken            = "refresh_token"
+	scopeRead                        = "read"
 )
 
 //go:embed token_jwt_key.pem
@@ -96,7 +98,7 @@ func NewService(ctx context.Context, logger log.ILogger, cfg config.Auth, userSe
 	s.defaultAccountSettings = &user.AccountSettings{
 		LangID: defaultLangID,
 	}
-
+	// casdoor-go-sdk/auth
 	auth.InitConfig(s.Endpoint, s.ClientId, s.ClientSecret, JwtPublicKey, s.Organization, s.Application)
 	return s, nil
 }
@@ -111,6 +113,7 @@ func (s *service) RoutingGetAccountSettingsWithDefaults(rctx *routing.Context) (
 			if err != yaruserror.ErrNotFound {
 				return nil, err
 			}
+			// todo: временно игнорим ненайденные
 		} else {
 			accountSettings.LangID = langID
 		}
@@ -195,21 +198,25 @@ func (s *service) GetForgetUrl() string {
 }
 
 func (s *service) accountGetUintParam(account *auth.User, paramName string) (uint, error) {
-	var param uint
-
-	if pStr, ok := account.Properties[paramName]; !ok {
+	pStr, ok := account.Properties[paramName]
+	if !ok {
 		return 0, apperror.ErrNotFound
-		pInt, err := strconv.Atoi(pStr)
-		if err != nil {
-			return 0, err
-		}
-		param = uint(pInt)
 	}
-	return param, nil
+
+	pInt, err := strconv.Atoi(pStr)
+	if err != nil {
+		return 0, err
+	}
+
+	return uint(pInt), nil
+}
+
+func (s *service) accountSetUintParam(account *auth.User, key string, value uint) {
+	account.Properties[key] = strconv.Itoa(int(value))
 }
 
 func (s *service) accountSetUserID(account *auth.User, userID uint) {
-	account.Properties[s.Application+"ID"] = strconv.Itoa(int(userID))
+	s.accountSetUintParam(account, s.Application+"ID", userID)
 }
 
 func (s *service) accountGetUserID(account *auth.User) (uint, error) {
@@ -307,7 +314,7 @@ func (s *service) SessionInit(ctx context.Context, token string, accountSettings
 // Login authenticates a user and generates a JWT token if authentication succeeds.
 // Otherwise, an error is returned.
 func (s *service) SignIn(ctx context.Context, code, state string, accountSettings *user.AccountSettings) (context.Context, error) {
-	jwtClaims, err := s.getAndParseToken(ctx, code, state)
+	oauthToken, jwtClaims, err := s.getAndParseToken(ctx, code, state)
 	if err != nil {
 		return ctx, err
 	}
@@ -317,24 +324,23 @@ func (s *service) SignIn(ctx context.Context, code, state string, accountSetting
 		if !errors.Is(err, apperror.ErrNotFound) {
 			return ctx, err
 		}
-		user, err = s.signUp(ctx, jwtClaims, accountSettings.LangID)
+		user, err = s.signUp(ctx, jwtClaims, accountSettings.LangID) // todo: err
 	}
 
 	if userID, err := s.accountGetUserID(&jwtClaims.User); err == nil {
 		if userID != user.ID {
-			//	user был создан, но был удалён без удаления аккаунта
+			//	user был создан, но был удалён без удаления аккаунта. Пока не понятно, что с этим делать..
 			return ctx, err
 		}
 	} else if errors.Is(err, apperror.ErrNotFound) {
 		s.accountSetUserID(&jwtClaims.User, user.ID)
 
-		if jwtClaims, err = s.accountPropertiesUpdate(ctx, &jwtClaims.User, code, state); err != nil {
+		if err = s.accountPropertiesUpdate(ctx, &jwtClaims.User, code, state); err != nil {
 			return ctx, err
 		}
+		oauthToken, jwtClaims, err = s.refreshAndParseToken(ctx, oauthToken, jwtClaims)
 	} else {
-		if err != nil {
-			return ctx, err
-		}
+		return ctx, err
 	}
 
 	ctx, err = s.SessionInit(ctx, jwtClaims.AccessToken, accountSettings)
@@ -348,36 +354,120 @@ func (s *service) SignIn(ctx context.Context, code, state string, accountSetting
 	return ctx, nil
 }
 
-func (s *service) accountPropertiesUpdate(ctx context.Context, user *auth.User, code, state string) (*auth.Claims, error) {
+func (s *service) accountPropertiesUpdate(ctx context.Context, user *auth.User, code, state string) error {
 	ok, err := auth.UpdateUserForColumns(user, []string{"properties"})
 	if !ok || err != nil {
-		return nil, errors.Wrapf(apperror.ErrInternal, fmt.Sprintf("User not updated. Ok = %t, err = %q.", ok, err.Error()))
+		return errors.Wrapf(apperror.ErrInternal, fmt.Sprintf("User not updated. Ok = %t, err = %q.", ok, err.Error()))
 	}
 
-	jwtClaims, err := s.getAndParseToken(ctx, code, state)
-	if err != nil {
-		return nil, err
-	}
-	return jwtClaims, nil
+	return nil
 }
 
-func (s *service) getAndParseToken(ctx context.Context, code, state string) (*auth.Claims, error) {
-	token, err := auth.GetOAuthToken(code, state)
+func (s *service) getAndParseToken(ctx context.Context, code, state string) (*oauth2.Token, *auth.Claims, error) {
+	authToken, err := auth.GetOAuthToken(code, state)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	jwtClaims, err := auth.ParseJwtToken(authToken.AccessToken)
+	if err != nil {
+		return nil, nil, err
+	}
+	jwtClaims.AccessToken = authToken.AccessToken
+
+	return authToken, jwtClaims, nil
+}
+
+type refreshTokenParams struct {
+	GrantType    string `json:"grant_type"`
+	RefreshToken string `json:"refresh_token"`
+	Scope        string `json:"scope"`
+	ClientId     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+}
+
+//func (s *service) refreshToken(ctx context.Context, oauthToken *oauth2.Token) (*oauth2.Token, error) {
+/*httpClient := &http.Client{
+	Timeout: time.Second * 10,
+}
+params := &refreshTokenParams{
+	GrantType:    "refresh_token",
+	RefreshToken: *refreshToken,
+	Scope:        "read",
+	ClientId:     s.ClientId,
+	ClientSecret: s.ClientSecret,
+}
+
+data, err := json.Marshal(*params)
+if err != nil {
+	return nil, err
+}
+body := bytes.NewBuffer(data)
+
+url := s.Endpoint + URI_RefreshToken
+req, _ := http.NewRequest(http.MethodPost, url, body)
+req.Header.Add("Content-Type", "application/json")
+req.Header.Add("Content-Length", strconv.Itoa(len(data)))
+
+resp, err := httpClient.Do(req)
+if err != nil {
+	fmt.Println("error happend", err)
+	return
+}
+defer resp.Body.Close()
+
+respBody, err := ioutil.ReadAll(resp.Body)*/
+
+//	newOauthToken, err := tokenSource.Token()
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	if strings.HasPrefix(newOauthToken.AccessToken, "error:") {
+//		return nil, errors.New(strings.TrimLeft(newOauthToken.AccessToken, "error: "))
+//	}
+//
+//	return newOauthToken, err
+//}
+
+func (s *service) autoRefreshToken(ctx context.Context, oauthToken *oauth2.Token) (*oauth2.Token, error) {
+	config := oauth2.Config{
+		ClientID:     s.ClientId,
+		ClientSecret: s.ClientSecret,
+		Endpoint: oauth2.Endpoint{
+			AuthURL:   fmt.Sprintf("%s/api/login/oauth/authorize", s.Endpoint),
+			TokenURL:  fmt.Sprintf("%s/api/login/oauth/access_token", s.Endpoint),
+			AuthStyle: oauth2.AuthStyleInParams,
+		},
+		Scopes: nil,
+	}
+	tokenSource := config.TokenSource(ctx, oauthToken)
+
+	newOauthToken, err := tokenSource.Token()
 	if err != nil {
 		return nil, err
 	}
 
-	if err = s.StringTokenValidation(ctx, token.AccessToken); err != nil {
-		return nil, err
+	if strings.HasPrefix(newOauthToken.AccessToken, "error:") {
+		return nil, errors.New(strings.TrimLeft(newOauthToken.AccessToken, "error: "))
 	}
 
-	jwtClaims, err := auth.ParseJwtToken(token.AccessToken)
+	return newOauthToken, err
+}
+
+func (s *service) refreshAndParseToken(ctx context.Context, oauthToken *oauth2.Token, jwtClaims *auth.Claims) (*oauth2.Token, *auth.Claims, error) {
+	authToken, err := s.autoRefreshToken(ctx, oauthToken)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	jwtClaims.AccessToken = token.AccessToken
 
-	return jwtClaims, nil
+	pjwtClaims, err := auth.ParseJwtToken(authToken.AccessToken)
+	if err != nil {
+		return nil, nil, err
+	}
+	pjwtClaims.AccessToken = authToken.AccessToken
+
+	return authToken, pjwtClaims, nil
 }
 
 func (s *service) signUp(ctx context.Context, jwtClaims *auth.Claims, langId uint) (*user.User, error) {

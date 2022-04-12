@@ -2,6 +2,7 @@ package gorm
 
 import (
 	"context"
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/utext_value"
 
 	"gorm.io/gorm/clause"
 
@@ -104,6 +105,10 @@ func (r *EntityRepository) afterSaveTx(ctx context.Context, entity *domain_entit
 		return err
 	}
 
+	if err := r.valueRepositories.UText.BatchSaveChangesTx(ctx, entity.ID, entity.UTextValues, langID, tx); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -168,6 +173,16 @@ func (r *EntityRepository) Delete(ctx context.Context, ID uint, typeID uint) err
 
 		if err = r.valueRepositories.Text.BatchDeleteTx(ctx, &selection_condition.SelectionCondition{
 			Where: &text_value.TextValue{
+				EntityID: ID,
+			},
+		}, tx); err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+		}
+
+		if err = r.valueRepositories.UText.BatchDeleteTx(ctx, &selection_condition.SelectionCondition{
+			Where: &utext_value.UTextValue{
 				EntityID: ID,
 			},
 		}, tx); err != nil {

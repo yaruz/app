@@ -45,7 +45,7 @@ func (c *accountController) RegisterHandlers() {
 
 	c.RouteGroup.Use(c.Auth.CheckAuthMiddleware)
 
-	c.RouteGroup.Get(`/account/fb-signin`, c.fbSignin)
+	c.RouteGroup.Get(`/account/tg-signin`, c.tgSignin)
 	//r.Get(`/user/<id:\d+>`, c.get)
 	//r.Get("/users", c.list)
 
@@ -85,7 +85,7 @@ func (c *accountController) signin(rctx *routing.Context) error {
 	}{sess.JwtClaims.AccessToken})
 }
 
-func (c *accountController) fbSignin(ctx *routing.Context) error {
+func (c *accountController) tgSignin(ctx *routing.Context) error {
 
 	return ctx.Write(true)
 }

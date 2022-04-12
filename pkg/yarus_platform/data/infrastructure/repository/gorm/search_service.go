@@ -326,9 +326,9 @@ func (s *SearchService) processTextValue(e *entity.Entity, propValsMap *map[uint
 }
 
 func (s *SearchService) processUTextValue(e *entity.Entity, propValsMap *map[uint]map[uint]map[uint]struct{}, searchResult *SearchResult) {
-	if searchResult.IID > 0 {
-		if _, ok := (*propValsMap)[e.ID][property_type.IDUText][searchResult.IID]; !ok {
-			(*propValsMap)[e.ID][property_type.IDUText][searchResult.IID] = struct{}{}
+	if searchResult.UTxtID > 0 {
+		if _, ok := (*propValsMap)[e.ID][property_type.IDUText][searchResult.UTxtID]; !ok {
+			(*propValsMap)[e.ID][property_type.IDUText][searchResult.UTxtID] = struct{}{}
 
 			if e.UTextValues == nil {
 				e.UTextValues = make([]utext_value.UTextValue, 0, 1)
