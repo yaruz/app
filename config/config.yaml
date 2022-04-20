@@ -20,7 +20,7 @@ db:
   datasharding:
     isautomigrate:  True
     default:
-      capacity:  3
+      capacity:  1000000
       items:
         - dialect:        "postgres"
           dsn:            "host=db port=5432 dbname=data user=postgres password=1gjcnuhtc1! sslmode=disable"
@@ -29,7 +29,7 @@ db:
 
     BySysnames:
       AdvertisingCampaigns:
-        capacity:  5
+        capacity:  100000000
         entitytypes:
           - AdvertisingCampaign
           - Offer

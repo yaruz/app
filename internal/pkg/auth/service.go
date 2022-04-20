@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"bytes"
 	"context"
 	_ "embed"
+	"encoding/json"
 	"fmt"
 	"github.com/casdoor/casdoor-go-sdk/auth"
 	routing "github.com/go-ozzo/ozzo-routing/v2"
@@ -15,9 +17,12 @@ import (
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_lang"
 	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
 	"golang.org/x/oauth2"
+	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Service encapsulates the authentication logic.
@@ -324,7 +329,9 @@ func (s *service) SignIn(ctx context.Context, code, state string, accountSetting
 		if !errors.Is(err, apperror.ErrNotFound) {
 			return ctx, err
 		}
-		user, err = s.signUp(ctx, jwtClaims, accountSettings.LangID) // todo: err
+		if user, err = s.signUp(ctx, jwtClaims, accountSettings.LangID); err != nil {
+			return nil, err
+		}
 	}
 
 	if userID, err := s.accountGetUserID(&jwtClaims.User); err == nil {
@@ -338,7 +345,7 @@ func (s *service) SignIn(ctx context.Context, code, state string, accountSetting
 		if err = s.accountPropertiesUpdate(ctx, &jwtClaims.User, code, state); err != nil {
 			return ctx, err
 		}
-		oauthToken, jwtClaims, err = s.refreshAndParseToken(ctx, oauthToken, jwtClaims)
+		oauthToken, jwtClaims, err = s.refreshAndParseToken(ctx, oauthToken.RefreshToken)
 	} else {
 		return ctx, err
 	}
@@ -386,52 +393,71 @@ type refreshTokenParams struct {
 	ClientSecret string `json:"client_secret"`
 }
 
-//func (s *service) refreshToken(ctx context.Context, oauthToken *oauth2.Token) (*oauth2.Token, error) {
-/*httpClient := &http.Client{
-	Timeout: time.Second * 10,
-}
-params := &refreshTokenParams{
-	GrantType:    "refresh_token",
-	RefreshToken: *refreshToken,
-	Scope:        "read",
-	ClientId:     s.ClientId,
-	ClientSecret: s.ClientSecret,
+type refreshTokenResponse struct {
+	AccessToken  string `json:"access_token"`
+	Error        string `json:"error"`
+	ExpiresIn    int    `json:"expires_in"`
+	IdToken      string `json:"id_token"`
+	RefreshToken string `json:"refresh_token"`
+	Scope        string `json:"scope"`
+	TokenType    string `json:"token_type"`
 }
 
-data, err := json.Marshal(*params)
-if err != nil {
-	return nil, err
+func (s *service) refreshToken(ctx context.Context, refreshToken string) (*oauth2.Token, error) {
+	httpClient := &http.Client{
+		//Timeout: time.Second * 10,
+	}
+
+	urlValues := url.Values{
+		"grant_type":    []string{"refresh_token"},
+		"refresh_token": []string{refreshToken},
+		"scope":         []string{"read"},
+		"client_id":     []string{s.ClientId},
+		"client_secret": []string{s.ClientSecret},
+	}
+
+	body := bytes.NewBuffer([]byte{})
+
+	reqUrl := s.Endpoint + URI_RefreshToken + "?" + urlValues.Encode()
+	req, err := http.NewRequest(http.MethodPost, reqUrl, body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Content-Length", strconv.Itoa(body.Len()))
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var res refreshTokenResponse
+	err = json.Unmarshal(respBody, &res)
+
+	expires := res.ExpiresIn
+
+	newOauthToken := &oauth2.Token{
+		AccessToken:  res.AccessToken,
+		TokenType:    res.TokenType,
+		RefreshToken: res.RefreshToken,
+		Expiry:       time.Now().Add(time.Duration(expires) * time.Minute), // должно быть в секундах, но в Касдоре ошибка
+	}
+
+	if strings.HasPrefix(newOauthToken.AccessToken, "error:") {
+		return nil, errors.New(strings.TrimLeft(newOauthToken.AccessToken, "error: "))
+	}
+
+	return newOauthToken, err
 }
-body := bytes.NewBuffer(data)
-
-url := s.Endpoint + URI_RefreshToken
-req, _ := http.NewRequest(http.MethodPost, url, body)
-req.Header.Add("Content-Type", "application/json")
-req.Header.Add("Content-Length", strconv.Itoa(len(data)))
-
-resp, err := httpClient.Do(req)
-if err != nil {
-	fmt.Println("error happend", err)
-	return
-}
-defer resp.Body.Close()
-
-respBody, err := ioutil.ReadAll(resp.Body)*/
-
-//	newOauthToken, err := tokenSource.Token()
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	if strings.HasPrefix(newOauthToken.AccessToken, "error:") {
-//		return nil, errors.New(strings.TrimLeft(newOauthToken.AccessToken, "error: "))
-//	}
-//
-//	return newOauthToken, err
-//}
 
 func (s *service) autoRefreshToken(ctx context.Context, oauthToken *oauth2.Token) (*oauth2.Token, error) {
-	config := oauth2.Config{
+	config := &oauth2.Config{
 		ClientID:     s.ClientId,
 		ClientSecret: s.ClientSecret,
 		Endpoint: oauth2.Endpoint{
@@ -455,19 +481,20 @@ func (s *service) autoRefreshToken(ctx context.Context, oauthToken *oauth2.Token
 	return newOauthToken, err
 }
 
-func (s *service) refreshAndParseToken(ctx context.Context, oauthToken *oauth2.Token, jwtClaims *auth.Claims) (*oauth2.Token, *auth.Claims, error) {
-	authToken, err := s.autoRefreshToken(ctx, oauthToken)
+func (s *service) refreshAndParseToken(ctx context.Context, refreshToken string) (*oauth2.Token, *auth.Claims, error) {
+	//oauthToken, err := RefreshToken(ctx, config, refreshToken)
+	oauthToken, err := s.refreshToken(ctx, refreshToken)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	pjwtClaims, err := auth.ParseJwtToken(authToken.AccessToken)
+	jwtClaims, err := auth.ParseJwtToken(oauthToken.AccessToken)
 	if err != nil {
 		return nil, nil, err
 	}
-	pjwtClaims.AccessToken = authToken.AccessToken
+	jwtClaims.AccessToken = oauthToken.AccessToken
 
-	return authToken, pjwtClaims, nil
+	return oauthToken, jwtClaims, nil
 }
 
 func (s *service) signUp(ctx context.Context, jwtClaims *auth.Claims, langId uint) (*user.User, error) {

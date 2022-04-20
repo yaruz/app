@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jmeterTestPlan version="1.2" properties="5.0" jmeter="5.1.1 r1855137">
   <hashTree>
-    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Socbazar API" enabled="true">
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Casdoor API" enabled="true">
       <stringProp name="TestPlan.comments"></stringProp>
       <boolProp name="TestPlan.functional_mode">false</boolProp>
       <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
@@ -17,7 +17,7 @@
           <collectionProp name="Arguments.arguments"/>
         </elementProp>
         <stringProp name="HTTPSampler.domain">localhost</stringProp>
-        <stringProp name="HTTPSampler.port">80</stringProp>
+        <stringProp name="HTTPSampler.port">8000</stringProp>
         <stringProp name="HTTPSampler.protocol"></stringProp>
         <stringProp name="HTTPSampler.contentEncoding">utf8</stringProp>
         <stringProp name="HTTPSampler.path"></stringProp>
@@ -66,11 +66,6 @@
           <elementProp name="organisation" elementType="Argument">
             <stringProp name="Argument.name">organisation</stringProp>
             <stringProp name="Argument.value">org</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="refreshToken" elementType="Argument">
-            <stringProp name="Argument.name">refreshToken</stringProp>
-            <stringProp name="Argument.value">eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJvd25lciI6Im9yZyIsIm5hbWUiOiJBbmRyZXkiLCJjcmVhdGVkVGltZSI6IjIwMjItMDItMThUMTU6NDc6MjJaIiwidXBkYXRlZFRpbWUiOiIiLCJpZCI6ImJkMzQ3M2NmLWJmOTUtNDJkMS05NTU2LTM3YzIwNDI3MTZjOSIsInR5cGUiOiJub3JtYWwtdXNlciIsInBhc3N3b3JkIjoiIiwicGFzc3dvcmRTYWx0IjoiIiwiZGlzcGxheU5hbWUiOiLQkNC90LTRgNC10LkiLCJmaXJzdE5hbWUiOiIiLCJsYXN0TmFtZSI6IiIsImF2YXRhciI6Imh0dHBzOi8vY2FzYmluLm9yZy9pbWcvY2FzYmluLnN2ZyIsInBlcm1hbmVudEF2YXRhciI6IiIsImVtYWlsIjoia2FsaW5pbi5hbmRyZXkxQHlhbmRleC5ydSIsImVtYWlsVmVyaWZpZWQiOmZhbHNlLCJwaG9uZSI6IiIsImxvY2F0aW9uIjoiIiwiYWRkcmVzcyI6W10sImFmZmlsaWF0aW9uIjoiIiwidGl0bGUiOiIiLCJpZENhcmRUeXBlIjoiIiwiaWRDYXJkIjoiIiwiaG9tZXBhZ2UiOiIiLCJiaW8iOiIiLCJyZWdpb24iOiIiLCJsYW5ndWFnZSI6IiIsImdlbmRlciI6IiIsImJpcnRoZGF5IjoiIiwiZWR1Y2F0aW9uIjoiIiwic2NvcmUiOjIwMDAsImthcm1hIjowLCJyYW5raW5nIjowLCJpc0RlZmF1bHRBdmF0YXIiOmZhbHNlLCJpc09ubGluZSI6ZmFsc2UsImlzQWRtaW4iOmZhbHNlLCJpc0dsb2JhbEFkbWluIjpmYWxzZSwiaXNGb3JiaWRkZW4iOmZhbHNlLCJpc0RlbGV0ZWQiOmZhbHNlLCJzaWdudXBBcHBsaWNhdGlvbiI6InNvY2JhemFyIiwiaGFzaCI6IiIsInByZUhhc2giOiIiLCJjcmVhdGVkSXAiOiIiLCJsYXN0U2lnbmluVGltZSI6IiIsImxhc3RTaWduaW5JcCI6IiIsImdpdGh1YiI6IiIsImdvb2dsZSI6IiIsInFxIjoiIiwid2VjaGF0IjoiIiwiZmFjZWJvb2siOiIiLCJkaW5ndGFsayI6IiIsIndlaWJvIjoiIiwiZ2l0ZWUiOiIiLCJsaW5rZWRpbiI6IiIsIndlY29tIjoiIiwibGFyayI6IiIsImdpdGxhYiI6IiIsImFkZnMiOiIiLCJiYWlkdSI6IiIsImFsaXBheSI6IiIsImNhc2Rvb3IiOiIiLCJpbmZvZmxvdyI6IiIsImFwcGxlIjoiIiwiYXp1cmVhZCI6IiIsInNsYWNrIjoiIiwic3RlYW0iOiIiLCJsZGFwIjoiIiwicHJvcGVydGllcyI6e30sInNjb3BlIjoicmVhZCIsImlzcyI6Imh0dHBzOi8vZG9vci5jYXNiaW4uY29tIiwic3ViIjoiYmQzNDczY2YtYmY5NS00MmQxLTk1NTYtMzdjMjA0MjcxNmM5IiwiYXVkIjpbIjVlNDMxZjgyM2EyYmYzMzhhMjEzIl0sImV4cCI6MTY1MTI0OTQxMywibmJmIjoxNjUwMDM5ODEzLCJpYXQiOjE2NTAwMzk4MTN9.lRuKVLJQTGvo0Vsgto4PBLJTNyIraAYfz4ZLsaVnVX4Whi0bQwN4fZurahDiBXdCmvRpp-P_mS_KEfP0krh9BbnZQFX6XwITwDB-OQrqwPaea39rAyf375G6xGWD15nLvJ7LyeYsnITvMyJ6OfM-s2qTDSWSKjDyLZMkIN7CvNa5p8YXol6LpYLIOR3hJdy77Tm5xV1SFgHCdYlCeOYn8NhOGMSVql_19K-tnjCg7Q8WcNSBZx4fX3eh13Cy0PTkgfr7Dx5nIA8QwBREVwxsTqSXSZugjyR0rc72wF-JWraLftKLR3BSOvTUOsBaaissj7qM8-KmspJXaZ9Clk-ygd6yHjcrLcLtiK0G7fqK-L8SFsEPPDlSvvt43r27zQAaPKs_fRUxZg_CMlfGukbVzrg9ZME-oesxDE8dc8Nzt8CVJNri3vYGX2WCTXZa3SuozfN-YyWVgGRYnqnoyvPhKL21kyUbwq4KLIVFMXw8LnTGtg7egTiPACLM9ritnSRz2NdcGK79F9YtlPxt3T4j2k3kVVo7Eeerzl9iyk-HwQxZc1Z2M2AwAtjvL7seFOy4YRp1VNOJnjO2XBXGe0lPpJypCWRWWnQPazNdOu8GktuMTNNzY9OHOSrCoKsjc2ObRxaVYqe9vZXWxP68LY3HHpywwPgsN4ioTw-_Hg7QASE</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
@@ -351,7 +346,7 @@
               </RegexExtractor>
               <hashTree/>
             </hashTree>
-            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST identity/login" enabled="false">
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST identity/login" enabled="true">
               <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
               <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
                 <collectionProp name="Arguments.arguments">
@@ -438,91 +433,7 @@
               </RegexExtractor>
               <hashTree/>
             </hashTree>
-            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST login/oauth/refresh_token" enabled="true">
-              <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-              <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                <collectionProp name="Arguments.arguments">
-                  <elementProp name="" elementType="HTTPArgument">
-                    <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                    <stringProp name="Argument.value">{&#xd;
-  &quot;client_id&quot;: &quot;${clientId}&quot;,&#xd;
-  &quot;grant_type&quot;: &quot;refresh_token&quot;,&#xd;
-  &quot;refresh_token&quot;: &quot;${refreshToken}&quot;,&#xd;
-  &quot;scope&quot;: &quot;read&quot;&#xd;
-}</stringProp>
-                    <stringProp name="Argument.metadata">=</stringProp>
-                  </elementProp>
-                </collectionProp>
-              </elementProp>
-              <stringProp name="HTTPSampler.domain">${identityUrl}</stringProp>
-              <stringProp name="HTTPSampler.port">${identityPort}</stringProp>
-              <stringProp name="HTTPSampler.protocol"></stringProp>
-              <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-              <stringProp name="HTTPSampler.path">/api/login/oauth/refresh_token</stringProp>
-              <stringProp name="HTTPSampler.method">POST</stringProp>
-              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
-              <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
-              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-              <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
-              <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
-              <stringProp name="HTTPSampler.connect_timeout"></stringProp>
-              <stringProp name="HTTPSampler.response_timeout"></stringProp>
-            </HTTPSamplerProxy>
-            <hashTree>
-              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
-                <collectionProp name="HeaderManager.headers">
-                  <elementProp name="" elementType="Header">
-                    <stringProp name="Header.name">Content-Type</stringProp>
-                    <stringProp name="Header.value">text/plain;charset=UTF-8</stringProp>
-                  </elementProp>
-                  <elementProp name="" elementType="Header">
-                    <stringProp name="Header.name">Cookie</stringProp>
-                    <stringProp name="Header.value">casdoor_session_id=aa036ae858b2e18204c6a17deec168b7</stringProp>
-                  </elementProp>
-                  <elementProp name="" elementType="Header">
-                    <stringProp name="Header.name">Origin</stringProp>
-                    <stringProp name="Header.value">http://localhost:8000</stringProp>
-                  </elementProp>
-                  <elementProp name="" elementType="Header">
-                    <stringProp name="Header.name">Referer</stringProp>
-                    <stringProp name="Header.value">http://localhost:8000/login/oauth/authorize?client_id=5e431f823a2bf338a213&amp;response_type=code&amp;scope=read&amp;state=socbazar&amp;redirect_uri=http://localhost/api/account/signin</stringProp>
-                  </elementProp>
-                  <elementProp name="" elementType="Header">
-                    <stringProp name="Header.name">User-Agent</stringProp>
-                    <stringProp name="Header.value">Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.82 Safari/537.36</stringProp>
-                  </elementProp>
-                  <elementProp name="" elementType="Header">
-                    <stringProp name="Header.name"></stringProp>
-                    <stringProp name="Header.value"></stringProp>
-                  </elementProp>
-                  <elementProp name="" elementType="Header">
-                    <stringProp name="Header.name"></stringProp>
-                    <stringProp name="Header.value"></stringProp>
-                  </elementProp>
-                </collectionProp>
-              </HeaderManager>
-              <hashTree/>
-              <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="200 ok" enabled="true">
-                <collectionProp name="Asserion.test_strings">
-                  <stringProp name="49586">200</stringProp>
-                </collectionProp>
-                <stringProp name="Assertion.custom_message"></stringProp>
-                <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
-                <boolProp name="Assertion.assume_success">false</boolProp>
-                <intProp name="Assertion.test_type">8</intProp>
-              </ResponseAssertion>
-              <hashTree/>
-              <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="Get auth Code" enabled="true">
-                <stringProp name="RegexExtractor.useHeaders">false</stringProp>
-                <stringProp name="RegexExtractor.refname">authCode</stringProp>
-                <stringProp name="RegexExtractor.regex">&quot;data&quot;: &quot;+(.+?)&quot;</stringProp>
-                <stringProp name="RegexExtractor.template">$1$</stringProp>
-                <stringProp name="RegexExtractor.default"></stringProp>
-                <stringProp name="RegexExtractor.match_number"></stringProp>
-              </RegexExtractor>
-              <hashTree/>
-            </hashTree>
-            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /account/signin" enabled="false">
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /account/signin" enabled="true">
               <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
                 <collectionProp name="Arguments.arguments"/>
               </elementProp>
