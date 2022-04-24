@@ -5,23 +5,15 @@ syntax = "proto3";
 package proto;
 option go_package = ".;proto";
 
-import "google/protobuf/timestamp.proto";
 import "user.proto";
+import "sn_account.proto";
+import "account.proto";
 
-
-message Data {
-  uint64  UserID    = 1;
-  string  UserName  = 2;
-  google.protobuf.Timestamp ExpirationTokenTime  = 3;
-}
 
 message Session {
-  uint64  ID      = 1;
-  uint64  UserID  = 2;
-  string  Token   = 3;
-  User    User    = 4;
-  Data    Data    = 5;
+  User                User            = 1;
+  AccountSettings     AccountSettings = 2;
+  repeated SnAccount  SnAccounts      = 3;
+  JwtClaims           JwtClaims       = 4;
 }
-
-
 

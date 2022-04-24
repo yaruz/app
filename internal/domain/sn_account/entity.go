@@ -2,6 +2,7 @@ package sn_account
 
 import (
 	"context"
+	"time"
 
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
 )
@@ -18,8 +19,10 @@ var validPropertySysnames = []string{
 // SNAccount is the SNAccount entity
 type SNAccount struct {
 	*entity.Entity
-	ID   uint
-	SNID string
+	ID        uint
+	TypeID    uint
+	SNID      string
+	CreatedAt time.Time `json:"created"`
 }
 
 var _ entity.Searchable = (*SNAccount)(nil)

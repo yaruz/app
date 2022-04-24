@@ -2,7 +2,7 @@ package redis
 
 import (
 	"context"
-	"encoding/json"
+	"encoding"
 	"fmt"
 	"github.com/yaruz/app/internal/domain/session"
 	"strconv"
@@ -55,8 +55,7 @@ func (r SessionRepository) Get(ctx context.Context, userId uint) (*session.Sessi
 		return nil, errors.Wrapf(apperror.ErrInternal, "Get() error: %v", err)
 	}
 
-	//err = entity.UnmarshalBinary([]byte(res))
-	err = json.Unmarshal([]byte(res), &entity)
+	err = entity.UnmarshalBinary([]byte(res))
 	if err != nil {
 		return nil, errors.Wrapf(apperror.ErrInternal, "json.Unmarshal() error: %v", err)
 	}
@@ -74,9 +73,9 @@ func (r SessionRepository) Update(ctx context.Context, entity *session.Session) 
 }
 
 func (r SessionRepository) Set(ctx context.Context, entity *session.Session) error {
-	//var _ encoding.BinaryMarshaler = entity
+	var _ encoding.BinaryMarshaler = entity
 
-	if err := r.db.DB().Set(ctx, r.Key(entity.User.ID), entity, r.SessionLifeTime).Err(); err != nil {
+	if err := r.db.DB().Set(ctx, r.Key(entity.User.ID), *entity, r.SessionLifeTime).Err(); err != nil {
 		return errors.Wrapf(apperror.ErrInternal, "Create() error: %v", err)
 	}
 	return nil

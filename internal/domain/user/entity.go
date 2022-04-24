@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
+	"time"
 )
 
 const (
@@ -22,10 +23,7 @@ type User struct {
 	ID        uint
 	AccountID string
 	Email     string
-}
-
-type AccountSettings struct {
-	LangID uint
+	CreatedAt time.Time `json:"created"`
 }
 
 var _ entity.Searchable = (*User)(nil)

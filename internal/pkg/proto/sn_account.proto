@@ -8,11 +8,12 @@ option go_package = ".;proto";
 import "google/protobuf/timestamp.proto";
 
 
-message User {
+message SnAccount {
   uint64  ID                           = 1;
-  string  AccountID                    = 2;
-  string  Email                        = 3;
+  uint64  TypeID                       = 2;
+  string  SNID                         = 3;
   google.protobuf.Timestamp CreatedAt  = 4;
 }
+
 
 

@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+// protoc --go_out=. *.proto
+
+package proto;
+option go_package = ".;proto";
+
+
+message AccountSettings {
+  uint64  LangID    = 1;
+}
+
+message JwtClaims {
+  Account User        = 1;
+  string  AccessToken = 2;
+}
+
+message Account {
+  string  Owner                   = 1;
+  string  Name                    = 2;
+  string  CreatedTime             = 3;
+  string  UpdatedTime             = 4;
+
+  string  ID                      = 5;
+  string  Type                    = 6;
+  string  DisplayName             = 7;
+  string  FirstName               = 8;
+  string  LastName                = 9;
+  string  Avatar                  = 10;
+  string  PermanentAvatar         = 11;
+  string  Email                   = 12;
+  bool    EmailVerified           = 13;
+  string  Phone                   = 14;
+  string  Location                = 15;
+  repeated  string  Address       = 16;
+  string  Affiliation             = 17;
+  string  Title                   = 18;
+  string  IdCardType              = 19;
+  string  IdCard                  = 20;
+  string  Homepage                = 21;
+  string  Bio                     = 22;
+  string  Tag                     = 23;
+  string  Region                  = 24;
+  string  Language                = 25;
+  string  Gender                  = 26;
+  string  Birthday                = 27;
+  string  Education               = 28;
+  int64   Score                   = 29;
+  int64   Karma                   = 30;
+  int64   Ranking                 = 31;
+  bool    IsDefaultAvatar         = 32;
+  bool    IsOnline                = 33;
+  bool    IsAdmin                 = 34;
+  bool    IsGlobalAdmin           = 35;
+  bool    IsForbidden             = 36;
+  bool    IsDeleted               = 37;
+  string  SignupApplication       = 38;
+  string  Hash                    = 39;
+  string  PreHash                 = 40;
+
+  string  CreatedIp               = 41;
+  string  LastSigninTime          = 42;
+  string  LastSigninIp            = 43;
+
+  string  Github                  = 44;
+  string  Google                  = 45;
+  string  QQ                      = 46;
+  string  WeChat                  = 47;
+  string  WeChatUnionId           = 48;
+  string  Facebook                = 49;
+  string  DingTalk                = 50;
+  string  Weibo                   = 51;
+  string  Gitee                   = 52;
+  string  LinkedIn                = 53;
+  string  Wecom                   = 54;
+  string  Lark                    = 55;
+  string  Gitlab                  = 56;
+  string  Adfs                    = 57;
+  string  Baidu                   = 58;
+  string  Alipay                  = 59;
+  string  Casdoor                 = 60;
+  string  Infoflow                = 61;
+  string  Apple                   = 62;
+  string  AzureAD                 = 63;
+  string  Slack                   = 64;
+  string  Steam                   = 65;
+  string  Custom                  = 66;
+
+  string  Ldap                    = 67;
+  map<string, string>  Properties = 68;
+}
+
+
+

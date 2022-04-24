@@ -10,6 +10,7 @@ import (
 	routing "github.com/go-ozzo/ozzo-routing/v2"
 	"github.com/minipkg/log"
 	"github.com/pkg/errors"
+	"github.com/yaruz/app/internal/domain/account"
 	"github.com/yaruz/app/internal/domain/session"
 	"github.com/yaruz/app/internal/domain/user"
 	"github.com/yaruz/app/internal/pkg/apperror"
@@ -31,12 +32,12 @@ type Service interface {
 	GetSignInUrl() string
 	GetForgetUrl() string
 	GetSession(ctx context.Context) *session.Session
-	SessionInit(ctx context.Context, token string, accountSettings *user.AccountSettings) (context.Context, error)
+	SessionInit(ctx context.Context, token string, accountSettings *account.AccountSettings) (context.Context, error)
 	UpdateSession(ctx context.Context, sess *session.Session) (context.Context, *session.Session, error)
-	AccountSettingsUpdate(ctx context.Context, accountSettings *user.AccountSettings) (context.Context, error)
-	SignIn(ctx context.Context, code, state string, accountSettings *user.AccountSettings) (context.Context, error)
+	AccountSettingsUpdate(ctx context.Context, accountSettings *account.AccountSettings) (context.Context, error)
+	SignIn(ctx context.Context, code, state string, accountSettings *account.AccountSettings) (context.Context, error)
 	StringTokenValidation(ctx context.Context, stringToken string) error
-	RoutingGetAccountSettingsWithDefaults(rctx *routing.Context) (*user.AccountSettings, error)
+	RoutingGetAccountSettingsWithDefaults(rctx *routing.Context) (*account.AccountSettings, error)
 	CheckAuthMiddleware(rctx *routing.Context) error
 }
 
@@ -62,7 +63,7 @@ type service struct {
 	JWTSigningKey          string
 	JWTExpiration          uint
 	SessionlifeTime        uint
-	defaultAccountSettings *user.AccountSettings
+	defaultAccountSettings *account.AccountSettings
 }
 
 type contextKey int
@@ -100,7 +101,7 @@ func NewService(ctx context.Context, logger log.ILogger, cfg config.Auth, userSe
 		return nil, err
 	}
 
-	s.defaultAccountSettings = &user.AccountSettings{
+	s.defaultAccountSettings = &account.AccountSettings{
 		LangID: defaultLangID,
 	}
 	// casdoor-go-sdk/auth
@@ -108,7 +109,7 @@ func NewService(ctx context.Context, logger log.ILogger, cfg config.Auth, userSe
 	return s, nil
 }
 
-func (s *service) RoutingGetAccountSettingsWithDefaults(rctx *routing.Context) (*user.AccountSettings, error) {
+func (s *service) RoutingGetAccountSettingsWithDefaults(rctx *routing.Context) (*account.AccountSettings, error) {
 	ctx := rctx.Request.Context()
 	accountSettings := s.defaultAccountSettings
 
@@ -127,7 +128,7 @@ func (s *service) RoutingGetAccountSettingsWithDefaults(rctx *routing.Context) (
 	return accountSettings, nil
 }
 
-func (s *service) newSession(ctx context.Context, jwtClaims *auth.Claims, user *user.User, accountSettings *user.AccountSettings) *session.Session {
+func (s *service) newSession(ctx context.Context, jwtClaims *auth.Claims, user *user.User, accountSettings *account.AccountSettings) *session.Session {
 	return &session.Session{
 		User:            user,
 		JwtClaims:       jwtClaims,
@@ -135,7 +136,7 @@ func (s *service) newSession(ctx context.Context, jwtClaims *auth.Claims, user *
 	}
 }
 
-func (s *service) createSession(ctx context.Context, jwtClaims *auth.Claims, user *user.User, accountSettings *user.AccountSettings) (context.Context, *session.Session, error) {
+func (s *service) createSession(ctx context.Context, jwtClaims *auth.Claims, user *user.User, accountSettings *account.AccountSettings) (context.Context, *session.Session, error) {
 	if jwtClaims == nil || user == nil || accountSettings == nil {
 		return ctx, nil, errors.Wrapf(apperror.ErrBadParams, "jwtClaims == %v \nuser == %v \naccountSettings == %v", jwtClaims, user, accountSettings)
 	}
@@ -170,7 +171,7 @@ func (s *service) UpdateSession(ctx context.Context, sess *session.Session) (con
 	return ctx, sess, nil
 }
 
-func (s *service) updateSession(ctx context.Context, sess *session.Session, jwtClaims *auth.Claims, user *user.User, accountSettings *user.AccountSettings) (context.Context, *session.Session, error) {
+func (s *service) updateSession(ctx context.Context, sess *session.Session, jwtClaims *auth.Claims, user *user.User, accountSettings *account.AccountSettings) (context.Context, *session.Session, error) {
 	if user != nil {
 		sess.User = user
 	}
@@ -233,22 +234,22 @@ func (s *service) accountGetUserID(account *auth.User) (uint, error) {
 	return userID, nil
 }
 
-func (s *service) accountSetSettings(account *auth.User, accountSettings *user.AccountSettings) {
+func (s *service) accountSetSettings(account *auth.User, accountSettings *account.AccountSettings) {
 	account.Properties["langID"] = strconv.Itoa(int(accountSettings.LangID))
 }
 
-func (s *service) accountGetSettings(account *auth.User) (*user.AccountSettings, error) {
+func (s *service) accountGetSettings(account *auth.User) (*account.AccountSettings, error) {
 	langID, err := s.accountGetUintParam(account, "langID")
 	if err != nil {
 		return nil, err
 	}
 
-	return &user.AccountSettings{
+	return &account.AccountSettings{
 		LangID: langID,
 	}, nil
 }
 
-func (s *service) AccountSettingsUpdate(ctx context.Context, accountSettings *user.AccountSettings) (context.Context, error) {
+func (s *service) AccountSettingsUpdate(ctx context.Context, accountSettings *account.AccountSettings) (context.Context, error) {
 	sess := s.GetSession(ctx)
 
 	if sess.AccountSettings.LangID == accountSettings.LangID {
@@ -273,7 +274,7 @@ func (s *service) AccountSettingsUpdate(ctx context.Context, accountSettings *us
 	return ctx, nil
 }
 
-func (s *service) SessionInit(ctx context.Context, token string, accountSettings *user.AccountSettings) (context.Context, error) {
+func (s *service) SessionInit(ctx context.Context, token string, accountSettings *account.AccountSettings) (context.Context, error) {
 	jwtClaims, err := auth.ParseJwtToken(token)
 	if err != nil {
 		return ctx, err
@@ -318,7 +319,7 @@ func (s *service) SessionInit(ctx context.Context, token string, accountSettings
 
 // Login authenticates a user and generates a JWT token if authentication succeeds.
 // Otherwise, an error is returned.
-func (s *service) SignIn(ctx context.Context, code, state string, accountSettings *user.AccountSettings) (context.Context, error) {
+func (s *service) SignIn(ctx context.Context, code, state string, accountSettings *account.AccountSettings) (context.Context, error) {
 	oauthToken, jwtClaims, err := s.getAndParseToken(ctx, code, state)
 	if err != nil {
 		return ctx, err
@@ -446,7 +447,7 @@ func (s *service) refreshToken(ctx context.Context, refreshToken string) (*oauth
 		AccessToken:  res.AccessToken,
 		TokenType:    res.TokenType,
 		RefreshToken: res.RefreshToken,
-		Expiry:       time.Now().Add(time.Duration(expires) * time.Minute), // должно быть в секундах, но в Касдоре ошибка
+		Expiry:       time.Now().Add(time.Duration(expires) * time.Second), // должно быть в секундах, но в Касдоре ошибка
 	}
 
 	if strings.HasPrefix(newOauthToken.AccessToken, "error:") {

@@ -2,6 +2,7 @@ package session
 
 import (
 	"github.com/casdoor/casdoor-go-sdk/auth"
+	"github.com/yaruz/app/internal/domain/account"
 	"github.com/yaruz/app/internal/domain/sn_account"
 
 	"github.com/yaruz/app/internal/domain/user"
@@ -10,6 +11,6 @@ import (
 type Session struct {
 	JwtClaims       *auth.Claims
 	User            *user.User
-	AccountSettings *user.AccountSettings
+	AccountSettings *account.AccountSettings
 	SnAccounts      []sn_account.SNAccount
 }
