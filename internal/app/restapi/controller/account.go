@@ -17,6 +17,8 @@ package controller
 import (
 	routing "github.com/go-ozzo/ozzo-routing/v2"
 	"github.com/minipkg/log"
+	"github.com/minipkg/ozzo_routing/errorshandler"
+	"github.com/yaruz/app/internal/domain/account"
 	"github.com/yaruz/app/internal/domain/user"
 	"github.com/yaruz/app/internal/pkg/auth"
 	"net/http"
@@ -45,6 +47,8 @@ func (c *accountController) RegisterHandlers() {
 
 	c.RouteGroup.Use(c.Auth.CheckAuthMiddleware)
 
+	c.RouteGroup.Put(`/account-settings`, c.accountSettingsUpdate)
+
 	c.RouteGroup.Get(`/account/tg-signin`, c.tgSignin)
 	//r.Get(`/user/<id:\d+>`, c.get)
 	//r.Get("/users", c.list)
@@ -53,7 +57,6 @@ func (c *accountController) RegisterHandlers() {
 
 // todo: settings
 // todo: все настройки + настройки по умолчанию
-// todo: post обновление настроек
 
 // @Title Signin
 // @Description sign in as a member
@@ -90,7 +93,24 @@ func (c *accountController) tgSignin(ctx *routing.Context) error {
 	return ctx.Write(true)
 }
 
-// todo: POST AccountSettings
+func (c *accountController) accountSettingsUpdate(rctx *routing.Context) (err error) {
+	ctx := rctx.Request.Context()
+
+	accountSettings := account.NewSettings()
+	if err := rctx.Read(accountSettings); err != nil {
+		c.Logger.With(ctx).Info(err)
+		return errorshandler.BadRequest(err.Error())
+	}
+
+	if err := accountSettings.Validate(); err != nil {
+		return errorshandler.BadRequest(err.Error())
+	}
+
+	if ctx, err = c.Auth.AccountSettingsUpdate(ctx, accountSettings); err != nil {
+		return routing.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	return rctx.Write(true)
+}
 
 // @Title Signout
 // @Description sign out the current member

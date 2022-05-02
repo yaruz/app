@@ -28,11 +28,11 @@ type User struct {
 
 var _ entity.Searchable = (*User)(nil)
 
-func (e User) EntityType() string {
+func (e *User) EntityType() string {
 	return EntityType
 }
 
-func (e User) Validate() error {
+func (e *User) Validate() error {
 	return nil
 }
 

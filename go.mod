@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/casdoor/casdoor-go-sdk v0.2.0
+	github.com/casdoor/casdoor-go-sdk v0.4.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-ozzo/ozzo-routing/v2 v2.4.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
@@ -18,7 +18,7 @@ require (
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/viper v1.10.1
 	github.com/stretchr/testify v1.7.0
-	google.golang.org/protobuf v1.27.1
+	google.golang.org/protobuf v1.28.0
 	gorm.io/datatypes v1.0.5
 	gorm.io/gorm v1.22.5
 )
@@ -30,10 +30,10 @@ require (
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/go-redis/cache/v8 v8.4.0 // indirect
-	github.com/go-redis/redis/v8 v8.8.0 // indirect
+	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
-	github.com/golang-jwt/jwt/v4 v4.1.0 // indirect
+	github.com/golang-jwt/jwt/v4 v4.4.1 // indirect
 	github.com/golang/gddo v0.0.0-20190904175337-72a348e765d2 // indirect
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
@@ -73,8 +73,8 @@ require (
 	go.uber.org/zap v1.17.0 // indirect
 	golang.org/x/crypto v0.0.0-20220131195533-30dcbda58838 // indirect
 	golang.org/x/exp v0.0.0-20201221025956-e89b829e73ea // indirect
-	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
-	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
+	golang.org/x/net v0.0.0-20220425223048-2871e0cb64e4 // indirect
+	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
 	golang.org/x/text v0.3.7 // indirect

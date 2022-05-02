@@ -35,7 +35,7 @@
           </elementProp>
           <elementProp name="username" elementType="Argument">
             <stringProp name="Argument.name">username</stringProp>
-            <stringProp name="Argument.value">andrey</stringProp>
+            <stringProp name="Argument.value">Andrey</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="password" elementType="Argument">
@@ -117,7 +117,7 @@
           </elementProp>
           <elementProp name="" elementType="Header">
             <stringProp name="Header.name">Cookie</stringProp>
-            <stringProp name="Header.value">casdoor_session_id=aa036ae858b2e18204c6a17deec168b7</stringProp>
+            <stringProp name="Header.value"></stringProp>
           </elementProp>
         </collectionProp>
       </HeaderManager>
@@ -351,7 +351,7 @@
               </RegexExtractor>
               <hashTree/>
             </hashTree>
-            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST identity/login" enabled="false">
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST identity/login" enabled="true">
               <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
               <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
                 <collectionProp name="Arguments.arguments">
@@ -438,7 +438,7 @@
               </RegexExtractor>
               <hashTree/>
             </hashTree>
-            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST login/oauth/refresh_token" enabled="true">
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST login/oauth/refresh_token" enabled="false">
               <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
               <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
                 <collectionProp name="Arguments.arguments">
@@ -522,7 +522,7 @@
               </RegexExtractor>
               <hashTree/>
             </hashTree>
-            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /account/signin" enabled="false">
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /account/signin" enabled="true">
               <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
                 <collectionProp name="Arguments.arguments"/>
               </elementProp>
@@ -595,6 +595,28 @@
               <hashTree/>
             </hashTree>
           </hashTree>
+        </hashTree>
+        <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="account" enabled="true"/>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="PUT /account-settings" enabled="true">
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+              <collectionProp name="Arguments.arguments"/>
+            </elementProp>
+            <stringProp name="HTTPSampler.domain"></stringProp>
+            <stringProp name="HTTPSampler.port"></stringProp>
+            <stringProp name="HTTPSampler.protocol"></stringProp>
+            <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+            <stringProp name="HTTPSampler.path">/account-settings</stringProp>
+            <stringProp name="HTTPSampler.method">PUT</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+            <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+            <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+            <stringProp name="HTTPSampler.response_timeout"></stringProp>
+          </HTTPSamplerProxy>
+          <hashTree/>
         </hashTree>
         <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="test" enabled="false"/>
         <hashTree>

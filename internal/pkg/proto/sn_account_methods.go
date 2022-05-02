@@ -6,13 +6,13 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-var _ encoding.BinaryMarshaler = (*SnAccount)(nil)
-var _ encoding.BinaryUnmarshaler = (*SnAccount)(nil)
+var _ encoding.BinaryMarshaler = (*SNAccount)(nil)
+var _ encoding.BinaryUnmarshaler = (*SNAccount)(nil)
 
-func (e *SnAccount) MarshalBinary() (data []byte, err error) {
+func (e *SNAccount) MarshalBinary() (data []byte, err error) {
 	return proto.Marshal(e)
 }
 
-func (e *SnAccount) UnmarshalBinary(data []byte) (err error) {
+func (e *SNAccount) UnmarshalBinary(data []byte) (err error) {
 	return proto.Unmarshal(data, e)
 }

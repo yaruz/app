@@ -39,12 +39,12 @@ func NewSessionRepository(dbase redis.IDB, sessionLifeTimeInHours uint) (*Sessio
 	return r, nil
 }
 
-func (r SessionRepository) Key(userId uint) string {
-	return fmt.Sprintf(keyFormatForSession, keyPrefixForSession, strconv.FormatUint(uint64(userId), 10))
+func (r *SessionRepository) Key(userID uint) string {
+	return fmt.Sprintf(keyFormatForSession, keyPrefixForSession, strconv.FormatUint(uint64(userID), 10))
 }
 
 // Get returns the Session with the specified user ID.
-func (r SessionRepository) Get(ctx context.Context, userId uint) (*session.Session, error) {
+func (r *SessionRepository) Get(ctx context.Context, userId uint) (*session.Session, error) {
 	var entity session.Session
 	res, err := r.db.DB().Get(ctx, r.Key(userId)).Result()
 
@@ -64,25 +64,29 @@ func (r SessionRepository) Get(ctx context.Context, userId uint) (*session.Sessi
 }
 
 // Create saves a new entity in the storage.
-func (r SessionRepository) Create(ctx context.Context, entity *session.Session) error {
+func (r *SessionRepository) Create(ctx context.Context, entity *session.Session) error {
 	return r.Set(ctx, entity)
 }
 
-func (r SessionRepository) Update(ctx context.Context, entity *session.Session) error {
+func (r *SessionRepository) Update(ctx context.Context, entity *session.Session) error {
 	return r.Set(ctx, entity)
 }
 
-func (r SessionRepository) Set(ctx context.Context, entity *session.Session) error {
-	var _ encoding.BinaryMarshaler = entity
+func (r *SessionRepository) Set(ctx context.Context, entity *session.Session) error {
+	var in interface{} = entity
+	v, ok := in.(encoding.BinaryMarshaler)
+	if !ok {
+		return errors.Errorf("Can not cast entity session %v to the interface encoding.BinaryMarshaler", v)
+	}
 
-	if err := r.db.DB().Set(ctx, r.Key(entity.User.ID), *entity, r.SessionLifeTime).Err(); err != nil {
+	if err := r.db.DB().Set(ctx, r.Key(entity.User.ID), v, r.SessionLifeTime).Err(); err != nil {
 		return errors.Wrapf(apperror.ErrInternal, "Create() error: %v", err)
 	}
 	return nil
 }
 
 // Delete removes the entity with given ID from the storage.
-func (r SessionRepository) Delete(ctx context.Context, entity *session.Session) error {
+func (r *SessionRepository) Delete(ctx context.Context, entity *session.Session) error {
 
 	if err := r.db.DB().Del(ctx, r.Key(entity.User.ID)).Err(); err != nil {
 		return errors.Wrapf(apperror.ErrInternal, "Delete error: %v", err)

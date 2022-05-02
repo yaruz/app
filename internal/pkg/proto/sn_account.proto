@@ -8,7 +8,7 @@ option go_package = ".;proto";
 import "google/protobuf/timestamp.proto";
 
 
-message SnAccount {
+message SNAccount {
   uint64  ID                           = 1;
   uint64  TypeID                       = 2;
   string  SNID                         = 3;

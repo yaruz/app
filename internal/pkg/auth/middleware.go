@@ -32,7 +32,7 @@ func Middleware(logger log.ILogger, s Service) routing.Handler {
 			return routing.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 
-		if ctx, err = s.SessionInit(ctx, token, accountSettings); err != nil {
+		if ctx, err = s.SessionInit(ctx, token, accountSettings, nil); err != nil {
 			return UnauthorizedError(rctx, err.Error())
 		}
 
@@ -53,7 +53,7 @@ func UnauthorizedError(rctx *routing.Context, message string) routing.HTTPError 
 // CurrentUser returns the user identity from the given context.
 // Nil is returned if no user identity is found in the context.
 //func CurrentSession(ctx context.Context) *session.Session {
-//	if sess, ok := ctx.Value(userSessionKey).(*session.Session); ok {
+//	if sess, ok := ctx.Value(ctxUserSessionKey).(*session.Session); ok {
 //		return sess
 //	}
 //	return nil
