@@ -57,7 +57,7 @@ var entityTypeID uint
 // RegisterHandlers sets up the routing of the HTTP handlers.
 //	GET /api/models/ - список всех моделей
 //	GET /api/model/{ID} - детали модели
-func RegisterDataTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platform.IPlatform, user user.IService, advertiser advertiser.IService, advertisingCampaign advertising_campaign.IService, offer offer.IService, logger log.ILogger, authHandler routing.Handler) {
+func RegisterDataTestHandlers(r *routing.RouteGroup, logger log.ILogger, yaruzPlatform yarus_platform.IPlatform, user user.IService, advertiser advertiser.IService, advertisingCampaign advertising_campaign.IService, offer offer.IService) {
 	c := dataTestController{
 		Logger:              logger,
 		yaruzPlatform:       yaruzPlatform,

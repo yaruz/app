@@ -23,7 +23,7 @@ type modelController struct {
 // RegisterHandlers sets up the routing of the HTTP handlers.
 //	GET /api/tasks/ - список всех моделей
 //	GET /api/task/{ID} - детали модели
-func RegisterTaskHandlers(r *routing.RouteGroup, service task.IService, logger log.ILogger, authHandler routing.Handler) {
+func RegisterTaskHandlers(r *routing.RouteGroup, logger log.ILogger, service task.IService) {
 	c := modelController{
 		Logger:  logger,
 		Service: service,

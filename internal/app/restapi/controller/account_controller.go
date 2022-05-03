@@ -1,17 +1,3 @@
-// Copyright 2021 The casbin Authors. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package controller
 
 import (
@@ -33,7 +19,7 @@ type accountController struct {
 	Auth       auth.Service
 }
 
-func NewAccountController(r *routing.RouteGroup, userService user.IService, authService auth.Service, logger log.ILogger, authHandler routing.Handler) *accountController {
+func NewAccountController(r *routing.RouteGroup, logger log.ILogger, authService auth.Service, userService user.IService) *accountController {
 	return &accountController{
 		RouteGroup: r,
 		Logger:     logger,
@@ -45,20 +31,16 @@ func NewAccountController(r *routing.RouteGroup, userService user.IService, auth
 // RegisterHandlers sets up the routing of the HTTP handlers.
 func (c *accountController) RegisterHandlers() {
 
-	c.RouteGroup.Get(`/account/signin`, c.signin)
+	c.RouteGroup.Get(`/signin`, c.signin)
 
 	c.RouteGroup.Use(c.Auth.CheckAuthMiddleware)
 
-	c.RouteGroup.Put(`/account-settings`, c.accountSettingsUpdate)
+	c.RouteGroup.Put(`/settings`, c.accountSettingsUpdate)
 
-	c.RouteGroup.Get(`/account/tg-signin`, c.tgSignin)
 	//r.Get(`/user/<id:\d+>`, c.get)
 	//r.Get("/users", c.list)
 
 }
-
-// todo: settings
-// todo: все настройки + настройки по умолчанию
 
 // @Title Signin
 // @Description sign in as a member
@@ -117,31 +99,26 @@ func (c *accountController) accountSettingsUpdate(rctx *routing.Context) (err er
 	return rctx.Write(true)
 }
 
-func (c *accountController) tgSignin(ctx *routing.Context) error {
-
-	return ctx.Write(true)
-}
-
 // @Title Signout
 // @Description sign out the current member
 // @Success 200 {object} controllers.api_controller.Response The Response object
 // @router /signout [post]
 // @Tag Account API
-func (c *accountController) signout(ctx *routing.Context) error {
-	//claims := c.GetSessionClaims()
-	//if claims != nil {
-	//_, err := object.UpdateMemberOnlineStatus(&claims.User, false, util.GetCurrentTime())
-	//if err != nil {
-	//	c.ResponseError(err.Error())
-	//	return
-	//}
-	//}
-	//
-	//c.SetSessionClaims(nil)
-	//
-	//c.ResponseOk()
-	return ctx.Write(true)
-}
+//func (c *accountController) signout(ctx *routing.Context) error {
+//claims := c.GetSessionClaims()
+//if claims != nil {
+//_, err := object.UpdateMemberOnlineStatus(&claims.User, false, util.GetCurrentTime())
+//if err != nil {
+//	c.ResponseError(err.Error())
+//	return
+//}
+//}
+//
+//c.SetSessionClaims(nil)
+//
+//c.ResponseOk()
+//	return ctx.Write(true)
+//}
 
 // @Title GetAccount
 // @Description Get current account

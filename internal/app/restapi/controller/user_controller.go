@@ -17,7 +17,7 @@ type userController struct {
 }
 
 // RegisterHandlers sets up the routing of the HTTP handlers.
-func RegisterUserHandlers(r *routing.RouteGroup, service user.IService, logger log.ILogger, authHandler routing.Handler) {
+func RegisterUserHandlers(r *routing.RouteGroup, logger log.ILogger, service user.IService) {
 	c := userController{
 		Logger:  logger,
 		Service: service,

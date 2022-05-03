@@ -23,7 +23,7 @@ type referenceTestController struct {
 // RegisterHandlers sets up the routing of the HTTP handlers.
 //	GET /api/models/ - список всех моделей
 //	GET /api/model/{ID} - детали модели
-func RegisterReferenceTestHandlers(r *routing.RouteGroup, yaruzPlatform yarus_platform.IPlatform, logger log.ILogger, authHandler routing.Handler) {
+func RegisterReferenceTestHandlers(r *routing.RouteGroup, logger log.ILogger, yaruzPlatform yarus_platform.IPlatform) {
 	c := referenceTestController{
 		Logger:        logger,
 		yaruzPlatform: yaruzPlatform,
