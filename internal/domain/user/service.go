@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"github.com/yaruz/app/internal/domain/account"
 
 	"github.com/minipkg/selection_condition"
 	"github.com/pkg/errors"
@@ -20,6 +21,7 @@ type IService interface {
 	Create(ctx context.Context, obj *User, langID uint) error
 	Update(ctx context.Context, obj *User, langID uint) error
 	Delete(ctx context.Context, id uint) error
+	AccountSettingsValidate(ctx context.Context, accountSettings *account.AccountSettings) error
 }
 
 type service struct {
@@ -92,4 +94,12 @@ func (s *service) Update(ctx context.Context, obj *User, langID uint) error {
 
 func (s *service) Delete(ctx context.Context, id uint) error {
 	return s.repository.Delete(ctx, id)
+}
+
+func (s *service) AccountSettingsValidate(ctx context.Context, accountSettings *account.AccountSettings) error {
+	err := s.repository.LangIDValidate(ctx, accountSettings.LangID)
+	if err != nil {
+		return errors.Errorf("LangID: %v", err.Error())
+	}
+	return nil
 }

@@ -23,4 +23,5 @@ type Repository interface {
 	Update(ctx context.Context, obj *User, langID uint) error
 	// Delete removes the album with given ID from the storage.
 	Delete(ctx context.Context, id uint) error
+	LangIDValidate(ctx context.Context, langID uint) error
 }

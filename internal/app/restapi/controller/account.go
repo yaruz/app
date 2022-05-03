@@ -18,10 +18,12 @@ import (
 	routing "github.com/go-ozzo/ozzo-routing/v2"
 	"github.com/minipkg/log"
 	"github.com/minipkg/ozzo_routing/errorshandler"
+	"github.com/pkg/errors"
 	"github.com/yaruz/app/internal/domain/account"
 	"github.com/yaruz/app/internal/domain/user"
 	"github.com/yaruz/app/internal/pkg/auth"
 	"net/http"
+	"net/url"
 )
 
 type accountController struct {
@@ -78,19 +80,18 @@ func (c *accountController) signin(rctx *routing.Context) error {
 	}
 
 	if ctx, err = c.Auth.SignIn(ctx, code, state, accountSettings); err != nil {
-		// todo: нужный статус
-		return routing.NewHTTPError(http.StatusInternalServerError, err.Error())
+		var purlErr *url.Error
+		if errors.As(err, &purlErr) {
+			c.Logger.Info(err.Error())
+			return routing.NewHTTPError(http.StatusInternalServerError, "")
+		}
+		return auth.UnauthorizedError(rctx, err.Error())
 	}
 	sess := c.Auth.GetSession(ctx)
 
 	return rctx.Write(struct {
 		Token string `json:"token"`
 	}{sess.JwtClaims.AccessToken})
-}
-
-func (c *accountController) tgSignin(ctx *routing.Context) error {
-
-	return ctx.Write(true)
 }
 
 func (c *accountController) accountSettingsUpdate(rctx *routing.Context) (err error) {
@@ -106,10 +107,19 @@ func (c *accountController) accountSettingsUpdate(rctx *routing.Context) (err er
 		return errorshandler.BadRequest(err.Error())
 	}
 
+	if err := c.User.AccountSettingsValidate(ctx, accountSettings); err != nil {
+		return errorshandler.BadRequest(err.Error())
+	}
+
 	if ctx, err = c.Auth.AccountSettingsUpdate(ctx, accountSettings); err != nil {
 		return routing.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return rctx.Write(true)
+}
+
+func (c *accountController) tgSignin(ctx *routing.Context) error {
+
+	return ctx.Write(true)
 }
 
 // @Title Signout

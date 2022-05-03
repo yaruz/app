@@ -140,19 +140,13 @@ func (s *service) createSession(ctx context.Context, jwtClaims *auth.Claims, use
 		return ctx, nil, errors.Wrapf(apperror.ErrBadParams, "jwtClaims == %v \nuser == %v \ndefaultAccountSettings == %v \noauthToken == %v", jwtClaims, user, defaultAccountSettings, oauthToken)
 	}
 
-	if accSettings, err := s.accountGetSettings(&jwtClaims.User); err != nil {
+	if accSettings, err := s.accountGetSettings(&jwtClaims.User); err != nil && accSettings != nil {
 		defaultAccountSettings = accSettings
 	}
 
 	sess := s.newSession(ctx, jwtClaims, user, defaultAccountSettings, oauthToken)
 
-	b, err := sess.MarshalBinary()
-	if err != nil {
-		return ctx, nil, err
-	}
-	fmt.Println(b)
-
-	err = s.session.Create(ctx, sess)
+	err := s.session.Create(ctx, sess)
 	if err != nil {
 		return ctx, nil, err
 	}
@@ -370,9 +364,8 @@ func (s *service) SignIn(ctx context.Context, code, state string, defaultAccount
 		if oauthToken, jwtClaims, err = s.accountPropertiesUpdate(ctx, oauthToken.RefreshToken, &jwtClaims.User); err != nil {
 			return ctx, err
 		}
-	}
-	//	user был создан, но был удалён без удаления аккаунта. Пока не понятно, что с этим делать..
-	if userID != user.ID {
+		//	user был создан, но был удалён без удаления аккаунта. Пока не понятно, что с этим делать..
+	} else if userID != user.ID {
 		return ctx, err
 	}
 

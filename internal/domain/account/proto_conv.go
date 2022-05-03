@@ -5,7 +5,6 @@ import (
 	"github.com/yaruz/app/internal/pkg/proto"
 	"golang.org/x/oauth2"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"time"
 )
 
 func AccountProto2Account(accountProto *proto.Account) (account *auth.User, err error) {
@@ -184,7 +183,6 @@ func TokenProto2Token(tokenProto *proto.Token) (token *oauth2.Token, err error) 
 		AccessToken:  tokenProto.AccessToken,
 		TokenType:    tokenProto.TokenType,
 		RefreshToken: tokenProto.RefreshToken,
-		Expiry:       time.Time{},
 	}
 	if tokenProto.Expiry != nil && tokenProto.Expiry.IsValid() {
 		token.Expiry = tokenProto.Expiry.AsTime()

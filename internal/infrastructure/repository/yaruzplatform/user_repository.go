@@ -162,3 +162,8 @@ func (r *UserRepository) Delete(ctx context.Context, id uint) error {
 
 	return r.yaruzRepository.DataSubsystem().Entity.Delete(ctx, id, entityTypeID)
 }
+
+func (r *UserRepository) LangIDValidate(ctx context.Context, langID uint) error {
+	_, err := r.yaruzRepository.ReferenceSubsystem().TextLang.GetCfgnameByID(ctx, langID)
+	return err
+}
