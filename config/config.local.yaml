@@ -47,7 +47,7 @@ db:
     dbname:   0
 
 auth:
-  endpoint:     "http://localhost:8001"
+  endpoint:     "http://localhost:8000"
   clientId:     "5e431f823a2bf338a213"
   clientSecret: "6b4a40bf3dd051f717900b75b2ca56c166007834"
   organization: "org"

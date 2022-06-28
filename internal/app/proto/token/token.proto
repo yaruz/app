@@ -1,9 +1,11 @@
 syntax = "proto3";
 
-// protoc --go_out=. *.proto
+// cd ..
+//protoc --proto_path=. --go_out=. --go_opt=paths=source_relative token/*.proto
 
-package proto;
-option go_package = ".;proto";
+package token;
+//option go_package = ".;token";
+option go_package = "github.com/yaruz/app/internal/app/proto/token";
 
 import "google/protobuf/timestamp.proto";
 

@@ -1,12 +1,13 @@
 package user
 
 import (
-	"github.com/yaruz/app/internal/pkg/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/yaruz/app/internal/domain/user"
 )
 
-func UserProto2User(userProto *proto.User) (u *User, err error) {
-	u = &User{
+func UserProto2User(userProto *User) (u *user.User, err error) {
+	u = &user.User{
 		ID:        uint(userProto.ID),
 		AccountID: userProto.AccountID,
 		Email:     userProto.Email,
@@ -17,8 +18,8 @@ func UserProto2User(userProto *proto.User) (u *User, err error) {
 	return u, nil
 }
 
-func User2UserProto(user *User) (up *proto.User, err error) {
-	up = &proto.User{
+func User2UserProto(user *user.User) (up *User, err error) {
+	up = &User{
 		ID:        uint64(user.ID),
 		AccountID: user.AccountID,
 		Email:     user.Email,

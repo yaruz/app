@@ -1,12 +1,13 @@
 package sn_account
 
 import (
-	"github.com/yaruz/app/internal/pkg/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/yaruz/app/internal/domain/sn_account"
 )
 
-func SNAccountProto2SNAccount(sNAccountProto *proto.SNAccount) (sNAccount *SNAccount, err error) {
-	sNAccount = &SNAccount{
+func SNAccountProto2SNAccount(sNAccountProto *SNAccount) (sNAccount *sn_account.SNAccount, err error) {
+	sNAccount = &sn_account.SNAccount{
 		ID:     uint(sNAccountProto.ID),
 		TypeID: uint(sNAccountProto.TypeID),
 		SNID:   sNAccountProto.SNID,
@@ -17,8 +18,8 @@ func SNAccountProto2SNAccount(sNAccountProto *proto.SNAccount) (sNAccount *SNAcc
 	return sNAccount, nil
 }
 
-func SNAccount2SNAccountProto(sNAccount *SNAccount) (sNAccountProto *proto.SNAccount, err error) {
-	sNAccountProto = &proto.SNAccount{
+func SNAccount2SNAccountProto(sNAccount *sn_account.SNAccount) (sNAccountProto *SNAccount, err error) {
+	sNAccountProto = &SNAccount{
 		ID:        uint64(sNAccount.ID),
 		TypeID:    uint64(sNAccount.TypeID),
 		SNID:      sNAccount.SNID,

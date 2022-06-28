@@ -1,4 +1,4 @@
-package proto
+package sn_account
 
 import (
 	"encoding"

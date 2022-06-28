@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+// cd ..
+//protoc --proto_path=. --go_out=. --go_opt=paths=source_relative session/*.proto
+
+package session;
+//option go_package = ".;session";
+option go_package = "github.com/yaruz/app/internal/app/proto/session";
+
+import "user/user.proto";
+import "sn_account/sn_account.proto";
+import "account/account.proto";
+import "token/token.proto";
+
+
+message Session {
+  user.User                     User            = 1;
+  account.AccountSettings       AccountSettings = 2;
+  repeated sn_account.SNAccount SNAccounts      = 3;
+  account.JwtClaims             JwtClaims       = 4;
+  token.Token                   Token           = 5;
+}
+

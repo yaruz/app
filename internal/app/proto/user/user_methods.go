@@ -1,4 +1,4 @@
-package proto
+package user
 
 import (
 	"encoding"

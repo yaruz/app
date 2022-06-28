@@ -1,4 +1,4 @@
-package proto
+package session
 
 import (
 	"encoding"

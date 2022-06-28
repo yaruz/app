@@ -2,12 +2,10 @@ package account
 
 import (
 	"github.com/casdoor/casdoor-go-sdk/auth"
-	"github.com/yaruz/app/internal/pkg/proto"
-	"golang.org/x/oauth2"
-	"google.golang.org/protobuf/types/known/timestamppb"
+	"github.com/yaruz/app/internal/domain/account"
 )
 
-func AccountProto2Account(accountProto *proto.Account) (account *auth.User, err error) {
+func AccountProto2Account(accountProto *Account) (account *auth.User, err error) {
 	account = &auth.User{
 		Owner:             accountProto.Owner,
 		Name:              accountProto.Name,
@@ -66,8 +64,8 @@ func AccountProto2Account(accountProto *proto.Account) (account *auth.User, err 
 	return account, nil
 }
 
-func Account2AccountProto(account *auth.User) (accountProto *proto.Account, err error) {
-	accountProto = &proto.Account{
+func Account2AccountProto(account *auth.User) (accountProto *Account, err error) {
+	accountProto = &Account{
 		Owner:             account.Owner,
 		Name:              account.Name,
 		CreatedTime:       account.CreatedTime,
@@ -140,21 +138,21 @@ func Account2AccountProto(account *auth.User) (accountProto *proto.Account, err 
 	return accountProto, nil
 }
 
-func AccountSettingsProto2AccountSettings(accountSettingsProto *proto.AccountSettings) (accountSettings *AccountSettings, err error) {
-	accountSettings = &AccountSettings{
+func AccountSettingsProto2AccountSettings(accountSettingsProto *AccountSettings) (accountSettings *account.AccountSettings, err error) {
+	accountSettings = &account.AccountSettings{
 		LangID: uint(accountSettingsProto.LangID),
 	}
 	return accountSettings, nil
 }
 
-func AccountSettings2AccountSettingsProto(accountSettings *AccountSettings) (accountSettingsProto *proto.AccountSettings, err error) {
-	accountSettingsProto = &proto.AccountSettings{
+func AccountSettings2AccountSettingsProto(accountSettings *account.AccountSettings) (accountSettingsProto *AccountSettings, err error) {
+	accountSettingsProto = &AccountSettings{
 		LangID: uint64(accountSettings.LangID),
 	}
 	return accountSettingsProto, nil
 }
 
-func ClaimsProto2Claims(claimsProto *proto.JwtClaims) (claims *auth.Claims, err error) {
+func ClaimsProto2Claims(claimsProto *JwtClaims) (claims *auth.Claims, err error) {
 	account, err := AccountProto2Account(claimsProto.User)
 	if err != nil {
 		return nil, err
@@ -166,36 +164,14 @@ func ClaimsProto2Claims(claimsProto *proto.JwtClaims) (claims *auth.Claims, err 
 	return claims, nil
 }
 
-func Claims2ClaimsProto(claims *auth.Claims) (claimsProto *proto.JwtClaims, err error) {
+func Claims2ClaimsProto(claims *auth.Claims) (claimsProto *JwtClaims, err error) {
 	accountProto, err := Account2AccountProto(&claims.User)
 	if err != nil {
 		return nil, err
 	}
-	claimsProto = &proto.JwtClaims{
+	claimsProto = &JwtClaims{
 		User:        accountProto,
 		AccessToken: claims.AccessToken,
 	}
 	return claimsProto, nil
-}
-
-func TokenProto2Token(tokenProto *proto.Token) (token *oauth2.Token, err error) {
-	token = &oauth2.Token{
-		AccessToken:  tokenProto.AccessToken,
-		TokenType:    tokenProto.TokenType,
-		RefreshToken: tokenProto.RefreshToken,
-	}
-	if tokenProto.Expiry != nil && tokenProto.Expiry.IsValid() {
-		token.Expiry = tokenProto.Expiry.AsTime()
-	}
-	return token, nil
-}
-
-func Token2TokenProto(token *oauth2.Token) (tokenProto *proto.Token, err error) {
-	tokenProto = &proto.Token{
-		AccessToken:  token.AccessToken,
-		TokenType:    token.TokenType,
-		RefreshToken: token.RefreshToken,
-		Expiry:       timestamppb.New(token.Expiry),
-	}
-	return tokenProto, nil
 }

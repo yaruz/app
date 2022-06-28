@@ -1,9 +1,11 @@
 syntax = "proto3";
 
-// protoc --go_out=. *.proto
+// cd ..
+//protoc --proto_path=. --go_out=. --go_opt=paths=source_relative account/*.proto
 
-package proto;
-option go_package = ".;proto";
+package account;
+//option go_package = ".;account";
+option go_package = "github.com/yaruz/app/internal/app/proto/account";
 
 
 message AccountSettings {
