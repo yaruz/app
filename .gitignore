@@ -1,5 +1,4 @@
 .idea
 log/*
-deployment/data/*
-deployment/log/*
+config/*
 !.placeholder

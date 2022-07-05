@@ -17,6 +17,10 @@ import (
 const (
 	LangEng = "eng"
 	LangRus = "rus"
+
+	// defaultPathToConfig is the default path to the app config
+	defaultPathToConfig   = "config/config.yaml"
+	defaultPathToMetadata = "metadata/metadata.yaml"
 )
 
 // Configuration is the struct for app configuration
@@ -69,10 +73,6 @@ func (c *Configuration) YaruzConfig() *yaruz_config.Configuration {
 		Metadata: &c.YaruzMetadata,
 	}
 }
-
-// defaultPathToConfig is the default path to the app config
-const defaultPathToConfig = "config/config.yaml"
-const defaultPathToMetadata = "config/metadata.yaml"
 
 // Get func return the app config
 func Get() (*Configuration, error) {
