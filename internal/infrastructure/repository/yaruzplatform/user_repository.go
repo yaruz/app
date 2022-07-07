@@ -68,6 +68,19 @@ func (r *UserRepository) instantiate(ctx context.Context, entity *entity.Entity)
 		obj.AccountID = accountID
 	}
 
+	createdAtPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnameCreatedAt)
+	if err != nil {
+		return nil, err
+	}
+	createdAtVal, ok := obj.PropertiesValues[createdAtPropID]
+	if ok {
+		createdAt, err := property.GetValueTime(createdAtVal.Value)
+		if err != nil {
+			return nil, errors.Wrapf(err, "UserRepository.instantiate error. ")
+		}
+		obj.CreatedAt = createdAt
+	}
+
 	return obj, nil
 }
 

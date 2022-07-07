@@ -5,7 +5,7 @@ import (
 	"github.com/yaruz/app/internal/domain/advertiser"
 	"github.com/yaruz/app/internal/domain/advertising_campaign"
 	"github.com/yaruz/app/internal/domain/offer"
-	"github.com/yaruz/app/internal/domain/sn_account"
+	"github.com/yaruz/app/internal/domain/tg_account"
 
 	"github.com/minipkg/selection_condition"
 	"github.com/yaruz/app/internal/domain/user"
@@ -40,8 +40,8 @@ func GetRepository(logger log.ILogger, yaruzRepository yarus_platform.IPlatform,
 	switch entity {
 	case user.EntityType:
 		repo, err = NewUserRepository(r)
-	case sn_account.EntityType:
-		repo, err = NewSnAccountRepository(r)
+	case tg_account.EntityType:
+		repo, err = NewTgAccountRepository(r)
 	case advertiser.EntityType:
 		repo, err = NewAdvertiserRepository(r)
 	case advertising_campaign.EntityType:

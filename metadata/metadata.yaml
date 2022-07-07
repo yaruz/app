@@ -63,20 +63,34 @@ entitytypes:
             name: "account ID"
           rus:
             name: "ID аккаунта"
-  - sysname: "SNAccount"
+      - sysname: "User.CreatedAt"
+        propertytype: "time"
+        texts:
+          eng:
+            name: "date of creation"
+          rus:
+            name: "дата создания"
+  - sysname: "TgAccount"
     texts:
       eng:
-        name: "social net account"
+        name: "telegram account"
       rus:
-        name: "аккаунт в социальной сети"
+        name: "аккаунт в Телеграм"
     properties:
-      - sysname: "SNAccount.SNID"
+      - sysname: "TgAccount.TgID"
         propertytype: "utext"
         texts:
           eng:
-            name: "social net account ID"
+            name: "telegram account ID"
           rus:
-            name: "идентификатор аккаунта в социальной сети"
+            name: "идентификатор аккаунта в Телеграм"
+      - sysname: "TgAccount.CreatedAt"
+        propertytype: "time"
+        texts:
+          eng:
+            name: "date of creation"
+          rus:
+            name: "дата создания"
   - sysname: "Advertiser"
     texts:
       eng:
@@ -135,13 +149,13 @@ entitytypes:
             name: "дата завершения"
 
 relations:
-  - sysname: "User.SNAccount"
+  - sysname: "User.TgAccount"
     texts:
       eng:
-        name: "social nets accounts"
+        name: "telegram account"
       rus:
-        name: "аккаунты в социальных сетях"
-    UndependedEntityType: "SNAccount"
+        name: "телеграм аккаунт"
+    UndependedEntityType: "TgAccount"
     DependedEntityType: "User"
   - sysname: "Advertiser.AdvertisingCampaigns"
     texts:

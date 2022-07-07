@@ -2,12 +2,11 @@ package session
 
 import (
 	account_proto "github.com/yaruz/app/internal/app/proto/account"
-	snaccount_proto "github.com/yaruz/app/internal/app/proto/sn_account"
+	tg_account_proto "github.com/yaruz/app/internal/app/proto/tg_account"
 	token_proto "github.com/yaruz/app/internal/app/proto/token"
 	user_proto "github.com/yaruz/app/internal/app/proto/user"
 
 	"github.com/yaruz/app/internal/domain/session"
-	"github.com/yaruz/app/internal/domain/sn_account"
 )
 
 func SessionProto2Session(sessionProto *Session) (s *session.Session, err error) {
@@ -31,13 +30,9 @@ func SessionProto2Session(sessionProto *Session) (s *session.Session, err error)
 		return nil, err
 	}
 
-	sNAccounts := make([]sn_account.SNAccount, 0, len(sessionProto.SNAccounts))
-	for _, snaccProto := range sessionProto.SNAccounts {
-		snacc, err := snaccount_proto.SNAccountProto2SNAccount(snaccProto)
-		if err != nil {
-			return nil, err
-		}
-		sNAccounts = append(sNAccounts, *snacc)
+	tgAccount, err := tg_account_proto.TgAccountProto2TgAccount(sessionProto.TgAccount)
+	if err != nil {
+		return nil, err
 	}
 
 	s = &session.Session{
@@ -45,7 +40,7 @@ func SessionProto2Session(sessionProto *Session) (s *session.Session, err error)
 		JwtClaims:       claims,
 		User:            u,
 		AccountSettings: accountSettings,
-		SNAccounts:      sNAccounts,
+		TgAccount:       tgAccount,
 	}
 	return s, nil
 }
@@ -71,19 +66,15 @@ func Session2SessionProto(s *session.Session) (sessionProto *Session, err error)
 		return nil, err
 	}
 
-	sNAccountsProto := make([]*snaccount_proto.SNAccount, 0, len(s.SNAccounts))
-	for _, snacc := range s.SNAccounts {
-		snaccProto, err := snaccount_proto.SNAccount2SNAccountProto(&snacc)
-		if err != nil {
-			return nil, err
-		}
-		sNAccountsProto = append(sNAccountsProto, snaccProto)
+	tgAccountsProto, err := tg_account_proto.TgAccount2TgAccountProto(s.TgAccount)
+	if err != nil {
+		return nil, err
 	}
 
 	sessionProto = &Session{
 		User:            userProto,
 		AccountSettings: accountSettingsProto,
-		SNAccounts:      sNAccountsProto,
+		TgAccount:       tgAccountsProto,
 		JwtClaims:       claimsProto,
 		Token:           tokenProto,
 	}

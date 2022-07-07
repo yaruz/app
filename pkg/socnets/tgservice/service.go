@@ -1,12 +1,8 @@
-package telegram
+package tgservice
 
 import (
 	"github.com/Kalinin-Andrey/mtproto/session"
 )
-
-type Session struct {
-	Auth *session.Session
-}
 
 type SessionLoader struct {
 }
@@ -19,4 +15,7 @@ func (s *SessionLoader) Load() (*session.Session, error) {
 
 func (s *SessionLoader) Store(sess *session.Session) error {
 	return nil
+}
+
+type Service struct {
 }

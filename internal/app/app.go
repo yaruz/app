@@ -18,7 +18,7 @@ import (
 	"github.com/yaruz/app/internal/domain/advertising_campaign"
 	"github.com/yaruz/app/internal/domain/offer"
 	"github.com/yaruz/app/internal/domain/session"
-	"github.com/yaruz/app/internal/domain/sn_account"
+	"github.com/yaruz/app/internal/domain/tg_account"
 	"github.com/yaruz/app/internal/domain/user"
 	redisrepo "github.com/yaruz/app/internal/infrastructure/repository/redis"
 	"github.com/yaruz/app/internal/infrastructure/repository/yaruzplatform"
@@ -54,8 +54,8 @@ type Domain struct {
 	userRepository                user.Repository
 	Auth                          auth.Service
 	SessionRepository             session.Repository
-	SnAccount                     sn_account.IService
-	snAccountRepository           sn_account.Repository
+	TgAccount                     tg_account.IService
+	tgAccountRepository           tg_account.Repository
 	Advertiser                    advertiser.IService
 	advertiserRepository          advertiser.Repository
 	AdvertisingCampaign           advertising_campaign.IService
@@ -138,14 +138,14 @@ func (app *App) SetupRepositories() (err error) {
 		return errors.Errorf("Can not cast yaruz repository for entity %q to %vRepository. Repo: %v", user.EntityType, user.EntityType, userRepo)
 	}
 
-	snAccountRepo, err := yaruzplatform.GetRepository(app.Infra.Logger, app.Infra.YaruzRepository, sn_account.EntityType)
+	tgAccountRepo, err := yaruzplatform.GetRepository(app.Infra.Logger, app.Infra.YaruzRepository, tg_account.EntityType)
 	if err != nil {
-		golog.Fatalf("Can not get yaruz repository for entity %q, error happened: %v", sn_account.EntityType, err)
+		golog.Fatalf("Can not get yaruz repository for entity %q, error happened: %v", tg_account.EntityType, err)
 	}
 
-	app.Domain.snAccountRepository, ok = snAccountRepo.(sn_account.Repository)
+	app.Domain.tgAccountRepository, ok = tgAccountRepo.(tg_account.Repository)
 	if !ok {
-		return errors.Errorf("Can not cast yaruz repository for entity %q to %vRepository. Repo: %v", sn_account.EntityType, sn_account.EntityType, snAccountRepo)
+		return errors.Errorf("Can not cast yaruz repository for entity %q to %vRepository. Repo: %v", tg_account.EntityType, tg_account.EntityType, tgAccountRepo)
 	}
 
 	advertiserRepo, err := yaruzplatform.GetRepository(app.Infra.Logger, app.Infra.YaruzRepository, advertiser.EntityType)
@@ -195,7 +195,7 @@ func (app *App) SetupServices(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	app.Domain.SnAccount = sn_account.NewService(app.Infra.Logger, app.Domain.snAccountRepository)
+	app.Domain.TgAccount = tg_account.NewService(app.Infra.Logger, app.Domain.tgAccountRepository)
 	app.Domain.Advertiser = advertiser.NewService(app.Infra.Logger, app.Domain.advertiserRepository)
 	app.Domain.AdvertisingCampaign = advertising_campaign.NewService(app.Infra.Logger, app.Domain.advertisingCampaignRepository)
 	app.Domain.Offer = offer.NewService(app.Infra.Logger, app.Domain.offerRepository)

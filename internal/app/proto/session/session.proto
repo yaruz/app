@@ -8,7 +8,7 @@ package session;
 option go_package = "github.com/yaruz/app/internal/app/proto/session";
 
 import "user/user.proto";
-import "sn_account/sn_account.proto";
+import "tg_account/tg_account.proto";
 import "account/account.proto";
 import "token/token.proto";
 
@@ -16,7 +16,7 @@ import "token/token.proto";
 message Session {
   user.User                     User            = 1;
   account.AccountSettings       AccountSettings = 2;
-  repeated sn_account.SNAccount SNAccounts      = 3;
+  tg_account.TgAccount          TgAccount       = 3;
   account.JwtClaims             JwtClaims       = 4;
   token.Token                   Token           = 5;
 }
