@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"github.com/yaruz/app/internal/pkg/auth"
+	"github.com/yaruz/app/pkg/socnets/tgservice"
 	golog "log"
 
 	"github.com/pkg/errors"
@@ -54,6 +55,7 @@ type Domain struct {
 	userRepository                user.Repository
 	Auth                          auth.Service
 	SessionRepository             session.Repository
+	Tg                            tgservice.IService
 	TgAccount                     tg_account.IService
 	tgAccountRepository           tg_account.Repository
 	Advertiser                    advertiser.IService
@@ -195,6 +197,7 @@ func (app *App) SetupServices(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	app.Domain.Tg = tgservice.NewService(app.Infra.Logger, app.Domain.SessionRepository, app.Domain.tgAccountRepository)
 	app.Domain.TgAccount = tg_account.NewService(app.Infra.Logger, app.Domain.tgAccountRepository)
 	app.Domain.Advertiser = advertiser.NewService(app.Infra.Logger, app.Domain.advertiserRepository)
 	app.Domain.AdvertisingCampaign = advertising_campaign.NewService(app.Infra.Logger, app.Domain.advertisingCampaignRepository)

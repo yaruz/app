@@ -39,7 +39,15 @@ func GetRepository(logger log.ILogger, yaruzRepository yarus_platform.IPlatform,
 
 	switch entity {
 	case user.EntityType:
-		repo, err = NewUserRepository(r)
+		tgAccountRepo, err := GetRepository(logger, yaruzRepository, tg_account.EntityType)
+		if err != nil {
+			return nil, err
+		}
+		tgAccountRepository, ok := tgAccountRepo.(tg_account.Repository)
+		if !ok {
+			return nil, errors.Errorf("Can not cast yaruz repository for entity %q to %vRepository. Repo: %v", tg_account.EntityType, tg_account.EntityType, tgAccountRepo)
+		}
+		repo, err = NewUserRepository(r, tgAccountRepository)
 	case tg_account.EntityType:
 		repo, err = NewTgAccountRepository(r)
 	case advertiser.EntityType:

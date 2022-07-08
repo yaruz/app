@@ -2,12 +2,14 @@ package user
 
 import (
 	"context"
-	"github.com/yaruz/app/internal/domain/account"
 
-	"github.com/minipkg/selection_condition"
 	"github.com/pkg/errors"
 
 	"github.com/minipkg/log"
+	"github.com/minipkg/selection_condition"
+
+	"github.com/yaruz/app/internal/domain/account"
+	"github.com/yaruz/app/internal/domain/tg_account"
 )
 
 // IService encapsulates usecase logic for user.
@@ -22,6 +24,7 @@ type IService interface {
 	Update(ctx context.Context, obj *User, langID uint) error
 	Delete(ctx context.Context, id uint) error
 	AccountSettingsValidate(ctx context.Context, accountSettings *account.AccountSettings) error
+	GetTgAccount(ctx context.Context, obj *User, langID uint) (*tg_account.TgAccount, error)
 }
 
 type service struct {
@@ -102,4 +105,8 @@ func (s *service) AccountSettingsValidate(ctx context.Context, accountSettings *
 		return errors.Errorf("LangID: %v", err.Error())
 	}
 	return nil
+}
+
+func (s *service) GetTgAccount(ctx context.Context, obj *User, langID uint) (*tg_account.TgAccount, error) {
+	return s.repository.GetTgAccount(ctx, obj, langID)
 }

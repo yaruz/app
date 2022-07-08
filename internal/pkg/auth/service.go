@@ -312,6 +312,12 @@ func (s *service) SessionInit(ctx context.Context, accessToken string, accountSe
 			return ctx, errors.Wrapf(apperror.ErrNotFound, "User with ID = %d not found", userID)
 		}
 
+		tgAcc, err := s.userService.GetTgAccount(ctx, user, accountSettings.LangID)
+		if err != nil {
+			return ctx, err
+		}
+		sess.TgAccount = tgAcc
+
 		ctx, _, err = s.createSession(ctx, jwtClaims, user, accountSettings, oauthToken)
 		if err != nil {
 			return ctx, err

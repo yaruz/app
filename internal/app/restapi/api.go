@@ -100,7 +100,7 @@ func (app *App) buildHandler() *routing.Router {
 func (app *App) setupControllers(rg *routing.RouteGroup) {
 
 	app.controllers = append(app.controllers, controller.NewAccountController(rg.Group("/account"), app.Infra.Logger, app.Domain.Auth, app.Domain.User))
-	app.controllers = append(app.controllers, controller.NewTelegramController(rg.Group("/telegram"), app.Infra.Logger, app.Domain.Auth, app.Domain.User))
+	app.controllers = append(app.controllers, controller.NewTelegramController(rg.Group("/telegram"), app.Infra.Logger, app.Domain.Tg, app.Domain.Auth, app.Domain.User))
 	//app.controllers = append(app.controllers, controller.NewReferenceTestController(rgTest, app.Infra.YaruzRepository, app.Infra.Logger, authMiddleware))
 	//app.controllers = append(app.controllers, controller.NewDataTestController(rgTest, app.Infra.YaruzRepository, app.Domain.User, app.Domain.Advertiser, app.Domain.AdvertisingCampaign, app.Domain.Offer, app.Infra.Logger, authMiddleware))
 }

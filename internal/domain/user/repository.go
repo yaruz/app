@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/minipkg/selection_condition"
+
+	"github.com/yaruz/app/internal/domain/tg_account"
 )
 
 // Repository encapsulates the logic to access albums from the data source.
@@ -24,4 +26,5 @@ type Repository interface {
 	// Delete removes the album with given ID from the storage.
 	Delete(ctx context.Context, id uint) error
 	LangIDValidate(ctx context.Context, langID uint) error
+	GetTgAccount(ctx context.Context, obj *User, langID uint) (*tg_account.TgAccount, error)
 }

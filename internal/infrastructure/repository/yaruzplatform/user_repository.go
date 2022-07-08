@@ -2,29 +2,34 @@ package yaruzplatform
 
 import (
 	"context"
-	"github.com/yaruz/app/internal/pkg/apperror"
-	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
-
 	"github.com/pkg/errors"
-	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
-
-	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
-
-	"github.com/yaruz/app/internal/domain/user"
 
 	"github.com/minipkg/selection_condition"
+
+	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
+	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/property"
+	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
+
+	"github.com/yaruz/app/internal/pkg/apperror"
+
+	"github.com/yaruz/app/internal/domain/tg_account"
+	"github.com/yaruz/app/internal/domain/user"
 )
 
 // UserRepository is a repository for the model entity
 type UserRepository struct {
 	repository
+	tgAccountRepository tg_account.Repository
 }
 
 var _ user.Repository = (*UserRepository)(nil)
 
 // NewUserRepository creates a new UserRepository
-func NewUserRepository(repository *repository) (*UserRepository, error) {
-	return &UserRepository{repository: *repository}, nil
+func NewUserRepository(repository *repository, tgAccountRepository tg_account.Repository) (*UserRepository, error) {
+	return &UserRepository{
+		repository:          *repository,
+		tgAccountRepository: tgAccountRepository,
+	}, nil
 }
 
 func (r *UserRepository) New(ctx context.Context) (*user.User, error) {
@@ -179,4 +184,19 @@ func (r *UserRepository) Delete(ctx context.Context, id uint) error {
 func (r *UserRepository) LangIDValidate(ctx context.Context, langID uint) error {
 	_, err := r.yaruzRepository.ReferenceSubsystem().TextLang.GetCfgnameByID(ctx, langID)
 	return err
+}
+
+func (r *UserRepository) GetTgAccount(ctx context.Context, obj *user.User, langID uint) (*tg_account.TgAccount, error) {
+	relID, err := r.GetPropertyFinder().GetIDBySysname(ctx, user.RelationSysnameTgAccount)
+	if err != nil {
+		return nil, err
+	}
+
+	relVal, ok := obj.RelationsValues[relID]
+	if !ok || len(relVal.Value) == 0 {
+		return nil, apperror.ErrNotFound
+	}
+	tgAccID := relVal.Value[0]
+
+	return r.tgAccountRepository.Get(ctx, tgAccID, langID)
 }

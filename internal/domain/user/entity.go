@@ -11,6 +11,7 @@ const (
 	PropertySysnameEmail     = "User.Email"
 	PropertySysnameAccountID = "User.AccountID"
 	PropertySysnameCreatedAt = "User.CreatedAt"
+	RelationSysnameTgAccount = "User.TgAccount"
 )
 
 var validPropertySysnames = []string{
