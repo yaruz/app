@@ -56,6 +56,13 @@ entitytypes:
             name: "email"
           rus:
             name: "email"
+      - sysname: "User.Phone"
+        propertytype: "utext"
+        texts:
+          eng:
+            name: "email"
+          rus:
+            name: "email"
       - sysname: "User.AccountID"
         propertytype: "utext"
         texts:
@@ -84,6 +91,13 @@ entitytypes:
             name: "telegram account ID"
           rus:
             name: "идентификатор аккаунта в Телеграм"
+      - sysname: "TgAccount.AuthSession"
+        propertytype: "utext"
+        texts:
+          eng:
+            name: "telegram auth session"
+          rus:
+            name: "сессия аутентификации аккаунта Телеграм"
       - sysname: "TgAccount.CreatedAt"
         propertytype: "time"
         texts:

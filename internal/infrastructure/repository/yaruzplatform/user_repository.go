@@ -60,6 +60,17 @@ func (r *UserRepository) instantiate(ctx context.Context, entity *entity.Entity)
 		}
 	}
 
+	phonePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnamePhone)
+	if err != nil {
+		return nil, err
+	}
+	phoneVal, ok := obj.PropertiesValues[phonePropID]
+	if ok {
+		if obj.Phone, err = property.GetValueText(phoneVal.Value); err != nil {
+			return nil, errors.Wrapf(err, "UserRepository.instantiate error. ")
+		}
+	}
+
 	accountIDPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnameAccountID)
 	if err != nil {
 		return nil, err

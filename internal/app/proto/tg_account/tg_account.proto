@@ -13,8 +13,15 @@ import "google/protobuf/timestamp.proto";
 message TgAccount {
   uint64  ID                           = 1;
   string  TgID                         = 2;
-  google.protobuf.Timestamp CreatedAt  = 3;
+  AuthSession AuthSession              = 3;
+  google.protobuf.Timestamp CreatedAt  = 4;
 }
 
+message AuthSession {
+  bytes Key           = 1;
+  bytes Hash          = 2;
+  int64 Salt          = 3;
+  string Hostname     = 4;
+}
 
 

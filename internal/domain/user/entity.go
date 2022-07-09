@@ -9,6 +9,7 @@ import (
 const (
 	EntityType               = "User"
 	PropertySysnameEmail     = "User.Email"
+	PropertySysnamePhone     = "User.Phone"
 	PropertySysnameAccountID = "User.AccountID"
 	PropertySysnameCreatedAt = "User.CreatedAt"
 	RelationSysnameTgAccount = "User.TgAccount"
@@ -16,6 +17,7 @@ const (
 
 var validPropertySysnames = []string{
 	PropertySysnameEmail,
+	PropertySysnamePhone,
 	PropertySysnameAccountID,
 	PropertySysnameCreatedAt,
 }
@@ -26,6 +28,7 @@ type User struct {
 	ID        uint
 	AccountID string
 	Email     string
+	Phone     string
 	CreatedAt time.Time `json:"created"`
 }
 
@@ -46,6 +49,7 @@ func (e *User) GetValidPropertySysnames() []string {
 func (e *User) GetMapNameSysname() map[string]string {
 	return map[string]string{
 		"Email":     PropertySysnameEmail,
+		"Phone":     PropertySysnamePhone,
 		"AccountID": PropertySysnameAccountID,
 		"CreatedAt": PropertySysnameCreatedAt,
 	}
@@ -62,6 +66,20 @@ func (e *User) SetEmail(ctx context.Context, value string) error {
 	}
 
 	e.Email = value
+	return nil
+}
+
+func (e *User) SetPhone(ctx context.Context, value string) error {
+	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnamePhone, 1)
+	if err != nil {
+		return err
+	}
+
+	if err = e.Entity.SetValueForProperty(prop, value, 1); err != nil {
+		return err
+	}
+
+	e.Phone = value
 	return nil
 }
 

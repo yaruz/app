@@ -2,8 +2,6 @@ package app
 
 import (
 	"context"
-	"github.com/yaruz/app/internal/pkg/auth"
-	"github.com/yaruz/app/pkg/socnets/tgservice"
 	golog "log"
 
 	"github.com/pkg/errors"
@@ -15,6 +13,11 @@ import (
 
 	"github.com/yaruz/app/pkg/yarus_platform"
 
+	"github.com/yaruz/app/internal/pkg/apperror"
+	"github.com/yaruz/app/internal/pkg/auth"
+	"github.com/yaruz/app/internal/pkg/config"
+	"github.com/yaruz/app/internal/pkg/socnets/tgservice"
+
 	"github.com/yaruz/app/internal/domain/advertiser"
 	"github.com/yaruz/app/internal/domain/advertising_campaign"
 	"github.com/yaruz/app/internal/domain/offer"
@@ -23,8 +26,6 @@ import (
 	"github.com/yaruz/app/internal/domain/user"
 	redisrepo "github.com/yaruz/app/internal/infrastructure/repository/redis"
 	"github.com/yaruz/app/internal/infrastructure/repository/yaruzplatform"
-	"github.com/yaruz/app/internal/pkg/apperror"
-	"github.com/yaruz/app/internal/pkg/config"
 )
 
 // App struct is the common part of all applications
@@ -197,7 +198,7 @@ func (app *App) SetupServices(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	app.Domain.Tg = tgservice.NewService(app.Infra.Logger, app.Domain.SessionRepository, app.Domain.tgAccountRepository)
+	app.Domain.Tg = tgservice.NewService(app.Infra.Logger, app.Domain.Auth, app.Domain.SessionRepository, app.Domain.tgAccountRepository)
 	app.Domain.TgAccount = tg_account.NewService(app.Infra.Logger, app.Domain.tgAccountRepository)
 	app.Domain.Advertiser = advertiser.NewService(app.Infra.Logger, app.Domain.advertiserRepository)
 	app.Domain.AdvertisingCampaign = advertising_campaign.NewService(app.Infra.Logger, app.Domain.advertisingCampaignRepository)

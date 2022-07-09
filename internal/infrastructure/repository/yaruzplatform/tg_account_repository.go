@@ -2,6 +2,8 @@ package yaruzplatform
 
 import (
 	"context"
+	"encoding/json"
+	mtproto_session "github.com/Kalinin-Andrey/mtproto/session"
 	"github.com/pkg/errors"
 	"github.com/yaruz/app/internal/pkg/apperror"
 	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
@@ -54,6 +56,24 @@ func (r *TgAccountRepository) instantiate(ctx context.Context, entity *entity.En
 			return nil, errors.Wrapf(err, "TgAccountRepository.instantiate error. ")
 		}
 		obj.TgID = tgID
+	}
+
+	authSessionPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, tg_account.PropertySysnameAuthSession)
+	if err != nil {
+		return nil, err
+	}
+	authSessionVal, ok := obj.PropertiesValues[authSessionPropID]
+	if ok {
+		authSessionJSON, err := property.GetValueText(authSessionVal.Value)
+		if err != nil {
+			return nil, errors.Wrapf(err, "TgAccountRepository.instantiate error. ")
+		}
+		authSession := &mtproto_session.Session{}
+		err = json.Unmarshal([]byte(authSessionJSON), authSession)
+		if err != nil {
+			return nil, errors.Wrapf(err, "TgAccountRepository.instantiate error. ")
+		}
+		obj.AuthSession = authSession
 	}
 
 	createdAtPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, tg_account.PropertySysnameCreatedAt)

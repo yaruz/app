@@ -2,28 +2,34 @@ package tg_account
 
 import (
 	"context"
+	"encoding/json"
 	"time"
+
+	mtproto_session "github.com/Kalinin-Andrey/mtproto/session"
 
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
 )
 
 const (
-	EntityType               = "TgAccount"
-	PropertySysnameTgID      = "TgAccount.TgID"
-	PropertySysnameCreatedAt = "TgAccount.CreatedAt"
+	EntityType                 = "TgAccount"
+	PropertySysnameTgID        = "TgAccount.TgID"
+	PropertySysnameAuthSession = "TgAccount.AuthSession"
+	PropertySysnameCreatedAt   = "TgAccount.CreatedAt"
 )
 
 var validPropertySysnames = []string{
 	PropertySysnameTgID,
+	PropertySysnameAuthSession,
 	PropertySysnameCreatedAt,
 }
 
 // TgAccount is the TgAccount entity
 type TgAccount struct {
 	*entity.Entity
-	ID        uint
-	TgID      string
-	CreatedAt time.Time `json:"created"`
+	ID          uint
+	TgID        string
+	AuthSession *mtproto_session.Session
+	CreatedAt   time.Time `json:"created"`
 }
 
 var _ entity.Searchable = (*TgAccount)(nil)
@@ -42,8 +48,9 @@ func (e *TgAccount) GetValidPropertySysnames() []string {
 
 func (e *TgAccount) GetMapNameSysname() map[string]string {
 	return map[string]string{
-		"TgID":      PropertySysnameTgID,
-		"CreatedAt": PropertySysnameCreatedAt,
+		"TgID":        PropertySysnameTgID,
+		"AuthSession": PropertySysnameAuthSession,
+		"CreatedAt":   PropertySysnameCreatedAt,
 	}
 }
 
@@ -58,6 +65,25 @@ func (e *TgAccount) SetTgID(ctx context.Context, value string) error {
 	}
 
 	e.TgID = value
+	return nil
+}
+
+func (e *TgAccount) SetAuthSession(ctx context.Context, authSession *mtproto_session.Session) error {
+	valueb, err := json.Marshal(*authSession)
+	if err != nil {
+		return err
+	}
+
+	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameAuthSession, 0)
+	if err != nil {
+		return err
+	}
+
+	if err = e.Entity.SetValueForProperty(prop, string(valueb), 0); err != nil {
+		return err
+	}
+
+	e.AuthSession = authSession
 	return nil
 }
 

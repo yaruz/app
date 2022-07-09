@@ -14,7 +14,8 @@ message User {
   uint64  ID                           = 1;
   string  AccountID                    = 2;
   string  Email                        = 3;
-  google.protobuf.Timestamp CreatedAt  = 4;
+  string  Phone                        = 4;
+  google.protobuf.Timestamp CreatedAt  = 5;
 }
 
 

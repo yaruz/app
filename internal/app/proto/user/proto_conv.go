@@ -11,6 +11,7 @@ func UserProto2User(userProto *User) (u *user.User, err error) {
 		ID:        uint(userProto.ID),
 		AccountID: userProto.AccountID,
 		Email:     userProto.Email,
+		Phone:     userProto.Phone,
 	}
 	if userProto.CreatedAt != nil && userProto.CreatedAt.IsValid() {
 		u.CreatedAt = userProto.CreatedAt.AsTime()
@@ -23,6 +24,7 @@ func User2UserProto(user *user.User) (up *User, err error) {
 		ID:        uint64(user.ID),
 		AccountID: user.AccountID,
 		Email:     user.Email,
+		Phone:     user.Phone,
 		CreatedAt: timestamppb.New(user.CreatedAt),
 	}
 	return up, nil
