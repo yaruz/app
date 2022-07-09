@@ -1,6 +1,7 @@
-package tgservice
+package tg
 
 import (
+	"context"
 	mtproto_session "github.com/Kalinin-Andrey/mtproto/session"
 	"github.com/minipkg/log"
 	"github.com/yaruz/app/internal/pkg/auth"
@@ -34,11 +35,27 @@ func NewAuthSessionLoader(logger log.ILogger, authService auth.Service, sessionR
 }
 
 func (s *AuthSessionLoader) Load() (*mtproto_session.Session, error) {
-	return nil, nil
+	return s.domainSession.TgAccount.AuthSession, nil
 }
 
 func (s *AuthSessionLoader) Store(sess *mtproto_session.Session) error {
-	return nil
+	var err error
+	ctx := context.Background()
+
+	if s.domainSession.TgAccount == nil {
+		s.domainSession.TgAccount, err = s.tgAccountRepository.New(ctx)
+		if err != nil {
+			return err
+		}
+	}
+	s.domainSession.TgAccount.AuthSession = sess
+
+	if s.domainSession.TgAccount.ID == 0 {
+		err = s.tgAccountRepository.Create(ctx, s.domainSession.TgAccount, s.domainSession.AccountSettings.LangID)
+	} else {
+		err = s.tgAccountRepository.Update(ctx, s.domainSession.TgAccount, s.domainSession.AccountSettings.LangID)
+	}
+	return err
 }
 
 type Service struct {

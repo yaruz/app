@@ -7,18 +7,18 @@ import (
 
 	"github.com/yaruz/app/internal/domain/user"
 	"github.com/yaruz/app/internal/pkg/auth"
-	"github.com/yaruz/app/internal/pkg/socnets/tgservice"
+	"github.com/yaruz/app/internal/pkg/socnets/tg"
 )
 
 type telegramController struct {
 	RouteGroup *routing.RouteGroup
 	Logger     log.ILogger
-	Tg         tgservice.IService
+	Tg         tg.IService
 	User       user.IService
 	Auth       auth.Service
 }
 
-func NewTelegramController(r *routing.RouteGroup, logger log.ILogger, tg tgservice.IService, authService auth.Service, userService user.IService) *telegramController {
+func NewTelegramController(r *routing.RouteGroup, logger log.ILogger, tg tg.IService, authService auth.Service, userService user.IService) *telegramController {
 	return &telegramController{
 		RouteGroup: r,
 		Logger:     logger,
