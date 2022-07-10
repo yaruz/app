@@ -18,11 +18,11 @@ type telegramController struct {
 	Auth       auth.Service
 }
 
-func NewTelegramController(r *routing.RouteGroup, logger log.ILogger, tg tg.IService, authService auth.Service, userService user.IService) *telegramController {
+func NewTelegramController(r *routing.RouteGroup, logger log.ILogger, telegramService tg.IService, authService auth.Service, userService user.IService) *telegramController {
 	return &telegramController{
 		RouteGroup: r,
 		Logger:     logger,
-		Tg:         tg,
+		Tg:         telegramService,
 		User:       userService,
 		Auth:       authService,
 	}
@@ -33,12 +33,13 @@ func (c *telegramController) RegisterHandlers() {
 
 	c.RouteGroup.Use(c.Auth.CheckAuthMiddleware)
 
-	c.RouteGroup.Get(`/account`, c.account)
+	c.RouteGroup.Get(`/send-code`, c.sendCode)
 	c.RouteGroup.Get(`/signin`, c.signin)
 
 }
 
-func (c *telegramController) account(rctx *routing.Context) error {
+func (c *telegramController) sendCode(rctx *routing.Context) error {
+
 	return rctx.Write(true)
 }
 

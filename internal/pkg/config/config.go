@@ -33,6 +33,7 @@ type Configuration struct {
 	Auth          Auth
 	YaruzMetadata yaruz_config.Metadata
 	CacheLifeTime uint
+	Socnets       Socnets
 }
 
 type DB struct {

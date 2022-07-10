@@ -198,7 +198,7 @@ func (app *App) SetupServices(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	app.Domain.Tg = tg.NewService(app.Infra.Logger, app.Domain.Auth, app.Domain.SessionRepository, app.Domain.tgAccountRepository)
+	app.Domain.Tg = tg.NewService(app.Infra.Logger, &app.Cfg.Socnets.Telegram, app.Domain.Auth, app.Domain.SessionRepository, app.Domain.tgAccountRepository)
 	app.Domain.TgAccount = tg_account.NewService(app.Infra.Logger, app.Domain.tgAccountRepository)
 	app.Domain.Advertiser = advertiser.NewService(app.Infra.Logger, app.Domain.advertiserRepository)
 	app.Domain.AdvertisingCampaign = advertising_campaign.NewService(app.Infra.Logger, app.Domain.advertisingCampaignRepository)

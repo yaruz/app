@@ -3,7 +3,7 @@ module github.com/yaruz/app
 go 1.18
 
 require (
-	github.com/Kalinin-Andrey/mtproto v0.0.0-20220625170705-ad771a34c4d2
+	github.com/Kalinin-Andrey/mtproto v0.0.1
 	github.com/casdoor/casdoor-go-sdk v0.4.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-ozzo/ozzo-routing/v2 v2.4.0
@@ -19,6 +19,7 @@ require (
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/viper v1.10.1
 	github.com/stretchr/testify v1.7.0
+	github.com/xelaj/errs v0.0.0-20200831133608-d1c11863e019
 	golang.org/x/net v0.0.0-20220425223048-2871e0cb64e4
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
 	google.golang.org/protobuf v1.28.0
@@ -51,8 +52,11 @@ require (
 	github.com/jackc/pgx/v4 v4.14.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.4 // indirect
+	github.com/k0kubun/pp v3.0.1+incompatible // indirect
 	github.com/klauspost/compress v1.11.4 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
+	github.com/mattn/go-colorable v0.1.12 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-sqlite3 v1.14.7 // indirect
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
@@ -67,15 +71,14 @@ require (
 	github.com/vmihailenco/go-tinylfu v0.2.0 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.1.0 // indirect
 	github.com/vmihailenco/tagparser v0.1.2 // indirect
-	github.com/xelaj/errs v0.0.0-20200831133608-d1c11863e019 // indirect
 	github.com/xelaj/go-dry v0.0.0-20210621215431-21c77821487c // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.17.0 // indirect
-	golang.org/x/crypto v0.0.0-20220131195533-30dcbda58838 // indirect
+	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
 	golang.org/x/exp v0.0.0-20220613132600-b0d781184e0d // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
+	golang.org/x/sys v0.0.0-20220708085239-5a0f0661e09d // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect
