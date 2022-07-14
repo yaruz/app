@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/yaruz/app/internal/pkg/apperror"
 	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
+	"time"
 
 	"github.com/minipkg/selection_condition"
 
@@ -155,6 +156,10 @@ func (r *TgAccountRepository) Count(ctx context.Context, condition *selection_co
 func (r *TgAccountRepository) Create(ctx context.Context, obj *tg_account.TgAccount, langID uint) error {
 	if obj.ID > 0 {
 		return errors.New("entity is not new")
+	}
+
+	if err := obj.SetCreatedAt(ctx, time.Now()); err != nil {
+		return err
 	}
 
 	err := r.yaruzRepository.DataSubsystem().Entity.Create(ctx, obj.Entity, langID)

@@ -8,7 +8,6 @@ import (
 
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/db/redis"
-	"github.com/minipkg/db/redis/cache"
 	"github.com/minipkg/log"
 
 	"github.com/yaruz/app/pkg/yarus_platform"
@@ -40,7 +39,6 @@ type Infrastructure struct {
 	Logger          log.ILogger
 	IdentityDB      minipkg_gorm.IDB
 	Redis           redis.IDB
-	Cache           cache.Service
 	YaruzRepository yarus_platform.IPlatform
 }
 
@@ -186,7 +184,7 @@ func (app *App) SetupRepositories() (err error) {
 	//}
 	//app.Auth.TokenRepository = jwt.NewRepository()
 
-	app.Infra.Cache = cache.NewService(app.Infra.Redis, app.Cfg.CacheLifeTime)
+	//app.Infra.Cache = cache.NewService(app.Infra.Redis, app.Cfg.CacheLifeTime)
 
 	return nil
 }
@@ -198,7 +196,7 @@ func (app *App) SetupServices(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	app.Domain.Tg = tg.NewService(app.Infra.Logger, &app.Cfg.Socnets.Telegram, app.Domain.Auth, app.Domain.SessionRepository, app.Domain.tgAccountRepository)
+	app.Domain.Tg = tg.NewService(app.Infra.Logger, &app.Cfg.Socnets.Telegram, app.Infra.Redis, app.Domain.Auth, app.Domain.SessionRepository, app.Domain.tgAccountRepository)
 	app.Domain.TgAccount = tg_account.NewService(app.Infra.Logger, app.Domain.tgAccountRepository)
 	app.Domain.Advertiser = advertiser.NewService(app.Infra.Logger, app.Domain.advertiserRepository)
 	app.Domain.AdvertisingCampaign = advertising_campaign.NewService(app.Infra.Logger, app.Domain.advertisingCampaignRepository)

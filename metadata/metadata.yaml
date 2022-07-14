@@ -49,6 +49,13 @@ entitytypes:
       rus:
         name: "пользователь"
     properties:
+      - sysname: "User.AccountID"
+        propertytype: "utext"
+        texts:
+          eng:
+            name: "account ID"
+          rus:
+            name: "ID аккаунта"
       - sysname: "User.Email"
         propertytype: "utext"
         texts:
@@ -63,13 +70,6 @@ entitytypes:
             name: "email"
           rus:
             name: "email"
-      - sysname: "User.AccountID"
-        propertytype: "utext"
-        texts:
-          eng:
-            name: "account ID"
-          rus:
-            name: "ID аккаунта"
       - sysname: "User.CreatedAt"
         propertytype: "time"
         texts:

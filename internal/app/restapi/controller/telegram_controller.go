@@ -2,6 +2,8 @@ package controller
 
 import (
 	routing "github.com/go-ozzo/ozzo-routing/v2"
+	"github.com/pkg/errors"
+	"github.com/yaruz/app/internal/pkg/apperror"
 
 	"github.com/minipkg/log"
 
@@ -33,16 +35,113 @@ func (c *telegramController) RegisterHandlers() {
 
 	c.RouteGroup.Use(c.Auth.CheckAuthMiddleware)
 
-	c.RouteGroup.Get(`/send-code`, c.sendCode)
-	c.RouteGroup.Get(`/signin`, c.signin)
+	c.RouteGroup.Get(`/send-code/<phone>`, c.authSendCode)
+	c.RouteGroup.Get(`/sign-in/<code>`, c.authSignIn)
+	c.RouteGroup.Post(`/sess-pass`, c.authCheckSessionPassword)
 
 }
 
-func (c *telegramController) sendCode(rctx *routing.Context) error {
+// authSendCode сохраняет телефон пользователя и отправляет ему в Телеграм код аутентификации
+func (c *telegramController) authSendCode(rctx *routing.Context) error {
+	ctx := rctx.Request.Context()
+	sess := c.Auth.GetSession(ctx)
+	isTgAuthSessionRegistred, err := c.Tg.IsAuthSessionRegistred(sess)
+	if err != nil {
+		return err
+	}
+	if isTgAuthSessionRegistred {
+		return rctx.Write("You've already signed in!")
+	}
 
+	phone := rctx.Param("phone")
+	if phone == "" {
+		return errors.Wrapf(apperror.ErrBadParams, "Phone must be set.")
+	}
+	// Сохраняем телефон в User
+	sess.User, err = c.User.Get(ctx, sess.User.ID, sess.AccountSettings.LangID)
+	if err != nil {
+		return err
+	}
+	if err = sess.User.SetPhone(ctx, phone); err != nil {
+		return err
+	}
+
+	if err = c.User.Update(ctx, sess.User, sess.AccountSettings.LangID); err != nil {
+		return nil
+	}
+	// Сохраняем телефон в аккаунте, обновляем и сохраняем сессию
+	sess.JwtClaims.User.Phone = phone
+	ctx, err = c.Auth.AccountUpdate(ctx, sess)
+	if err != nil {
+		return err
+	}
+	*rctx.Request = *rctx.Request.WithContext(ctx)
+
+	client, err := c.Tg.NewClient(sess)
+	if err != nil {
+		return err
+	}
+	// Отправляем код пользователю в Телеграм
+	if err := c.Tg.AuthSendCode(ctx, client, phone); err != nil {
+		return err
+	}
 	return rctx.Write(true)
 }
 
-func (c *telegramController) signin(rctx *routing.Context) error {
+// authSignIn - аутентификация в Телеграм по отправленному коду Телеграм
+func (c *telegramController) authSignIn(rctx *routing.Context) error {
+	ctx := rctx.Request.Context()
+	sess := c.Auth.GetSession(ctx)
+	isAuthSessionRegistred, err := c.Tg.IsAuthSessionRegistred(sess)
+	if err != nil {
+		return err
+	}
+	if isAuthSessionRegistred {
+		return rctx.Write("You've already signed in!")
+	}
+
+	code := rctx.Param("code")
+	if code == "" {
+		return errors.Wrapf(apperror.ErrBadParams, "Code must be set.")
+	}
+
+	client, err := c.Tg.NewClient(sess)
+	if err != nil {
+		return err
+	}
+	// Запрос аутентификации в Телеграм
+	if err := c.Tg.AuthSignIn(ctx, client, sess.User.Phone, code); err != nil {
+		return err
+	}
+	return rctx.Write(true)
+}
+
+// authCheckSessionPassword - проверка сессионного пороля от аккаунта Телеграм
+// Данный пароль нигде не сохраняется и никуда не пересылается, а используется только в математическом алгоритме проверки подлинности владельца аккаунта Телеграм.
+func (c *telegramController) authCheckSessionPassword(rctx *routing.Context) error {
+	ctx := rctx.Request.Context()
+	sess := c.Auth.GetSession(ctx)
+	isAuthSessionRegistred, err := c.Tg.IsAuthSessionRegistred(sess)
+	if err != nil {
+		return err
+	}
+	if isAuthSessionRegistred {
+		return rctx.Write("You've already signed in!")
+	}
+
+	client, err := c.Tg.NewClient(sess)
+	if err != nil {
+		return err
+	}
+
+	var pass string
+	rctx.Read(&pass)
+	if pass == "" {
+		return errors.Wrapf(apperror.ErrBadParams, "Session password for Telegram must be set.")
+	}
+
+	if err := c.Tg.AuthCheckPassword(ctx, client, pass); err != nil {
+		return err
+	}
 	return rctx.Write(true)
 }

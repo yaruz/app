@@ -88,10 +88,16 @@ func (s *service) Count(ctx context.Context, condition *selection_condition.Sele
 }
 
 func (s *service) Create(ctx context.Context, obj *User, langID uint) error {
+	if err := obj.Validate(); err != nil {
+		return err
+	}
 	return s.repository.Create(ctx, obj, langID)
 }
 
 func (s *service) Update(ctx context.Context, obj *User, langID uint) error {
+	if err := obj.Validate(); err != nil {
+		return err
+	}
 	return s.repository.Update(ctx, obj, langID)
 }
 

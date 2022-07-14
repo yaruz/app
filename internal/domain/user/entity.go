@@ -2,6 +2,8 @@ package user
 
 import (
 	"context"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
 	"time"
 )
@@ -39,7 +41,11 @@ func (e *User) EntityType() string {
 }
 
 func (e *User) Validate() error {
-	return nil
+	return validation.ValidateStruct(e,
+		validation.Field(&e.AccountID, validation.Required),
+		validation.Field(&e.Email, is.Email, validation.Required),
+		validation.Field(&e.Phone, is.E164),
+	)
 }
 
 func (e *User) GetValidPropertySysnames() []string {

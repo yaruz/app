@@ -6,6 +6,10 @@ import (
 )
 
 func AccountProto2Account(accountProto *Account) (account *auth.User, err error) {
+	if accountProto == nil {
+		return nil, nil
+	}
+
 	account = &auth.User{
 		Owner:             accountProto.Owner,
 		Name:              accountProto.Name,
@@ -65,6 +69,10 @@ func AccountProto2Account(accountProto *Account) (account *auth.User, err error)
 }
 
 func Account2AccountProto(account *auth.User) (accountProto *Account, err error) {
+	if account == nil {
+		return nil, nil
+	}
+
 	accountProto = &Account{
 		Owner:             account.Owner,
 		Name:              account.Name,
@@ -139,6 +147,10 @@ func Account2AccountProto(account *auth.User) (accountProto *Account, err error)
 }
 
 func AccountSettingsProto2AccountSettings(accountSettingsProto *AccountSettings) (accountSettings *account.AccountSettings, err error) {
+	if accountSettingsProto == nil {
+		return nil, nil
+	}
+
 	accountSettings = &account.AccountSettings{
 		LangID: uint(accountSettingsProto.LangID),
 	}
@@ -146,6 +158,10 @@ func AccountSettingsProto2AccountSettings(accountSettingsProto *AccountSettings)
 }
 
 func AccountSettings2AccountSettingsProto(accountSettings *account.AccountSettings) (accountSettingsProto *AccountSettings, err error) {
+	if accountSettings == nil {
+		return nil, nil
+	}
+
 	accountSettingsProto = &AccountSettings{
 		LangID: uint64(accountSettings.LangID),
 	}
@@ -153,6 +169,10 @@ func AccountSettings2AccountSettingsProto(accountSettings *account.AccountSettin
 }
 
 func ClaimsProto2Claims(claimsProto *JwtClaims) (claims *auth.Claims, err error) {
+	if claimsProto == nil {
+		return nil, nil
+	}
+
 	account, err := AccountProto2Account(claimsProto.User)
 	if err != nil {
 		return nil, err
@@ -165,6 +185,10 @@ func ClaimsProto2Claims(claimsProto *JwtClaims) (claims *auth.Claims, err error)
 }
 
 func Claims2ClaimsProto(claims *auth.Claims) (claimsProto *JwtClaims, err error) {
+	if claims == nil {
+		return nil, nil
+	}
+
 	accountProto, err := Account2AccountProto(&claims.User)
 	if err != nil {
 		return nil, err

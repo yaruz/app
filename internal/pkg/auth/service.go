@@ -35,6 +35,7 @@ type Service interface {
 	SessionInit(ctx context.Context, token string, accountSettings *account.AccountSettings, oauthToken *oauth2.Token) (context.Context, error)
 	UpdateSession(ctx context.Context, sess *session.Session) (context.Context, *session.Session, error)
 	AccountSettingsUpdate(ctx context.Context, accountSettings *account.AccountSettings) (context.Context, error)
+	AccountUpdate(ctx context.Context, sess *session.Session) (context.Context, error)
 	SignIn(ctx context.Context, code, state string, accountSettings *account.AccountSettings) (context.Context, error)
 	StringTokenValidation(ctx context.Context, stringToken string) error
 	RoutingGetAccountSettingsWithDefaults(rctx *routing.Context) (*account.AccountSettings, error)
@@ -212,6 +213,9 @@ func (s *service) GetForgetUrl() string {
 }
 
 func (s *service) accountGetUintParam(account *auth.User, paramName string) (uint, error) {
+	if len(account.Properties) == 0 {
+		return 0, apperror.ErrNotFound
+	}
 	pStr, ok := account.Properties[paramName]
 	if !ok {
 		return 0, apperror.ErrNotFound
@@ -226,6 +230,9 @@ func (s *service) accountGetUintParam(account *auth.User, paramName string) (uin
 }
 
 func (s *service) accountSetUintParam(account *auth.User, key string, value uint) {
+	if account.Properties == nil {
+		account.Properties = make(map[string]string, 1)
+	}
 	account.Properties[key] = strconv.Itoa(int(value))
 }
 
@@ -283,6 +290,23 @@ func (s *service) AccountSettingsUpdate(ctx context.Context, accountSettings *ac
 	return ctx, nil
 }
 
+func (s *service) AccountUpdate(ctx context.Context, sess *session.Session) (context.Context, error) {
+	if _, err := auth.UpdateUser(&sess.JwtClaims.User); err != nil {
+		return ctx, err
+	}
+	oauthToken, jwtClaims, err := s.refreshAndParseToken(ctx, sess.Token.RefreshToken)
+	if err != nil {
+		return ctx, err
+	}
+
+	ctx, _, err = s.updateSession(ctx, sess, jwtClaims, nil, nil, oauthToken)
+	if err != nil {
+		return ctx, err
+	}
+
+	return ctx, nil
+}
+
 func (s *service) SessionInit(ctx context.Context, accessToken string, accountSettings *account.AccountSettings, oauthToken *oauth2.Token) (context.Context, error) {
 	jwtClaims, err := auth.ParseJwtToken(accessToken)
 	if err != nil {
@@ -314,9 +338,12 @@ func (s *service) SessionInit(ctx context.Context, accessToken string, accountSe
 
 		tgAcc, err := s.userService.GetTgAccount(ctx, user, accountSettings.LangID)
 		if err != nil {
-			return ctx, err
+			if !errors.Is(err, apperror.ErrNotFound) {
+				return ctx, err
+			}
+		} else {
+			sess.TgAccount = tgAcc
 		}
-		sess.TgAccount = tgAcc
 
 		ctx, _, err = s.createSession(ctx, jwtClaims, user, accountSettings, oauthToken)
 		if err != nil {
@@ -542,6 +569,11 @@ func (s *service) signUp(ctx context.Context, jwtClaims *auth.Claims, langId uin
 	}
 
 	err = user.SetEmail(ctx, jwtClaims.User.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	err = user.SetPhone(ctx, jwtClaims.User.Phone)
 	if err != nil {
 		return nil, err
 	}

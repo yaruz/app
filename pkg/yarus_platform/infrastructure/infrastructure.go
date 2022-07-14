@@ -5,7 +5,6 @@ import (
 
 	minipkg_gorm "github.com/minipkg/db/gorm"
 	"github.com/minipkg/db/redis"
-	"github.com/minipkg/db/redis/cache"
 	"github.com/minipkg/log"
 	"github.com/pkg/errors"
 	"github.com/yaruz/app/internal/pkg/apperror"
@@ -18,7 +17,6 @@ type Infrastructure struct {
 	ReferenceDB  minipkg_gorm.IDB
 	SearchDB     minipkg_gorm.IDB
 	Redis        redis.IDB
-	Cache        cache.Service
 }
 
 func NewInfrastructure(ctx context.Context, logger log.ILogger, cfg *config.Infrastructure, model2sharding interface{}) (*Infrastructure, error) {
@@ -49,7 +47,6 @@ func NewInfrastructure(ctx context.Context, logger log.ILogger, cfg *config.Infr
 		ReferenceDB:  ReferenceDB,
 		SearchDB:     SearchDB,
 		Redis:        rDB,
-		Cache:        cache.NewService(rDB, cfg.CacheLifeTime),
 	}, nil
 }
 

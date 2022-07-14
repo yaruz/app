@@ -3,6 +3,7 @@ package yaruzplatform
 import (
 	"context"
 	"github.com/pkg/errors"
+	"time"
 
 	"github.com/minipkg/selection_condition"
 
@@ -163,6 +164,10 @@ func (r *UserRepository) Count(ctx context.Context, condition *selection_conditi
 func (r *UserRepository) Create(ctx context.Context, obj *user.User, langID uint) error {
 	if obj.ID > 0 {
 		return errors.New("entity is not new")
+	}
+
+	if err := obj.SetCreatedAt(ctx, time.Now()); err != nil {
+		return err
 	}
 
 	err := r.yaruzRepository.DataSubsystem().Entity.Create(ctx, obj.Entity, langID)

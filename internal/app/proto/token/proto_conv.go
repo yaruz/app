@@ -6,6 +6,10 @@ import (
 )
 
 func TokenProto2Token(tokenProto *Token) (token *oauth2.Token, err error) {
+	if tokenProto == nil {
+		return nil, nil
+	}
+
 	token = &oauth2.Token{
 		AccessToken:  tokenProto.AccessToken,
 		TokenType:    tokenProto.TokenType,
@@ -18,6 +22,10 @@ func TokenProto2Token(tokenProto *Token) (token *oauth2.Token, err error) {
 }
 
 func Token2TokenProto(token *oauth2.Token) (tokenProto *Token, err error) {
+	if token == nil {
+		return nil, nil
+	}
+
 	tokenProto = &Token{
 		AccessToken:  token.AccessToken,
 		TokenType:    token.TokenType,

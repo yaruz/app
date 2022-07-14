@@ -8,6 +8,10 @@ import (
 )
 
 func TgAccountProto2TgAccount(tgAccountProto *TgAccount) (tgAccount *tg_account.TgAccount, err error) {
+	if tgAccountProto == nil {
+		return nil, nil
+	}
+
 	authSession, err := AuthSessionProto2AuthSession(tgAccountProto.AuthSession)
 	if err != nil {
 		return nil, err
@@ -24,6 +28,10 @@ func TgAccountProto2TgAccount(tgAccountProto *TgAccount) (tgAccount *tg_account.
 }
 
 func TgAccount2TgAccountProto(tgAccount *tg_account.TgAccount) (tgAccountProto *TgAccount, err error) {
+	if tgAccount == nil {
+		return nil, nil
+	}
+
 	authSessionProto, err := AuthSession2AuthSessionProto(tgAccount.AuthSession)
 	if err != nil {
 		return nil, err
@@ -38,6 +46,10 @@ func TgAccount2TgAccountProto(tgAccount *tg_account.TgAccount) (tgAccountProto *
 }
 
 func AuthSessionProto2AuthSession(authSessionProto *AuthSession) (authSession *mtproto_session.Session, err error) {
+	if authSessionProto == nil {
+		return nil, nil
+	}
+
 	authSession = &mtproto_session.Session{
 		Key:      authSessionProto.Key,
 		Hash:     authSessionProto.Hash,
@@ -48,6 +60,10 @@ func AuthSessionProto2AuthSession(authSessionProto *AuthSession) (authSession *m
 }
 
 func AuthSession2AuthSessionProto(authSession *mtproto_session.Session) (authSessionProto *AuthSession, err error) {
+	if authSession == nil {
+		return nil, nil
+	}
+
 	authSessionProto = &AuthSession{
 		Key:      authSession.Key,
 		Hash:     authSession.Hash,

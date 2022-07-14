@@ -10,6 +10,10 @@ import (
 )
 
 func SessionProto2Session(sessionProto *Session) (s *session.Session, err error) {
+	if sessionProto == nil {
+		return nil, nil
+	}
+
 	token, err := token_proto.TokenProto2Token(sessionProto.Token)
 	if err != nil {
 		return nil, err
@@ -46,6 +50,10 @@ func SessionProto2Session(sessionProto *Session) (s *session.Session, err error)
 }
 
 func Session2SessionProto(s *session.Session) (sessionProto *Session, err error) {
+	if s == nil {
+		return nil, nil
+	}
+
 	tokenProto, err := token_proto.Token2TokenProto(s.Token)
 	if err != nil {
 		return nil, err

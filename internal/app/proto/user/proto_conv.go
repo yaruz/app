@@ -7,6 +7,10 @@ import (
 )
 
 func UserProto2User(userProto *User) (u *user.User, err error) {
+	if userProto == nil {
+		return nil, nil
+	}
+
 	u = &user.User{
 		ID:        uint(userProto.ID),
 		AccountID: userProto.AccountID,
@@ -20,6 +24,10 @@ func UserProto2User(userProto *User) (u *user.User, err error) {
 }
 
 func User2UserProto(user *user.User) (up *User, err error) {
+	if user == nil {
+		return nil, nil
+	}
+
 	up = &User{
 		ID:        uint64(user.ID),
 		AccountID: user.AccountID,
