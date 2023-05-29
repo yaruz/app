@@ -35,9 +35,9 @@ func NewDataSubsystem(infra *infrastructure.Infrastructure, reference *reference
 	}
 	d.setupServices(infra.Logger)
 
-	if err := d.autoMigrate(infra.DataSharding); err != nil {
-		return nil, err
-	}
+	//if err := d.autoMigrate(infra.DataSharding); err != nil {
+	//	return nil, err
+	//}
 
 	return d, nil
 }
@@ -79,6 +79,6 @@ func (d *DataSubsystem) setupRepositories(infra *infrastructure.Infrastructure) 
 	return nil
 }
 
-func (d *DataSubsystem) setupServices(logger log.ILogger) {
+func (d *DataSubsystem) setupServices(logger log.Logger) {
 	d.Entity = entity.NewService(logger, d.entityRepository, d.reference, d.search)
 }

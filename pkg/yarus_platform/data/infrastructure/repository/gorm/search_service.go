@@ -24,7 +24,7 @@ import (
 
 type SearchService struct {
 	mapReducer       IMapReducer
-	logger           log.ILogger
+	logger           log.Logger
 	propertyFinder   entity.PropertyFinder
 	entityTypeFinder entity.EntityTypeFinder
 	langFinder       entity.LangFinder
@@ -55,7 +55,7 @@ var IDConditionVariants = []interface{}{
 	selection_condition.ConditionIn,
 }
 
-func NewSearchService(logger log.ILogger, mapReducer IMapReducer, entityTypeFinder entity.EntityTypeFinder, propertyFinder entity.PropertyFinder, langFinder entity.LangFinder) *SearchService {
+func NewSearchService(logger log.Logger, mapReducer IMapReducer, entityTypeFinder entity.EntityTypeFinder, propertyFinder entity.PropertyFinder, langFinder entity.LangFinder) *SearchService {
 	return &SearchService{
 		logger:           logger,
 		mapReducer:       mapReducer,

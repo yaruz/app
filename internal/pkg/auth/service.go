@@ -1,99 +1,95 @@
 package auth
 
 import (
-	"bytes"
 	"context"
 	_ "embed"
-	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/casdoor/casdoor-go-sdk/auth"
 	routing "github.com/go-ozzo/ozzo-routing/v2"
 	"github.com/minipkg/log"
-	"github.com/pkg/errors"
-	"github.com/yaruz/app/internal/domain/account"
-	"github.com/yaruz/app/internal/domain/session"
-	"github.com/yaruz/app/internal/domain/user"
-	"github.com/yaruz/app/internal/pkg/apperror"
-	"github.com/yaruz/app/internal/pkg/config"
+	"github.com/yaruz/app/internal/domain/tg_account"
+	"github.com/yaruz/app/internal/pkg/jwt"
 	"github.com/yaruz/app/pkg/yarus_platform/reference/domain/text_lang"
 	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
-	"golang.org/x/oauth2"
-	"io/ioutil"
 	"net/http"
-	"net/url"
-	"strconv"
-	"strings"
 	"time"
+
+	"github.com/yaruz/app/internal/pkg/apperror"
+	"github.com/yaruz/app/internal/pkg/session"
+
+	"github.com/yaruz/app/internal/domain/account"
+	"github.com/yaruz/app/internal/domain/user"
 )
 
 // Service encapsulates the authentication logic.
 type Service interface {
-	GetSignUpUrl() string
-	GetSignInUrl() string
-	GetForgetUrl() string
-	GetSession(ctx context.Context) *session.Session
-	SessionInit(ctx context.Context, token string, accountSettings *account.AccountSettings, oauthToken *oauth2.Token) (context.Context, error)
-	UpdateSession(ctx context.Context, sess *session.Session) (context.Context, *session.Session, error)
-	AccountSettingsUpdate(ctx context.Context, accountSettings *account.AccountSettings) (context.Context, error)
-	AccountUpdate(ctx context.Context, sess *session.Session) (context.Context, error)
-	SignIn(ctx context.Context, code, state string, accountSettings *account.AccountSettings) (context.Context, error)
-	StringTokenValidation(ctx context.Context, stringToken string) error
-	RoutingGetAccountSettingsWithDefaults(rctx *routing.Context) (*account.AccountSettings, error)
-	CheckAuthMiddleware(rctx *routing.Context) error
+	//GetSignUpUrl() string
+	//GetSignInUrl() string
+	//GetForgetUrl() string
+	//GetSession(ctx context.Context) *session.Session
+	//SessionInit(ctx context.Context, token string, sessionID string, accountSettings *account.AccountSettings) (context.Context, error)
+	//UpdateSession(ctx context.Context, sess *session.Session) (context.Context, *session.Session, error)
+	//AccountSettingsUpdate(ctx context.Context, accountSettings *account.AccountSettings) (context.Context, error)
+	//AccountUpdate(ctx context.Context, sess *session.Session) (context.Context, error)
+	//SignIn(ctx context.Context, code, state string, accountSettings *account.AccountSettings) (context.Context, error)
+	//StringTokenValidation(ctx context.Context, stringToken string) error
+	//RoutingGetAccountSettingsWithDefaults(rctx *routing.Context) (*account.AccountSettings, error)
+	//CheckAuthMiddleware(rctx *routing.Context) error
+	//CreateUnauthSession(ctx context.Context, accountSettings *account.AccountSettings) (*session.Session, error)
+	GetSession(ctx context.Context) (*session.Session, error)
+	MiddlewareCheckAuth() routing.Handler
+	MiddlewareSessionInit() routing.Handler
+	SignInTg(ctx context.Context, account *tg_account.TgAccount, langID uint) (accessToken string, err error)
 }
 
 const (
-	timeOutInSec          = 5
-	URI_RefreshToken      = "/api/login/oauth/refresh_token"
-	ctxUserSessionKey     = "session"
-	grantTypeRefreshToken = "refresh_token"
-	scopeRead             = "read"
+	timeOutInSec     = 5
+	URI_RefreshToken = "/api/login/oauth/refresh_token"
+	ctx_SessionIDKey = "session"
+	ctx_IsAuth       = "isAuth"
 )
 
-//go:embed token_jwt_key.pem
-var JwtPublicKey string
+//go_:embed token_jwt_key.pem
+//var JwtPublicKey string
 
-var _ Service = &service{}
+var _ Service = (*service)(nil)
 
 type UserService interface {
 }
 
 type service struct {
-	//signingKey        string
-	//tokenExpiration   uint
-	userService user.IService
-	logger      log.ILogger
-	session     session.Repository
-	langFinder  text_lang.LangFinder
-	//tokenRepository   TokenRepository
-	Endpoint               string
-	ClientId               string
-	ClientSecret           string
-	Organization           string
-	Application            string
+	userService            user.IService
+	logger                 log.Logger
+	sessionRepository      session.Repository
+	langFinder             text_lang.LangFinder
+	tokenRepository        TokenRepository
 	SignInRedirectURL      string
-	JWTSigningKey          string
-	JWTExpiration          uint
-	SessionlifeTime        uint
+	SessionlifeTimeInHours uint
 	defaultAccountSettings *account.AccountSettings
 }
 
+type Config struct {
+	SignInRedirectURL      string
+	JWTSigningKey          string
+	JWTExpirationInHours   uint
+	SessionlifeTimeInHours uint
+	DefaultAccountSettings DefaultAccountSettings
+}
+
+type DefaultAccountSettings struct {
+	Lang string
+}
+
 // NewService creates a new authentication service.
-func NewService(ctx context.Context, logger log.ILogger, cfg config.Auth, userService user.IService, session session.Repository, langFinder text_lang.LangFinder) (*service, error) {
+func NewService(ctx context.Context, logger log.Logger, cfg Config, tokenRepository TokenRepository, sessionRepository session.Repository, userService user.IService, langFinder text_lang.LangFinder) (*service, error) {
 	s := &service{
-		logger:            logger,
-		Endpoint:          cfg.Endpoint,
-		ClientId:          cfg.ClientId,
-		ClientSecret:      cfg.ClientSecret,
-		Organization:      cfg.Organization,
-		Application:       cfg.Application,
-		SignInRedirectURL: cfg.SignInRedirectURL,
-		JWTSigningKey:     cfg.JWTSigningKey,
-		JWTExpiration:     cfg.JWTExpiration,
-		SessionlifeTime:   cfg.SessionlifeTime,
-		userService:       userService,
-		session:           session,
-		langFinder:        langFinder,
+		logger:                 logger,
+		SignInRedirectURL:      cfg.SignInRedirectURL,
+		SessionlifeTimeInHours: cfg.SessionlifeTimeInHours,
+		tokenRepository:        tokenRepository,
+		userService:            userService,
+		sessionRepository:      sessionRepository,
+		langFinder:             langFinder,
 	}
 	defaultLangID, err := s.langFinder.GetIDByCode(ctx, cfg.DefaultAccountSettings.Lang)
 	if err != nil {
@@ -103,12 +99,22 @@ func NewService(ctx context.Context, logger log.ILogger, cfg config.Auth, userSe
 	s.defaultAccountSettings = &account.AccountSettings{
 		LangID: defaultLangID,
 	}
-	// casdoor-go-sdk/auth
-	auth.InitConfig(s.Endpoint, s.ClientId, s.ClientSecret, JwtPublicKey, s.Organization, s.Application)
 	return s, nil
 }
 
-func (s *service) RoutingGetAccountSettingsWithDefaults(rctx *routing.Context) (*account.AccountSettings, error) {
+func (s *service) GetSession(ctx context.Context) (*session.Session, error) {
+	sessionID, err := s.getSessionID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("[%w] sessionID not found in context", err)
+	}
+	return s.sessionRepository.Get(ctx, sessionID)
+}
+
+func (s *service) SaveSession(ctx context.Context, entity *session.Session) error {
+	return s.sessionRepository.Set(ctx, entity)
+}
+
+func (s *service) routingGetAccountSettingsWithDefaults(rctx *routing.Context) (*account.AccountSettings, error) {
 	ctx := rctx.Request.Context()
 	accountSettings := s.defaultAccountSettings
 
@@ -116,9 +122,9 @@ func (s *service) RoutingGetAccountSettingsWithDefaults(rctx *routing.Context) (
 		langID, err := s.langFinder.GetIDByCode(ctx, lang)
 		if err != nil {
 			if err != yaruserror.ErrNotFound {
-				return nil, err
+				return nil, fmt.Errorf("[%w] langID error: %s", apperror.ErrInternal, err.Error())
 			}
-			// todo: временно игнорим ненайденные
+			return nil, fmt.Errorf("[%w] langID error: %s", apperror.ErrBadParams, err.Error())
 		} else {
 			accountSettings.LangID = langID
 		}
@@ -127,53 +133,292 @@ func (s *service) RoutingGetAccountSettingsWithDefaults(rctx *routing.Context) (
 	return accountSettings, nil
 }
 
-func (s *service) newSession(ctx context.Context, jwtClaims *auth.Claims, user *user.User, accountSettings *account.AccountSettings, oauthToken *oauth2.Token) *session.Session {
-	return &session.Session{
-		User:            user,
-		JwtClaims:       jwtClaims,
-		Token:           oauthToken,
-		AccountSettings: accountSettings,
+func (s *service) stringTokenValidation(ctx context.Context, stringToken string) error {
+	//	temporary validation method
+	_, err := s.tokenRepository.ParseStringToken(stringToken)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) MiddlewareCheckAuth() routing.Handler {
+	return func(rctx *routing.Context) error {
+		ctx := rctx.Request.Context()
+		val := ctx.Value(ctx_IsAuth)
+		isAuth, ok := val.(bool)
+		if !ok {
+			return routing.NewHTTPError(http.StatusInternalServerError, "Context has been broken.")
+		}
+
+		if !isAuth {
+			return routing.NewHTTPError(http.StatusUnauthorized, "")
+		}
+		return nil
 	}
 }
 
-func (s *service) createSession(ctx context.Context, jwtClaims *auth.Claims, user *user.User, defaultAccountSettings *account.AccountSettings, oauthToken *oauth2.Token) (context.Context, *session.Session, error) {
-	if jwtClaims == nil || user == nil || defaultAccountSettings == nil || oauthToken == nil {
-		return ctx, nil, errors.Wrapf(apperror.ErrBadParams, "jwtClaims == %v \nuser == %v \ndefaultAccountSettings == %v \noauthToken == %v", jwtClaims, user, defaultAccountSettings, oauthToken)
+func (s *service) MiddlewareSessionInit() routing.Handler {
+	return func(rctx *routing.Context) error {
+		// todo: все сообщения при ошибках нужно выдавать не наружу, а в логи
+		ctx := rctx.Request.Context()
+		var isAuth bool
+		var err error
+		var sessionID string
+
+		sessionID = getSessionID(rctx.Request.Header.Get(header_Cookie))
+		stringToken := getAuthorizationToken(rctx.Request.Header.Get(header_Authorization))
+
+		accountSettings, err := s.routingGetAccountSettingsWithDefaults(rctx)
+		if err != nil {
+			return routing.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
+		if stringToken != "" {
+			// если есть токен, проверяем токен, достаём сессию, аутентифицируем пользователя
+			sess, err := s.authSessionInit(ctx, stringToken)
+			if err != nil {
+				if !errors.Is(err, apperror.ErrTokenHasExpired) {
+					return routing.NewHTTPError(http.StatusUnauthorized, err.Error())
+				}
+				return routing.NewHTTPError(http.StatusUnauthorized, err.Error())
+			}
+			// обновим в сессии accountSettings
+			sess.AccountSettings = accountSettings
+			if err = s.sessionRepository.Set(ctx, sess); err != nil {
+				return routing.NewHTTPError(http.StatusInternalServerError, err.Error())
+			}
+
+			sessionID = sess.ID
+			isAuth = true
+		} else if sessionID != "" {
+			// если, нет токена, но есть sessID - достаём сессию для неаутентифицированного пользователя
+			sess, ok := s.unauthCheckSessionID(ctx, sessionID)
+			if ok {
+				// обновим в сессии accountSettings
+				sess.AccountSettings = accountSettings
+				if err = s.sessionRepository.Set(ctx, sess); err != nil {
+					return routing.NewHTTPError(http.StatusInternalServerError, err.Error())
+				}
+
+				sessionID = sess.ID
+			} else {
+				sessionID = ""
+			}
+		}
+
+		if sessionID == "" {
+			// нет ни какой сессии, создаём новую сессию для неаутентифицированного пользователя
+			sess, err := s.unauthSessionCreate(ctx, accountSettings)
+			if err != nil {
+				return routing.NewHTTPError(http.StatusInternalServerError, err.Error())
+			}
+			sessionID = sess.ID
+		}
+
+		ctx = context.WithValue(
+			ctx,
+			ctx_SessionIDKey,
+			sessionID,
+		)
+		ctx = context.WithValue(
+			ctx,
+			ctx_IsAuth,
+			isAuth,
+		)
+		*rctx.Request = *rctx.Request.WithContext(ctx)
+		rctx.Response.Header().Set(header_Cookie, cookie_SessionID+"="+sessionID)
+		return nil
 	}
+}
 
-	if accSettings, err := s.accountGetSettings(&jwtClaims.User); err != nil && accSettings != nil {
-		defaultAccountSettings = accSettings
-	}
-
-	sess := s.newSession(ctx, jwtClaims, user, defaultAccountSettings, oauthToken)
-
-	err := s.session.Create(ctx, sess)
+func (s *service) authSessionInit(ctx context.Context, accessToken string) (*session.Session, error) {
+	token, err := s.tokenRepository.ParseStringToken(accessToken)
 	if err != nil {
-		return ctx, nil, err
+		return nil, err
 	}
 
-	ctx = context.WithValue(
-		ctx,
-		ctxUserSessionKey,
-		sess,
-	)
+	tokenData := token.GetData()
+	sess, ok := s.checkAuthData(ctx, tokenData.SessionID, tokenData.User.ID, accessToken)
+	if !ok {
+		return nil, apperror.ErrInvalidToken
+	}
 
-	return ctx, sess, nil
+	return sess, nil
+}
+
+func (s *service) checkAuthData(ctx context.Context, sessionID string, userID uint, accessToken string) (*session.Session, bool) {
+	sess, err := s.sessionRepository.Get(ctx, sessionID)
+	return sess, err == nil && sess.JwtClaims.AccessToken == accessToken && sess.User.ID == userID
+}
+
+func (s *service) unauthCheckSessionID(ctx context.Context, sessionID string) (*session.Session, bool) {
+	sess, err := s.sessionRepository.Get(ctx, sessionID)
+	if err != nil {
+		if errors.Is(err, apperror.ErrNotFound) {
+			return nil, false
+		}
+		s.logger.Errorf("Internal server error: %s", err.Error())
+		return nil, false
+	}
+	return sess, true
+}
+
+func (s *service) unauthSessionCreate(ctx context.Context, accountSettings *account.AccountSettings) (*session.Session, error) {
+	sess, err := session.New("", accountSettings, nil, nil)
+	if err != nil {
+		return nil, fmt.Errorf("[%w] Session creation error.", apperror.ErrInternal)
+	}
+	err = s.sessionRepository.Set(ctx, sess)
+	if err != nil {
+		return nil, fmt.Errorf("[%w] Session save error.", apperror.ErrInternal)
+	}
+	return sess, nil
+}
+
+func (s *service) getSessionID(ctx context.Context) (string, error) {
+	sessionID := ctx.Value(ctx_SessionIDKey).(string)
+	if sessionID == "" {
+		return "", apperror.ErrNotFound
+	}
+	return sessionID, nil
+}
+
+func (s *service) SignInTg(ctx context.Context, account *tg_account.TgAccount, langID uint) (accessToken string, err error) {
+	// проверить, мож, уже есть
+	u, err := s.userService.GetByTgAccount(ctx, account, langID)
+	if err != nil {
+		if !errors.Is(err, apperror.ErrNotFound) {
+			return "", fmt.Errorf("[%w] get user by tg account error: %s", apperror.ErrInternal, err.Error())
+		}
+
+		u, err = s.createUserTg(ctx, account)
+		if err != nil {
+			return "", err
+		}
+	}
+	return s.signIn(ctx, u)
+}
+
+func (s *service) signIn(ctx context.Context, u *user.User) (accessToken string, err error) {
+	sess, err := s.GetSession(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	token, err := s.tokenRepository.NewTokenWithData(&jwt.TokenData{
+		SessionID: sess.ID,
+		User:      u,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	sess.User = u
+	sess.JwtClaims = token.GetClaims()
+
+	accessToken, err = token.GenerateStringToken()
+	if err != nil {
+		return "", fmt.Errorf("[%w] generate string token error: %s", apperror.ErrInternal, err.Error())
+	}
+
+	return accessToken, s.sessionRepository.Set(ctx, sess)
+}
+
+func (s *service) createUserTg(ctx context.Context, account *tg_account.TgAccount) (*user.User, error) {
+	sess, err := s.GetSession(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("[%w] getting session error: %s", apperror.ErrInternal, err.Error())
+	}
+
+	u, err := s.userService.New(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("[%w] user creation error: %s", apperror.ErrInternal, err.Error())
+	}
+
+	err = u.SetPhone(ctx, account.Phone)
+	if err != nil {
+		return nil, fmt.Errorf("[%w] setting phone error: %s", apperror.ErrInternal, err.Error())
+	}
+	err = u.SetFirstName(ctx, account.FirstName)
+	if err != nil {
+		return nil, fmt.Errorf("[%w] setting first name error: %s", apperror.ErrInternal, err.Error())
+	}
+	err = u.SetLastName(ctx, account.LastName)
+	if err != nil {
+		return nil, fmt.Errorf("[%w] setting last name error: %s", apperror.ErrInternal, err.Error())
+	}
+	err = u.SetUserName(ctx, account.UserName)
+	if err != nil {
+		return nil, fmt.Errorf("[%w] setting user name error: %s", apperror.ErrInternal, err.Error())
+	}
+	err = u.SetCreatedAt(ctx, time.Now().UTC())
+	if err != nil {
+		return nil, fmt.Errorf("[%w] setting time of creation error: %s", apperror.ErrInternal, err.Error())
+	}
+
+	if err = s.userService.Create(ctx, u, sess.AccountSettings.LangID); err != nil {
+		return nil, fmt.Errorf("[%w] user saving error: %s", apperror.ErrInternal, err.Error())
+	}
+
+	return u, nil
+}
+
+/*
+func (s *service) saveSession(ctx context.Context, sess *session.Session) (context.Context, error) {
+
+	if err := s.sessionRepository.Create(ctx, sess); err != nil {
+		return ctx, err
+	}
+
+	return context.WithValue(
+		ctx,
+		ctxUser_SessionKey,
+		sess,
+	), nil
 }
 
 func (s *service) UpdateSession(ctx context.Context, sess *session.Session) (context.Context, *session.Session, error) {
-	err := s.session.Update(ctx, sess)
+	err := s.sessionRepository.Update(ctx, sess)
 	if err != nil {
 		return ctx, nil, err
 	}
 
 	ctx = context.WithValue(
 		ctx,
-		ctxUserSessionKey,
+		ctxUser_SessionKey,
 		sess,
 	)
 
 	return ctx, sess, nil
+}
+
+func (s *service) CreateUnauthSession(ctx context.Context, accountSettings *account.AccountSettings) (context.Context, *session.Session, error) {
+	sess, err := session.New("", accountSettings, nil, nil)
+	if err != nil {
+		return ctx, nil, err
+	}
+
+	ctx, err = s.saveSession(ctx, sess)
+	return ctx, sess, err
+}
+
+func (s *service) createSession(ctx context.Context, jwtClaims *jwt.Claims, user *user.User, defaultAccountSettings *account.AccountSettings) (context.Context, *session.Session, error) {
+	if jwtClaims == nil || user == nil || defaultAccountSettings == nil {
+		return ctx, nil, errors.Wrapf(apperror.ErrBadParams, "jwtClaims: %v \nuser: %v \ndefaultAccountSettings: %v \n", jwtClaims, user, defaultAccountSettings)
+	}
+
+	if accSettings, err := s.accountGetSettings(jwtClaims.User); err != nil && accSettings != nil {
+		defaultAccountSettings = accSettings
+	}
+
+	sess, err := session.New("", defaultAccountSettings, jwtClaims, user)
+	if err != nil {
+		return ctx, nil, err
+	}
+
+	ctx, err = s.saveSession(ctx, sess)
+	return ctx, sess, err
 }
 
 func (s *service) updateSession(ctx context.Context, sess *session.Session, jwtClaims *auth.Claims, user *user.User, accountSettings *account.AccountSettings, oauthToken *oauth2.Token) (context.Context, *session.Session, error) {
@@ -197,7 +442,7 @@ func (s *service) updateSession(ctx context.Context, sess *session.Session, jwtC
 }
 
 func (s *service) GetSession(ctx context.Context) *session.Session {
-	return ctx.Value(ctxUserSessionKey).(*session.Session)
+	return ctx.Value(ctxUser_SessionKey).(*session.Session)
 }
 
 func (s *service) GetSignUpUrl() string {
@@ -253,7 +498,7 @@ func (s *service) accountSetSettings(acc *auth.User, accountSettings *account.Ac
 	acc.Properties["langId"] = strconv.Itoa(int(accountSettings.LangID))
 }
 
-func (s *service) accountGetSettings(acc *auth.User) (*account.AccountSettings, error) {
+func (s *service) accountGetSettings(acc *user.User) (*account.AccountSettings, error) {
 	langID, err := s.accountGetUintParam(acc, "langId")
 	if err != nil {
 		return nil, err
@@ -307,7 +552,7 @@ func (s *service) AccountUpdate(ctx context.Context, sess *session.Session) (con
 	return ctx, nil
 }
 
-func (s *service) SessionInit(ctx context.Context, accessToken string, accountSettings *account.AccountSettings, oauthToken *oauth2.Token) (context.Context, error) {
+func (s *service) SessionInit(ctx context.Context, accessToken string, sessionID string, accountSettings *account.AccountSettings) (context.Context, error) {
 	jwtClaims, err := auth.ParseJwtToken(accessToken)
 	if err != nil {
 		return ctx, err
@@ -322,7 +567,7 @@ func (s *service) SessionInit(ctx context.Context, accessToken string, accountSe
 		return ctx, errors.Wrapf(apperror.ErrNotFound, "Param %q not found in JwtClaims.User = %v", s.Application+"ID", jwtClaims.User)
 	}
 
-	sess, err := s.session.Get(ctx, userID)
+	sess, err := s.sessionRepository.Get(ctx, userID)
 	if err != nil && !errors.Is(err, apperror.ErrNotFound) {
 		return ctx, err
 	}
@@ -409,187 +654,10 @@ func (s *service) SignIn(ctx context.Context, code, state string, defaultAccount
 		s.AccountSettingsUpdate(ctx, sess.AccountSettings)
 	}
 
-	//affected, err := object.UpdateMemberOnlineStatus(&claims.User, true, util.GetCurrentTime())
-	//if err != nil {
-	//	c.ResponseError(err.Error())
-	//	return
-	//}
-
 	return ctx, nil
 }
-
-func (s *service) accountPropertiesUpdate(ctx context.Context, refreshToken string, account *auth.User) (*oauth2.Token, *auth.Claims, error) {
-	ok, err := auth.UpdateUserForColumns(account, []string{"properties"})
-	if !ok || err != nil {
-		return nil, nil, errors.Wrapf(apperror.ErrInternal, fmt.Sprintf("User not updated. Ok = %t, err = %q.", ok, err.Error()))
-	}
-
-	return s.refreshAndParseToken(ctx, refreshToken)
-
-}
-
-func (s *service) getAndParseToken(ctx context.Context, code, state string) (*oauth2.Token, *auth.Claims, error) {
-	authToken, err := auth.GetOAuthToken(code, state)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	jwtClaims, err := auth.ParseJwtToken(authToken.AccessToken)
-	if err != nil {
-		return nil, nil, err
-	}
-	jwtClaims.AccessToken = authToken.AccessToken
-
-	return authToken, jwtClaims, nil
-}
-
-type refreshTokenParams struct {
-	GrantType    string `json:"grant_type"`
-	RefreshToken string `json:"refresh_token"`
-	Scope        string `json:"scope"`
-	ClientId     string `json:"client_id"`
-	ClientSecret string `json:"client_secret"`
-}
-
-type refreshTokenResponse struct {
-	AccessToken  string `json:"access_token"`
-	Error        string `json:"error"`
-	ExpiresIn    int    `json:"expires_in"`
-	IdToken      string `json:"id_token"`
-	RefreshToken string `json:"refresh_token"`
-	Scope        string `json:"scope"`
-	TokenType    string `json:"token_type"`
-}
-
-func (s *service) refreshToken(ctx context.Context, refreshToken string) (*oauth2.Token, error) {
-	httpClient := &http.Client{
-		//Timeout: time.Second * 10,
-	}
-
-	urlValues := url.Values{
-		"grant_type":    []string{"refresh_token"},
-		"refresh_token": []string{refreshToken},
-		"scope":         []string{"read"},
-		"client_id":     []string{s.ClientId},
-		"client_secret": []string{s.ClientSecret},
-	}
-
-	body := bytes.NewBuffer([]byte{})
-
-	reqUrl := s.Endpoint + URI_RefreshToken + "?" + urlValues.Encode()
-	req, err := http.NewRequest(http.MethodPost, reqUrl, body)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Content-Length", strconv.Itoa(body.Len()))
-
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var res refreshTokenResponse
-	if err = json.Unmarshal(respBody, &res); err != nil {
-		return nil, err
-	}
-
-	expires := res.ExpiresIn
-
-	newOauthToken := &oauth2.Token{
-		AccessToken:  res.AccessToken,
-		TokenType:    res.TokenType,
-		RefreshToken: res.RefreshToken,
-		Expiry:       time.Now().Add(time.Duration(expires) * time.Second), // должно быть в секундах, но в Касдоре ошибка
-	}
-
-	if strings.HasPrefix(newOauthToken.AccessToken, "error:") {
-		return nil, errors.New(strings.TrimLeft(newOauthToken.AccessToken, "error: "))
-	}
-
-	return newOauthToken, err
-}
-
-func (s *service) autoRefreshToken(ctx context.Context, oauthToken *oauth2.Token) (*oauth2.Token, error) {
-	config := &oauth2.Config{
-		ClientID:     s.ClientId,
-		ClientSecret: s.ClientSecret,
-		Endpoint: oauth2.Endpoint{
-			AuthURL:   fmt.Sprintf("%s/api/login/oauth/authorize", s.Endpoint),
-			TokenURL:  fmt.Sprintf("%s/api/login/oauth/access_token", s.Endpoint),
-			AuthStyle: oauth2.AuthStyleInParams,
-		},
-		Scopes: nil,
-	}
-	tokenSource := config.TokenSource(ctx, oauthToken)
-
-	newOauthToken, err := tokenSource.Token()
-	if err != nil {
-		return nil, err
-	}
-
-	if strings.HasPrefix(newOauthToken.AccessToken, "error:") {
-		return nil, errors.New(strings.TrimLeft(newOauthToken.AccessToken, "error: "))
-	}
-
-	return newOauthToken, err
-}
-
-func (s *service) refreshAndParseToken(ctx context.Context, refreshToken string) (*oauth2.Token, *auth.Claims, error) {
-	//oauthToken, err := RefreshToken(ctx, config, refreshToken)
-	oauthToken, err := s.refreshToken(ctx, refreshToken)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	jwtClaims, err := auth.ParseJwtToken(oauthToken.AccessToken)
-	if err != nil {
-		return nil, nil, err
-	}
-	jwtClaims.AccessToken = oauthToken.AccessToken
-
-	return oauthToken, jwtClaims, nil
-}
-
-func (s *service) signUp(ctx context.Context, jwtClaims *auth.Claims, langId uint) (*user.User, error) {
-	user, err := s.userService.New(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = user.SetAccountID(ctx, jwtClaims.User.Id)
-	if err != nil {
-		return nil, err
-	}
-
-	err = user.SetEmail(ctx, jwtClaims.User.Email)
-	if err != nil {
-		return nil, err
-	}
-
-	err = user.SetPhone(ctx, jwtClaims.User.Phone)
-	if err != nil {
-		return nil, err
-	}
-
-	return user, s.userService.Create(ctx, user, langId)
-}
-
-func (s *service) StringTokenValidation(ctx context.Context, stringToken string) error {
-	//	temporary validation method
-	_, err := auth.ParseJwtToken(stringToken)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
+*/
+/*
 func (s *service) CheckAuthMiddleware(rctx *routing.Context) error {
 	// todo: все сообщения при ошибках нужно выдавать не наружу, а в логи
 	ctx := rctx.Request.Context()
@@ -619,3 +687,4 @@ func (s *service) CheckAuthMiddleware(rctx *routing.Context) error {
 	*rctx.Request = *rctx.Request.WithContext(ctx)
 	return nil
 }
+*/

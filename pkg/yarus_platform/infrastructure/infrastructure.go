@@ -12,14 +12,14 @@ import (
 )
 
 type Infrastructure struct {
-	Logger       log.ILogger
+	Logger       log.Logger
 	DataSharding Sharding
 	ReferenceDB  minipkg_gorm.IDB
-	SearchDB     minipkg_gorm.IDB
-	Redis        redis.IDB
+	//SearchDB     minipkg_gorm.IDB
+	Redis redis.IDB
 }
 
-func NewInfrastructure(ctx context.Context, logger log.ILogger, cfg *config.Infrastructure, model2sharding interface{}) (*Infrastructure, error) {
+func NewInfrastructure(ctx context.Context, logger log.Logger, cfg *config.Infrastructure, model2sharding interface{}) (*Infrastructure, error) {
 
 	DataSharding, err := newSharding(ctx, logger, &cfg.DataSharding, model2sharding)
 	if err != nil {
@@ -31,10 +31,10 @@ func NewInfrastructure(ctx context.Context, logger log.ILogger, cfg *config.Infr
 		return nil, err
 	}
 
-	SearchDB, err := minipkg_gorm.New(logger, cfg.SearchDB)
-	if err != nil {
-		return nil, err
-	}
+	//SearchDB, err := minipkg_gorm.New(logger, cfg.SearchDB)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	rDB, err := redis.New(cfg.Redis)
 	if err != nil {
@@ -45,8 +45,8 @@ func NewInfrastructure(ctx context.Context, logger log.ILogger, cfg *config.Infr
 		Logger:       logger,
 		DataSharding: *DataSharding,
 		ReferenceDB:  ReferenceDB,
-		SearchDB:     SearchDB,
-		Redis:        rDB,
+		//SearchDB:     SearchDB,
+		Redis: rDB,
 	}, nil
 }
 
@@ -54,15 +54,15 @@ func (i *Infrastructure) Stop() error {
 	errRedis := i.Redis.Close()
 	errDataDB := i.DataSharding.Close()
 	errReferenceDB := i.ReferenceDB.Close()
-	errSearchDB := i.SearchDB.Close()
+	//errSearchDB := i.SearchDB.Close()
 
 	switch {
 	case errDataDB != nil:
 		return errors.Wrapf(apperror.ErrInternal, "db close error: %v", errDataDB)
 	case errReferenceDB != nil:
 		return errors.Wrapf(apperror.ErrInternal, "db close error: %v", errReferenceDB)
-	case errSearchDB != nil:
-		return errors.Wrapf(apperror.ErrInternal, "db close error: %v", errSearchDB)
+	//case errSearchDB != nil:
+	//	return errors.Wrapf(apperror.ErrInternal, "db close error: %v", errSearchDB)
 	case errRedis != nil:
 		return errors.Wrapf(apperror.ErrInternal, "redis close error: %v", errRedis)
 	}

@@ -27,4 +27,5 @@ type Repository interface {
 	Delete(ctx context.Context, id uint) error
 	LangIDValidate(ctx context.Context, langID uint) error
 	GetTgAccount(ctx context.Context, obj *User, langID uint) (*tg_account.TgAccount, error)
+	GetByTgAccount(ctx context.Context, obj *tg_account.TgAccount, langID uint) (*User, error)
 }

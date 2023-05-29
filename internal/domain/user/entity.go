@@ -12,7 +12,9 @@ const (
 	EntityType               = "User"
 	PropertySysnameEmail     = "User.Email"
 	PropertySysnamePhone     = "User.Phone"
-	PropertySysnameAccountID = "User.AccountID"
+	PropertySysnameFirstName = "User.FirstName"
+	PropertySysnameLastName  = "User.LastName"
+	PropertySysnameUserName  = "User.UserName"
 	PropertySysnameCreatedAt = "User.CreatedAt"
 	RelationSysnameTgAccount = "User.TgAccount"
 )
@@ -20,7 +22,9 @@ const (
 var validPropertySysnames = []string{
 	PropertySysnameEmail,
 	PropertySysnamePhone,
-	PropertySysnameAccountID,
+	PropertySysnameFirstName,
+	PropertySysnameLastName,
+	PropertySysnameUserName,
 	PropertySysnameCreatedAt,
 }
 
@@ -28,10 +32,12 @@ var validPropertySysnames = []string{
 type User struct {
 	*entity.Entity
 	ID        uint
-	AccountID string
 	Email     string
 	Phone     string
-	CreatedAt time.Time `json:"created"`
+	FirstName string
+	LastName  string
+	UserName  string
+	CreatedAt time.Time
 }
 
 var _ entity.Searchable = (*User)(nil)
@@ -42,9 +48,8 @@ func (e *User) EntityType() string {
 
 func (e *User) Validate() error {
 	return validation.ValidateStruct(e,
-		validation.Field(&e.AccountID, validation.Required),
-		validation.Field(&e.Email, is.Email, validation.Required),
-		validation.Field(&e.Phone, is.E164),
+		validation.Field(&e.Email, is.Email),
+		validation.Field(&e.Phone, is.E164, validation.Required),
 	)
 }
 
@@ -56,13 +61,57 @@ func (e *User) GetMapNameSysname() map[string]string {
 	return map[string]string{
 		"Email":     PropertySysnameEmail,
 		"Phone":     PropertySysnamePhone,
-		"AccountID": PropertySysnameAccountID,
+		"FirstName": PropertySysnameFirstName,
+		"LastName":  PropertySysnameLastName,
+		"UserName":  PropertySysnameUserName,
 		"CreatedAt": PropertySysnameCreatedAt,
 	}
 }
 
 func (e *User) SetEmail(ctx context.Context, value string) error {
 	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameEmail, 1)
+	if err != nil {
+		return err
+	}
+
+	if err = e.Entity.SetValueForProperty(prop, value, 1); err != nil {
+		return err
+	}
+
+	e.Email = value
+	return nil
+}
+
+func (e *User) SetFirstName(ctx context.Context, value string) error {
+	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameFirstName, 1)
+	if err != nil {
+		return err
+	}
+
+	if err = e.Entity.SetValueForProperty(prop, value, 1); err != nil {
+		return err
+	}
+
+	e.Email = value
+	return nil
+}
+
+func (e *User) SetLastName(ctx context.Context, value string) error {
+	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameLastName, 1)
+	if err != nil {
+		return err
+	}
+
+	if err = e.Entity.SetValueForProperty(prop, value, 1); err != nil {
+		return err
+	}
+
+	e.Email = value
+	return nil
+}
+
+func (e *User) SetUserName(ctx context.Context, value string) error {
+	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameUserName, 1)
 	if err != nil {
 		return err
 	}
@@ -86,20 +135,6 @@ func (e *User) SetPhone(ctx context.Context, value string) error {
 	}
 
 	e.Phone = value
-	return nil
-}
-
-func (e *User) SetAccountID(ctx context.Context, value string) error {
-	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameAccountID, 1)
-	if err != nil {
-		return err
-	}
-
-	if err = e.Entity.SetValueForProperty(prop, value, 1); err != nil {
-		return err
-	}
-
-	e.AccountID = value
 	return nil
 }
 

@@ -12,10 +12,12 @@ import "google/protobuf/timestamp.proto";
 
 message User {
   uint64  ID                           = 1;
-  string  AccountID                    = 2;
-  string  Email                        = 3;
-  string  Phone                        = 4;
-  google.protobuf.Timestamp CreatedAt  = 5;
+  string  Email                        = 2;
+  string  Phone                        = 3;
+  string  FirstName                    = 4;
+  string  LastName                     = 5;
+  string  UserName                     = 6;
+  google.protobuf.Timestamp CreatedAt  = 7;
 }
 
 

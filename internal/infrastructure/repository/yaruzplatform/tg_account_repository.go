@@ -2,8 +2,6 @@ package yaruzplatform
 
 import (
 	"context"
-	"encoding/json"
-	mtproto_session "github.com/Kalinin-Andrey/mtproto/session"
 	"github.com/pkg/errors"
 	"github.com/yaruz/app/internal/pkg/apperror"
 	"github.com/yaruz/app/pkg/yarus_platform/yaruserror"
@@ -46,38 +44,111 @@ func (r *TgAccountRepository) instantiate(ctx context.Context, entity *entity.En
 		Entity: entity,
 	}
 
-	tgIDPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, tg_account.PropertySysnameTgID)
+	userIDPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, tg_account.PropertySysname_UserID)
 	if err != nil {
 		return nil, err
 	}
-	tgIDVal, ok := obj.PropertiesValues[tgIDPropID]
+	userIDVal, ok := obj.PropertiesValues[userIDPropID]
 	if ok {
-		tgID, err := property.GetValueText(tgIDVal.Value)
+		userID, err := property.GetValueInt(userIDVal.Value)
 		if err != nil {
 			return nil, errors.Wrapf(err, "TgAccountRepository.instantiate error. ")
 		}
-		obj.TgID = tgID
+		obj.UserID = userID
 	}
 
-	authSessionPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, tg_account.PropertySysnameAuthSession)
+	accessHashPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, tg_account.PropertySysname_AccessHash)
 	if err != nil {
 		return nil, err
 	}
-	authSessionVal, ok := obj.PropertiesValues[authSessionPropID]
+	accessHashVal, ok := obj.PropertiesValues[accessHashPropID]
 	if ok {
-		authSessionJSON, err := property.GetValueText(authSessionVal.Value)
+		accessHash, err := property.GetValueInt(accessHashVal.Value)
 		if err != nil {
 			return nil, errors.Wrapf(err, "TgAccountRepository.instantiate error. ")
 		}
-		authSession := &mtproto_session.Session{}
-		err = json.Unmarshal([]byte(authSessionJSON), authSession)
-		if err != nil {
-			return nil, errors.Wrapf(err, "TgAccountRepository.instantiate error. ")
-		}
-		obj.AuthSession = authSession
+		obj.AccessHash = accessHash
 	}
 
-	createdAtPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, tg_account.PropertySysnameCreatedAt)
+	firstNamePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, tg_account.PropertySysname_FirstName)
+	if err != nil {
+		return nil, err
+	}
+	firstNameVal, ok := obj.PropertiesValues[firstNamePropID]
+	if ok {
+		firstName, err := property.GetValueText(firstNameVal.Value)
+		if err != nil {
+			return nil, errors.Wrapf(err, "TgAccountRepository.instantiate error. ")
+		}
+		obj.FirstName = firstName
+	}
+
+	lastNamePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, tg_account.PropertySysname_LastName)
+	if err != nil {
+		return nil, err
+	}
+	lastNameVal, ok := obj.PropertiesValues[lastNamePropID]
+	if ok {
+		lastName, err := property.GetValueText(lastNameVal.Value)
+		if err != nil {
+			return nil, errors.Wrapf(err, "TgAccountRepository.instantiate error. ")
+		}
+		obj.LastName = lastName
+	}
+
+	userNamePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, tg_account.PropertySysname_UserName)
+	if err != nil {
+		return nil, err
+	}
+	userNameVal, ok := obj.PropertiesValues[userNamePropID]
+	if ok {
+		userName, err := property.GetValueText(userNameVal.Value)
+		if err != nil {
+			return nil, errors.Wrapf(err, "TgAccountRepository.instantiate error. ")
+		}
+		obj.UserName = userName
+	}
+
+	phonePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, tg_account.PropertySysname_Phone)
+	if err != nil {
+		return nil, err
+	}
+	phoneVal, ok := obj.PropertiesValues[phonePropID]
+	if ok {
+		phone, err := property.GetValueText(phoneVal.Value)
+		if err != nil {
+			return nil, errors.Wrapf(err, "TgAccountRepository.instantiate error. ")
+		}
+		obj.Phone = phone
+	}
+
+	photoPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, tg_account.PropertySysname_Photo)
+	if err != nil {
+		return nil, err
+	}
+	photoVal, ok := obj.PropertiesValues[photoPropID]
+	if ok {
+		photo, err := property.GetValueText(photoVal.Value)
+		if err != nil {
+			return nil, errors.Wrapf(err, "TgAccountRepository.instantiate error. ")
+		}
+		obj.Photo = photo
+	}
+
+	langCodePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, tg_account.PropertySysname_LangCode)
+	if err != nil {
+		return nil, err
+	}
+	langCodeVal, ok := obj.PropertiesValues[langCodePropID]
+	if ok {
+		langCode, err := property.GetValueText(langCodeVal.Value)
+		if err != nil {
+			return nil, errors.Wrapf(err, "TgAccountRepository.instantiate error. ")
+		}
+		obj.LangCode = langCode
+	}
+
+	createdAtPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, tg_account.PropertySysname_CreatedAt)
 	if err != nil {
 		return nil, err
 	}

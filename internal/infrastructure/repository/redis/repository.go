@@ -1,16 +1,31 @@
 package redis
 
 import (
-	"github.com/minipkg/selection_condition"
-
 	"github.com/minipkg/db/redis"
+	goredis "github.com/redis/go-redis/v9"
 )
 
-// IRepository is an interface of repository
-type IRepository interface{}
+// Repository is an interface of repository
+type Repository interface {
+	DB() goredis.Cmdable
+	Close() error
+}
 
 // repository persists albums in database
 type repository struct {
-	db         redis.IDB
-	Conditions selection_condition.SelectionCondition
+	db redis.IDB
+}
+
+func NewRepository(db redis.IDB) *repository {
+	return &repository{
+		db: db,
+	}
+}
+
+func (r *repository) DB() goredis.Cmdable {
+	return r.db.DB()
+}
+
+func (r *repository) Close() error {
+	return r.db.Close()
 }

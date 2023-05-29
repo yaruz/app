@@ -2,7 +2,7 @@ package gorm
 
 import (
 	"context"
-	
+
 	"github.com/pkg/errors"
 
 	"gorm.io/gorm"
@@ -32,14 +32,14 @@ type IRepository interface {
 // repository persists albums in database
 type repository struct {
 	db         minipkg_gorm.IDB
-	logger     log.ILogger
+	logger     log.Logger
 	Conditions *selection_condition.SelectionCondition
 	model      interface{}
 }
 
 const DefaultLimit = 1000
 
-func GetEntityIDRepository(logger log.ILogger, db minipkg_gorm.IDB, entityTypesByClusterSysnames map[string][]string) *EntityIDRepository {
+func GetEntityIDRepository(logger log.Logger, db minipkg_gorm.IDB, entityTypesByClusterSysnames map[string][]string) *EntityIDRepository {
 	return NewEntityIDRepository(
 		&repository{
 			logger: logger,
@@ -50,7 +50,7 @@ func GetEntityIDRepository(logger log.ILogger, db minipkg_gorm.IDB, entityTypesB
 }
 
 // GetRepository return a repository
-func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string) (repo IRepository, err error) {
+func GetRepository(logger log.Logger, dbase minipkg_gorm.IDB, entityName string) (repo IRepository, err error) {
 	r := &repository{
 		logger: logger,
 	}
@@ -191,7 +191,7 @@ func GetRepository(logger log.ILogger, dbase minipkg_gorm.IDB, entityName string
 	return repo, err
 }
 
-func (r *repository) getTextSourceRepository(logger log.ILogger, dbase minipkg_gorm.IDB) (text_source.Repository, error) {
+func (r *repository) getTextSourceRepository(logger log.Logger, dbase minipkg_gorm.IDB) (text_source.Repository, error) {
 	textSourceRepo, err := GetRepository(logger, dbase, text_source.EntityName)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Can not get db repository for entity %q, error happened: %v", text_source.EntityName, err)

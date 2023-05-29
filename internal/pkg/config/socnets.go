@@ -1,19 +1,9 @@
 package config
 
+import (
+	"github.com/yaruz/app/internal/pkg/socnets/tg"
+)
+
 type Socnets struct {
-	Telegram Telegram
-}
-
-type Telegram struct {
-	Application Application
-}
-
-type Application struct {
-	Title           string
-	ShortName       string
-	AppID           int
-	AppHash         string
-	ServerHost      string
-	PublicKeyFile   string
-	InitWarnChannel bool
+	Telegram *tg.Config
 }

@@ -1,22 +1,19 @@
 package auth
 
 import (
-	"time"
+	"github.com/yaruz/app/internal/pkg/jwt"
 )
 
-type TokenRepository interface {
-	NewTokenByData(data TokenData) Token
-	ParseStringToken(tokenString string, signingKey string) (Token, error)
-}
-
 type Token interface {
-	GetData() TokenData
-	GenerateStringToken(signingKey string) (string, error)
-	Valid() error
+	GetClaims() *jwt.Claims
+	GetData() *jwt.TokenData
+	GenerateStringToken() (string, error)
 }
 
-type TokenData struct {
-	UserID              uint
-	UserName            string
-	ExpirationTokenTime time.Time
+type TokenRepository interface {
+	NewTokenWithData(data *jwt.TokenData) (*jwt.Token, error)
+	ParseStringToken(tokenString string) (*jwt.Token, error)
 }
+
+var _ TokenRepository = (*jwt.Repository)(nil)
+var _ Token = (*jwt.Token)(nil)

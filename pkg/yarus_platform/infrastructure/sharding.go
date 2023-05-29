@@ -20,7 +20,7 @@ type Sharding struct {
 	ClusterSysnamesByEntityTypes map[string]string
 }
 
-func newSharding(ctx context.Context, logger log.ILogger, cfg *config.Sharding, model interface{}) (*Sharding, error) {
+func newSharding(ctx context.Context, logger log.Logger, cfg *config.Sharding, model interface{}) (*Sharding, error) {
 	clusterSysnamesByEntityTypes := make(map[string]string)
 	defaultCluster, err := newDBCluster(logger, &cfg.Default)
 	if err != nil {
@@ -105,7 +105,7 @@ type DBCluster struct {
 	Items       []minipkg_gorm.IDB
 }
 
-func newDBCluster(logger log.ILogger, cfg *config.DBCluster) (*DBCluster, error) {
+func newDBCluster(logger log.Logger, cfg *config.DBCluster) (*DBCluster, error) {
 	var err error
 
 	items := make([]minipkg_gorm.IDB, len(cfg.Items))

@@ -1,4 +1,4 @@
-package tg
+package tg_old
 
 import (
 	"github.com/pkg/errors"

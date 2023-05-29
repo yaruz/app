@@ -12,12 +12,12 @@ import (
 // RegisterHandlers registers handlers for different HTTP requests.
 //	POST /api/signup - регистрация
 //	POST /api/signin - логин
-func RegisterHandlers(rg *routing.RouteGroup, service Service, logger log.ILogger) {
+func RegisterHandlers(rg *routing.RouteGroup, service Service, logger log.Logger) {
 	rg.Post("/signin", signin(service, logger))
 	rg.Post("/signup", signup(service, logger))
 }
 
-func signup(service Service, logger log.ILogger) routing.Handler {
+func signup(service Service, logger log.Logger) routing.Handler {
 	return func(c *routing.Context) error {
 		var req identity
 
@@ -45,7 +45,7 @@ func signup(service Service, logger log.ILogger) routing.Handler {
 }
 
 // signin returns a handler that handles user signin request.
-func signin(service Service, logger log.ILogger) routing.Handler {
+func signin(service Service, logger log.Logger) routing.Handler {
 	return func(c *routing.Context) error {
 		var req identity
 

@@ -2,6 +2,8 @@ package config
 
 import (
 	"flag"
+	"github.com/yaruz/app/internal/infrastructure"
+	"github.com/yaruz/app/internal/pkg/auth"
 
 	yaruz_config "github.com/yaruz/app/pkg/yarus_platform/config"
 
@@ -28,52 +30,23 @@ type Configuration struct {
 	Server struct {
 		HTTPListen string
 	}
-	Log           log.Config
-	DB            DB
-	Auth          Auth
-	YaruzMetadata yaruz_config.Metadata
-	CacheLifeTime uint
-	Socnets       Socnets
+	Infrastructure infrastructure.Configuration
+	Auth           auth.Config
+	YaruzMetadata  yaruz_config.Metadata
+	Socnets        Socnets
 }
 
-type DB struct {
-	Identity     minipkg_gorm.Config
-	Reference    minipkg_gorm.Config
-	DataSharding yaruz_config.Sharding
-	Search       minipkg_gorm.Config
-	Redis        redis.Config
-}
-
-type Auth struct {
-	Endpoint               string
-	ClientId               string
-	ClientSecret           string
-	Organization           string
-	Application            string
-	SignInRedirectURL      string
-	JWTSigningKey          string
-	JWTExpiration          uint
-	SessionlifeTime        uint
-	DefaultAccountSettings DefaultAccountSettings
-}
-
-type DefaultAccountSettings struct {
-	Lang string
-}
-
-func (c *Configuration) YaruzConfig() *yaruz_config.Configuration {
-	return &yaruz_config.Configuration{
-		Infrastructure: &yaruz_config.Infrastructure{
-			Log:           c.Log,
-			ReferenceDB:   c.DB.Reference,
-			DataSharding:  c.DB.DataSharding,
-			SearchDB:      c.DB.Search,
-			Redis:         c.DB.Redis,
-			CacheLifeTime: c.CacheLifeTime,
-		},
-		Metadata: &c.YaruzMetadata,
-	}
-}
+//type Auth struct {
+//	SignInRedirectURL      string
+//	JWTSigningKey          string
+//	JWTExpirationInHours   uint
+//	SessionlifeTimeInHours uint
+//	DefaultAccountSettings DefaultAccountSettings
+//}
+//
+//type DefaultAccountSettings struct {
+//	Lang string
+//}
 
 // Get func return the app config
 func Get() (*Configuration, error) {
@@ -142,11 +115,11 @@ func (c *Configuration) readMetadata(pathToMetadata string) error {
 }
 
 func addition4Test(cfg *Configuration, logAppPostfix string) {
-	cfg.Log.OutputPaths = []string{
+	cfg.Infrastructure.Log.OutputPaths = []string{
 		"stdout",
 	}
-	cfg.Log.InitialFields = map[string]interface{}{"app": "carizza-test: " + logAppPostfix}
-	cfg.Log.Level = "debug"
+	cfg.Infrastructure.Log.InitialFields = map[string]interface{}{"app": "carizza-test: " + logAppPostfix}
+	cfg.Infrastructure.Log.Level = "debug"
 	return
 }
 
@@ -161,11 +134,11 @@ func Get4Test(logAppPostfix string) (*Configuration, error) {
 }
 
 func Get4UnitTest(logAppPostfix string) *Configuration {
-	cfg := &Configuration{
+	cfg := &Configuration{Infrastructure: infrastructure.Configuration{
 		Log: log.Config{
 			Encoding: "json",
 		},
-		DB: DB{
+		DB: &infrastructure.DBConf{
 			Identity: minipkg_gorm.Config{
 				Dialect:       "postgres",
 				DSN:           "host=localhost port=5401 dbname=postgres user=postgres password=postgres sslmode=disable",
@@ -177,7 +150,7 @@ func Get4UnitTest(logAppPostfix string) *Configuration {
 			Redis: redis.Config{},
 		},
 		CacheLifeTime: 1,
-	}
+	}}
 	addition4Test(cfg, logAppPostfix)
 
 	return cfg

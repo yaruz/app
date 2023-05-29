@@ -36,7 +36,7 @@ type RelationService interface {
 }
 
 type relationService struct {
-	logger          log.ILogger
+	logger          log.Logger
 	repository      RelationRepository
 	propertyService property.IService
 }
@@ -44,7 +44,7 @@ type relationService struct {
 var _ RelationService = (*relationService)(nil)
 
 // NewRelationService creates a new relationService.
-func NewRelationService(logger log.ILogger, repo RelationRepository, propertyService property.IService) RelationService {
+func NewRelationService(logger log.Logger, repo RelationRepository, propertyService property.IService) RelationService {
 	s := &relationService{
 		logger:          logger,
 		repository:      repo,

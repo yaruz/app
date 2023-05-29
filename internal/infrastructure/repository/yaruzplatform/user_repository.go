@@ -61,6 +61,39 @@ func (r *UserRepository) instantiate(ctx context.Context, entity *entity.Entity)
 		}
 	}
 
+	firstNamePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnameFirstName)
+	if err != nil {
+		return nil, err
+	}
+	firstNameVal, ok := obj.PropertiesValues[firstNamePropID]
+	if ok {
+		if obj.Email, err = property.GetValueText(firstNameVal.Value); err != nil {
+			return nil, errors.Wrapf(err, "UserRepository.instantiate error. ")
+		}
+	}
+
+	lastNamePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnameLastName)
+	if err != nil {
+		return nil, err
+	}
+	lastNameVal, ok := obj.PropertiesValues[lastNamePropID]
+	if ok {
+		if obj.Email, err = property.GetValueText(lastNameVal.Value); err != nil {
+			return nil, errors.Wrapf(err, "UserRepository.instantiate error. ")
+		}
+	}
+
+	userNamePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnameUserName)
+	if err != nil {
+		return nil, err
+	}
+	userNameVal, ok := obj.PropertiesValues[userNamePropID]
+	if ok {
+		if obj.Email, err = property.GetValueText(userNameVal.Value); err != nil {
+			return nil, errors.Wrapf(err, "UserRepository.instantiate error. ")
+		}
+	}
+
 	phonePropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnamePhone)
 	if err != nil {
 		return nil, err
@@ -70,19 +103,6 @@ func (r *UserRepository) instantiate(ctx context.Context, entity *entity.Entity)
 		if obj.Phone, err = property.GetValueText(phoneVal.Value); err != nil {
 			return nil, errors.Wrapf(err, "UserRepository.instantiate error. ")
 		}
-	}
-
-	accountIDPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnameAccountID)
-	if err != nil {
-		return nil, err
-	}
-	accountIDVal, ok := obj.PropertiesValues[accountIDPropID]
-	if ok {
-		accountID, err := property.GetValueText(accountIDVal.Value)
-		if err != nil {
-			return nil, errors.Wrapf(err, "UserRepository.instantiate error. ")
-		}
-		obj.AccountID = accountID
 	}
 
 	createdAtPropID, err := obj.PropertyFinder.GetIDBySysname(ctx, user.PropertySysnameCreatedAt)
@@ -212,7 +232,22 @@ func (r *UserRepository) GetTgAccount(ctx context.Context, obj *user.User, langI
 	if !ok || len(relVal.Value) == 0 {
 		return nil, apperror.ErrNotFound
 	}
-	tgAccID := relVal.Value[0]
+	ID := relVal.Value[0]
 
-	return r.tgAccountRepository.Get(ctx, tgAccID, langID)
+	return r.tgAccountRepository.Get(ctx, ID, langID)
+}
+
+func (r *UserRepository) GetByTgAccount(ctx context.Context, obj *tg_account.TgAccount, langID uint) (*user.User, error) {
+	relID, err := r.GetPropertyFinder().GetIDBySysname(ctx, user.RelationSysnameTgAccount)
+	if err != nil {
+		return nil, err
+	}
+
+	relVal, ok := obj.RelationsValues[relID]
+	if !ok || len(relVal.Value) == 0 {
+		return nil, apperror.ErrNotFound
+	}
+	ID := relVal.Value[0]
+
+	return r.Get(ctx, ID, langID)
 }

@@ -19,7 +19,7 @@ import (
 )
 
 type dataTestController struct {
-	Logger              log.ILogger
+	Logger              log.Logger
 	user                user.IService
 	advertiser          advertiser.IService
 	advertisingCampaign advertising_campaign.IService
@@ -55,9 +55,10 @@ var propertyOpt2Val = 3
 var entityTypeID uint
 
 // RegisterHandlers sets up the routing of the HTTP handlers.
+//
 //	GET /api/models/ - список всех моделей
 //	GET /api/model/{ID} - детали модели
-func RegisterDataTestHandlers(r *routing.RouteGroup, logger log.ILogger, yaruzPlatform yarus_platform.IPlatform, user user.IService, advertiser advertiser.IService, advertisingCampaign advertising_campaign.IService, offer offer.IService) {
+func RegisterDataTestHandlers(r *routing.RouteGroup, logger log.Logger, yaruzPlatform yarus_platform.IPlatform, user user.IService, advertiser advertiser.IService, advertisingCampaign advertising_campaign.IService, offer offer.IService) {
 	c := dataTestController{
 		Logger:              logger,
 		yaruzPlatform:       yaruzPlatform,
@@ -456,8 +457,8 @@ func (c dataTestController) userInst(cntx *routing.Context) error {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = user.SetName(ctx, "Андрей", langRusID); err != nil {
-		res = append(res, map[string]interface{}{"user.SetName: ": err.Error()})
+	if err = user.SetFirstName(ctx, "Андрей", langRusID); err != nil {
+		res = append(res, map[string]interface{}{"user.SetFirstName: ": err.Error()})
 	}
 
 	if err = user.SetAge(ctx, 41); err != nil {
@@ -477,8 +478,8 @@ func (c dataTestController) userInst(cntx *routing.Context) error {
 		res = append(res, map[string]interface{}{"user.Get: ": err.Error()})
 	}
 
-	if err = user1.SetName(ctx, "Andrey", langEngID); err != nil {
-		res = append(res, map[string]interface{}{"user.SetName: ": err.Error()})
+	if err = user1.SetFirstName(ctx, "Andrey", langEngID); err != nil {
+		res = append(res, map[string]interface{}{"user.SetFirstName: ": err.Error()})
 	}
 
 	if err = user1.SetAge(ctx, 42); err != nil {
@@ -541,7 +542,7 @@ func (c dataTestController) userSearch(cntx *routing.Context) error {
 			res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 			break
 		}
-		if err = users[i].SetName(ctx, "Имя-"+strconv.Itoa(i), langRusID); err != nil {
+		if err = users[i].SetFirstName(ctx, "Имя-"+strconv.Itoa(i), langRusID); err != nil {
 			res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 			break
 		}
@@ -564,83 +565,83 @@ func (c dataTestController) userSearch(cntx *routing.Context) error {
 		//}
 	}
 
-	if err = users[0].SetName(ctx, users[0].Name+" У лукоморья дуб зеленый", langRusID); err != nil {
+	if err = users[0].SetFirstName(ctx, users[0].Name+" У лукоморья дуб зеленый", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[1].SetName(ctx, users[1].Name+" Златая цепь на дубе том", langRusID); err != nil {
+	if err = users[1].SetFirstName(ctx, users[1].Name+" Златая цепь на дубе том", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[2].SetName(ctx, users[2].Name+" И днем и ночью кот ученый", langRusID); err != nil {
+	if err = users[2].SetFirstName(ctx, users[2].Name+" И днем и ночью кот ученый", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[3].SetName(ctx, users[3].Name+" Всё ходит по цепи кругом", langRusID); err != nil {
+	if err = users[3].SetFirstName(ctx, users[3].Name+" Всё ходит по цепи кругом", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[4].SetName(ctx, users[4].Name+" Идет направо — песнь заводит", langRusID); err != nil {
+	if err = users[4].SetFirstName(ctx, users[4].Name+" Идет направо — песнь заводит", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[5].SetName(ctx, users[5].Name+" Идет налево — сказку говорит", langRusID); err != nil {
+	if err = users[5].SetFirstName(ctx, users[5].Name+" Идет налево — сказку говорит", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[6].SetName(ctx, users[6].Name+" Там чудеса: там леший бродит", langRusID); err != nil {
+	if err = users[6].SetFirstName(ctx, users[6].Name+" Там чудеса: там леший бродит", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[7].SetName(ctx, users[7].Name+" Русалка на ветвях идет", langRusID); err != nil {
+	if err = users[7].SetFirstName(ctx, users[7].Name+" Русалка на ветвях идет", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[8].SetName(ctx, users[8].Name+" Там на неведомых дорожках", langRusID); err != nil {
+	if err = users[8].SetFirstName(ctx, users[8].Name+" Там на неведомых дорожках", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[9].SetName(ctx, users[9].Name+" Следы невиданных зверей идут", langRusID); err != nil {
+	if err = users[9].SetFirstName(ctx, users[9].Name+" Следы невиданных зверей идут", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[10].SetName(ctx, users[10].Name+" Избушка там на курьих ножках", langRusID); err != nil {
+	if err = users[10].SetFirstName(ctx, users[10].Name+" Избушка там на курьих ножках", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[11].SetName(ctx, users[11].Name+" Стоит без окон, без дверей", langRusID); err != nil {
+	if err = users[11].SetFirstName(ctx, users[11].Name+" Стоит без окон, без дверей", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[12].SetName(ctx, users[12].Name+" Там лес и дол видений полны", langRusID); err != nil {
+	if err = users[12].SetFirstName(ctx, users[12].Name+" Там лес и дол видений полны", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[13].SetName(ctx, users[13].Name+" Там о заре прихлынут волны", langRusID); err != nil {
+	if err = users[13].SetFirstName(ctx, users[13].Name+" Там о заре прихлынут волны", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[14].SetName(ctx, users[14].Name+" На брег песчаный и пустой", langRusID); err != nil {
+	if err = users[14].SetFirstName(ctx, users[14].Name+" На брег песчаный и пустой", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[15].SetName(ctx, users[15].Name+" И тридцать витязей прекрасных", langRusID); err != nil {
+	if err = users[15].SetFirstName(ctx, users[15].Name+" И тридцать витязей прекрасных", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[16].SetName(ctx, users[16].Name+" Чредой из вод выходят ясных и идут", langRusID); err != nil {
+	if err = users[16].SetFirstName(ctx, users[16].Name+" Чредой из вод выходят ясных и идут", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[17].SetName(ctx, users[17].Name+" И с ними дядька их морской идет", langRusID); err != nil {
+	if err = users[17].SetFirstName(ctx, users[17].Name+" И с ними дядька их морской идет", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[18].SetName(ctx, users[18].Name+" Там королевич мимоходом", langRusID); err != nil {
+	if err = users[18].SetFirstName(ctx, users[18].Name+" Там королевич мимоходом", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 
-	if err = users[19].SetName(ctx, users[19].Name+" Пленяет грозного царя", langRusID); err != nil {
+	if err = users[19].SetFirstName(ctx, users[19].Name+" Пленяет грозного царя", langRusID); err != nil {
 		res = append(res, map[string]interface{}{"user.New: ": err.Error()})
 	}
 

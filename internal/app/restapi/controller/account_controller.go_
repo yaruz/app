@@ -14,12 +14,12 @@ import (
 
 type accountController struct {
 	RouteGroup *routing.RouteGroup
-	Logger     log.ILogger
+	Logger     log.Logger
 	User       user.IService
 	Auth       auth.Service
 }
 
-func NewAccountController(r *routing.RouteGroup, logger log.ILogger, authService auth.Service, userService user.IService) *accountController {
+func NewAccountController(r *routing.RouteGroup, logger log.Logger, authService auth.Service, userService user.IService) *accountController {
 	return &accountController{
 		RouteGroup: r,
 		Logger:     logger,

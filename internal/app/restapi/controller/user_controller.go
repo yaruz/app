@@ -12,12 +12,12 @@ import (
 )
 
 type userController struct {
-	Logger  log.ILogger
+	Logger  log.Logger
 	Service user.IService
 }
 
 // RegisterHandlers sets up the routing of the HTTP handlers.
-func RegisterUserHandlers(r *routing.RouteGroup, logger log.ILogger, service user.IService) {
+func RegisterUserHandlers(r *routing.RouteGroup, logger log.Logger, service user.IService) {
 	c := userController{
 		Logger:  logger,
 		Service: service,

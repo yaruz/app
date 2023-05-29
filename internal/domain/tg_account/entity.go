@@ -2,34 +2,49 @@ package tg_account
 
 import (
 	"context"
-	"encoding/json"
 	"time"
-
-	mtproto_session "github.com/Kalinin-Andrey/mtproto/session"
 
 	"github.com/yaruz/app/pkg/yarus_platform/data/domain/entity"
 )
 
 const (
 	EntityType                 = "TgAccount"
-	PropertySysnameTgID        = "TgAccount.TgID"
-	PropertySysnameAuthSession = "TgAccount.AuthSession"
-	PropertySysnameCreatedAt   = "TgAccount.CreatedAt"
+	PropertySysname_UserID     = "TgAccount.UserID"
+	PropertySysname_AccessHash = "TgAccount.AccessHash"
+	PropertySysname_FirstName  = "TgAccount.FirstName"
+	PropertySysname_LastName   = "TgAccount.LastName"
+	PropertySysname_UserName   = "TgAccount.UserName"
+	PropertySysname_Phone      = "TgAccount.Phone"
+	PropertySysname_Photo      = "TgAccount.Photo"
+	PropertySysname_LangCode   = "TgAccount.LangCode"
+	PropertySysname_CreatedAt  = "TgAccount.CreatedAt"
 )
 
 var validPropertySysnames = []string{
-	PropertySysnameTgID,
-	PropertySysnameAuthSession,
-	PropertySysnameCreatedAt,
+	PropertySysname_UserID,
+	PropertySysname_AccessHash,
+	PropertySysname_FirstName,
+	PropertySysname_LastName,
+	PropertySysname_UserName,
+	PropertySysname_Phone,
+	PropertySysname_Photo,
+	PropertySysname_LangCode,
+	PropertySysname_CreatedAt,
 }
 
 // TgAccount is the TgAccount entity
 type TgAccount struct {
 	*entity.Entity
-	ID          uint
-	TgID        string
-	AuthSession *mtproto_session.Session
-	CreatedAt   time.Time `json:"created"`
+	ID         uint
+	UserID     int // в gotd/td это поле int64, но ярус поддерживает только int
+	AccessHash int // в gotd/td это поле int64, но ярус поддерживает только int
+	FirstName  string
+	LastName   string
+	UserName   string
+	Phone      string
+	Photo      string
+	LangCode   string
+	CreatedAt  time.Time
 }
 
 var _ entity.Searchable = (*TgAccount)(nil)
@@ -48,14 +63,20 @@ func (e *TgAccount) GetValidPropertySysnames() []string {
 
 func (e *TgAccount) GetMapNameSysname() map[string]string {
 	return map[string]string{
-		"TgID":        PropertySysnameTgID,
-		"AuthSession": PropertySysnameAuthSession,
-		"CreatedAt":   PropertySysnameCreatedAt,
+		"UserID":     PropertySysname_UserID,
+		"AccessHash": PropertySysname_AccessHash,
+		"FirstName":  PropertySysname_FirstName,
+		"LastName":   PropertySysname_LastName,
+		"UserName":   PropertySysname_UserName,
+		"Phone":      PropertySysname_Phone,
+		"Photo":      PropertySysname_Photo,
+		"LangCode":   PropertySysname_LangCode,
+		"CreatedAt":  PropertySysname_CreatedAt,
 	}
 }
 
-func (e *TgAccount) SetTgID(ctx context.Context, value string) error {
-	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameTgID, 0)
+func (e *TgAccount) SetUserID(ctx context.Context, value int) error {
+	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysname_UserID, 0)
 	if err != nil {
 		return err
 	}
@@ -64,31 +85,110 @@ func (e *TgAccount) SetTgID(ctx context.Context, value string) error {
 		return err
 	}
 
-	e.TgID = value
+	e.UserID = value
 	return nil
 }
 
-func (e *TgAccount) SetAuthSession(ctx context.Context, authSession *mtproto_session.Session) error {
-	valueb, err := json.Marshal(*authSession)
+func (e *TgAccount) SetAccessHash(ctx context.Context, value int) error {
+	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysname_AccessHash, 0)
 	if err != nil {
 		return err
 	}
 
-	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameAuthSession, 0)
+	if err = e.Entity.SetValueForProperty(prop, value, 0); err != nil {
+		return err
+	}
+
+	e.AccessHash = value
+	return nil
+}
+
+func (e *TgAccount) SetFirstName(ctx context.Context, value string) error {
+	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysname_FirstName, 0)
 	if err != nil {
 		return err
 	}
 
-	if err = e.Entity.SetValueForProperty(prop, string(valueb), 0); err != nil {
+	if err = e.Entity.SetValueForProperty(prop, value, 0); err != nil {
 		return err
 	}
 
-	e.AuthSession = authSession
+	e.FirstName = value
+	return nil
+}
+
+func (e *TgAccount) SetLastName(ctx context.Context, value string) error {
+	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysname_LastName, 0)
+	if err != nil {
+		return err
+	}
+
+	if err = e.Entity.SetValueForProperty(prop, value, 0); err != nil {
+		return err
+	}
+
+	e.LastName = value
+	return nil
+}
+
+func (e *TgAccount) SetUserName(ctx context.Context, value string) error {
+	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysname_UserName, 0)
+	if err != nil {
+		return err
+	}
+
+	if err = e.Entity.SetValueForProperty(prop, value, 0); err != nil {
+		return err
+	}
+
+	e.UserName = value
+	return nil
+}
+
+func (e *TgAccount) SetPhone(ctx context.Context, value string) error {
+	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysname_Phone, 0)
+	if err != nil {
+		return err
+	}
+
+	if err = e.Entity.SetValueForProperty(prop, value, 0); err != nil {
+		return err
+	}
+
+	e.Phone = value
+	return nil
+}
+
+func (e *TgAccount) SetPhoto(ctx context.Context, value string) error {
+	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysname_Photo, 0)
+	if err != nil {
+		return err
+	}
+
+	if err = e.Entity.SetValueForProperty(prop, value, 0); err != nil {
+		return err
+	}
+
+	e.Photo = value
+	return nil
+}
+
+func (e *TgAccount) SetLangCode(ctx context.Context, value string) error {
+	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysname_LangCode, 0)
+	if err != nil {
+		return err
+	}
+
+	if err = e.Entity.SetValueForProperty(prop, value, 0); err != nil {
+		return err
+	}
+
+	e.LangCode = value
 	return nil
 }
 
 func (e *TgAccount) SetCreatedAt(ctx context.Context, value time.Time) error {
-	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysnameCreatedAt, 0)
+	prop, err := e.PropertyFinder.GetBySysname(ctx, PropertySysname_CreatedAt, 0)
 	if err != nil {
 		return err
 	}

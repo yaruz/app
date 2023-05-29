@@ -49,13 +49,6 @@ entitytypes:
       rus:
         name: "пользователь"
     properties:
-      - sysname: "User.AccountID"
-        propertytype: "utext"
-        texts:
-          eng:
-            name: "account ID"
-          rus:
-            name: "ID аккаунта"
       - sysname: "User.Email"
         propertytype: "utext"
         texts:
@@ -67,9 +60,30 @@ entitytypes:
         propertytype: "utext"
         texts:
           eng:
-            name: "email"
+            name: "phone"
           rus:
-            name: "email"
+            name: "телефон"
+      - sysname: "User.FirstName"
+        propertytype: "utext"
+        texts:
+          eng:
+            name: "name"
+          rus:
+            name: "имя"
+      - sysname: "User.LastName"
+        propertytype: "utext"
+        texts:
+          eng:
+            name: "last name"
+          rus:
+            name: "фамилия"
+      - sysname: "User.UserName"
+        propertytype: "utext"
+        texts:
+          eng:
+            name: "nickname"
+          rus:
+            name: "ник"
       - sysname: "User.CreatedAt"
         propertytype: "time"
         texts:
@@ -84,20 +98,62 @@ entitytypes:
       rus:
         name: "аккаунт в Телеграм"
     properties:
-      - sysname: "TgAccount.TgID"
+      - sysname: "TgAccount.UserID"
+        propertytype: "int"
+        texts:
+          eng:
+            name: "telegram user ID"
+          rus:
+            name: "идентификатор пользователя в Телеграм"
+      - sysname: "TgAccount.AccessHash"
+        propertytype: "int"
+        texts:
+          eng:
+            name: "access hash"
+          rus:
+            name: "hash доступа"
+      - sysname: "TgAccount.FirstName"
         propertytype: "utext"
         texts:
           eng:
-            name: "telegram account ID"
+            name: "first name"
           rus:
-            name: "идентификатор аккаунта в Телеграм"
-      - sysname: "TgAccount.AuthSession"
+            name: "имя"
+      - sysname: "TgAccount.LastName"
         propertytype: "utext"
         texts:
           eng:
-            name: "telegram auth session"
+            name: "last name"
           rus:
-            name: "сессия аутентификации аккаунта Телеграм"
+            name: "фамилия"
+      - sysname: "TgAccount.UserName"
+        propertytype: "utext"
+        texts:
+          eng:
+            name: "user name"
+          rus:
+            name: "ник"
+      - sysname: "TgAccount.Phone"
+        propertytype: "utext"
+        texts:
+          eng:
+            name: "phone"
+          rus:
+            name: "телефон"
+      - sysname: "TgAccount.Photo"
+        propertytype: "utext"
+        texts:
+          eng:
+            name: "photo"
+          rus:
+            name: "фото"
+      - sysname: "TgAccount.LangCode"
+        propertytype: "utext"
+        texts:
+          eng:
+            name: "code of lang"
+          rus:
+            name: "код языка"
       - sysname: "TgAccount.CreatedAt"
         propertytype: "time"
         texts:
@@ -105,62 +161,62 @@ entitytypes:
             name: "date of creation"
           rus:
             name: "дата создания"
-  - sysname: "Advertiser"
-    texts:
-      eng:
-        name: "advertiser"
-      rus:
-        name: "рекламодатель"
-    properties:
-      - sysname: "Advertiser.Name"
-        propertytype: "text"
-        texts:
-          eng:
-            name: "name"
-          rus:
-            name: "имя"
-  - sysname: "AdvertisingCampaign"
-    texts:
-      eng:
-        name: "advertising campaign"
-      rus:
-        name: "рекламная кампания"
-    properties:
-      - sysname: "AdvertisingCampaign.Name"
-        propertytype: "text"
-        texts:
-          eng:
-            name: "name"
-          rus:
-            name: "имя"
-  - sysname: "Offer"
-    texts:
-      eng:
-        name: "offer"
-      rus:
-        name: "предложение"
-    properties:
-      - sysname: "Offer.CreatedAt"
-        propertytype: "time"
-        texts:
-          eng:
-            name: "date of creation"
-          rus:
-            name: "дата создания"
-      - sysname: "Offer.StartedAt"
-        propertytype: "time"
-        texts:
-          eng:
-            name: "date of start"
-          rus:
-            name: "дата начала"
-      - sysname: "Offer.FinishedAt"
-        propertytype: "time"
-        texts:
-          eng:
-            name: "date of finish"
-          rus:
-            name: "дата завершения"
+#  - sysname: "Advertiser"
+#    texts:
+#      eng:
+#        name: "advertiser"
+#      rus:
+#        name: "рекламодатель"
+#    properties:
+#      - sysname: "Advertiser.Name"
+#        propertytype: "text"
+#        texts:
+#          eng:
+#            name: "name"
+#          rus:
+#            name: "имя"
+#  - sysname: "AdvertisingCampaign"
+#    texts:
+#      eng:
+#        name: "advertising campaign"
+#      rus:
+#        name: "рекламная кампания"
+#    properties:
+#      - sysname: "AdvertisingCampaign.Name"
+#        propertytype: "text"
+#        texts:
+#          eng:
+#            name: "name"
+#          rus:
+#            name: "имя"
+#  - sysname: "Offer"
+#    texts:
+#      eng:
+#        name: "offer"
+#      rus:
+#        name: "предложение"
+#    properties:
+#      - sysname: "Offer.CreatedAt"
+#        propertytype: "time"
+#        texts:
+#          eng:
+#            name: "date of creation"
+#          rus:
+#            name: "дата создания"
+#      - sysname: "Offer.StartedAt"
+#        propertytype: "time"
+#        texts:
+#          eng:
+#            name: "date of start"
+#          rus:
+#            name: "дата начала"
+#      - sysname: "Offer.FinishedAt"
+#        propertytype: "time"
+#        texts:
+#          eng:
+#            name: "date of finish"
+#          rus:
+#            name: "дата завершения"
 
 relations:
   - sysname: "User.TgAccount"
@@ -171,19 +227,19 @@ relations:
         name: "телеграм аккаунт"
     UndependedEntityType: "TgAccount"
     DependedEntityType: "User"
-  - sysname: "Advertiser.AdvertisingCampaigns"
-    texts:
-      eng:
-        name: "advertising campaigns"
-      rus:
-        name: "рекламные кампании"
-    UndependedEntityType: "AdvertisingCampaign"
-    DependedEntityType: "Advertiser"
-  - sysname: "AdvertisingCampaign.Offers"
-    texts:
-      eng:
-        name: "offers"
-      rus:
-        name: "предложения"
-    UndependedEntityType: "Offer"
-    DependedEntityType: "AdvertisingCampaign"
+#  - sysname: "Advertiser.AdvertisingCampaigns"
+#    texts:
+#      eng:
+#        name: "advertising campaigns"
+#      rus:
+#        name: "рекламные кампании"
+#    UndependedEntityType: "AdvertisingCampaign"
+#    DependedEntityType: "Advertiser"
+#  - sysname: "AdvertisingCampaign.Offers"
+#    texts:
+#      eng:
+#        name: "offers"
+#      rus:
+#        name: "предложения"
+#    UndependedEntityType: "Offer"
+#    DependedEntityType: "AdvertisingCampaign"

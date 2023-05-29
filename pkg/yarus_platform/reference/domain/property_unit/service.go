@@ -42,7 +42,7 @@ type IService interface {
 }
 
 type service struct {
-	logger     log.ILogger
+	logger     log.Logger
 	repository Repository
 	langFinder text_lang.LangFinder
 }
@@ -50,7 +50,7 @@ type service struct {
 var _ IService = (*service)(nil)
 
 // NewService creates a new service.
-func NewService(logger log.ILogger, repo Repository, langFinder text_lang.LangFinder) IService {
+func NewService(logger log.Logger, repo Repository, langFinder text_lang.LangFinder) IService {
 	s := &service{
 		logger:     logger,
 		repository: repo,

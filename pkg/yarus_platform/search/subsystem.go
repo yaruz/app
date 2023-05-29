@@ -21,6 +21,6 @@ func (d *SearchSubsystem) setupRepositories(infra *infrastructure.Infrastructure
 	return nil
 }
 
-func (d *SearchSubsystem) setupServices(logger log.ILogger) {
+func (d *SearchSubsystem) setupServices(logger log.Logger) {
 
 }

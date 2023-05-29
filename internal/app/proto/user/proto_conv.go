@@ -1,39 +1,42 @@
 package user
 
 import (
-	"google.golang.org/protobuf/types/known/timestamppb"
-
 	"github.com/yaruz/app/internal/domain/user"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func UserProto2User(userProto *User) (u *user.User, err error) {
+func UserProto2User(userProto *User) (u *user.User) {
 	if userProto == nil {
-		return nil, nil
+		return nil
 	}
 
 	u = &user.User{
 		ID:        uint(userProto.ID),
-		AccountID: userProto.AccountID,
 		Email:     userProto.Email,
 		Phone:     userProto.Phone,
+		FirstName: userProto.FirstName,
+		LastName:  userProto.LastName,
+		UserName:  userProto.UserName,
 	}
 	if userProto.CreatedAt != nil && userProto.CreatedAt.IsValid() {
 		u.CreatedAt = userProto.CreatedAt.AsTime()
 	}
-	return u, nil
+	return u
 }
 
-func User2UserProto(user *user.User) (up *User, err error) {
+func User2UserProto(user *user.User) (up *User) {
 	if user == nil {
-		return nil, nil
+		return nil
 	}
 
 	up = &User{
 		ID:        uint64(user.ID),
-		AccountID: user.AccountID,
 		Email:     user.Email,
 		Phone:     user.Phone,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		UserName:  user.UserName,
 		CreatedAt: timestamppb.New(user.CreatedAt),
 	}
-	return up, nil
+	return up
 }

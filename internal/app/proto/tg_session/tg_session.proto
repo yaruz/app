@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+// cd ..
+//protoc --proto_path=. --go_out=. --go_opt=paths=source_relative tg_session/*.proto
+
+package tg_session;
+//option go_package = ".;tg_session";
+option go_package = "github.com/yaruz/app/internal/app/proto/tg_session";
+
+
+message TgSession {
+  bool  IsAuthorized               = 1;
+  bytes  Session                   = 2;
+  string  ID                       = 3;
+  string  Phone                    = 4;
+  string  PhoneCodeHash            = 5;
+}
+

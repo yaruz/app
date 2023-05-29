@@ -16,14 +16,15 @@ import (
 )
 
 type referenceTestController struct {
-	Logger        log.ILogger
+	Logger        log.Logger
 	yaruzPlatform yarus_platform.IPlatform
 }
 
 // RegisterHandlers sets up the routing of the HTTP handlers.
+//
 //	GET /api/models/ - список всех моделей
 //	GET /api/model/{ID} - детали модели
-func RegisterReferenceTestHandlers(r *routing.RouteGroup, logger log.ILogger, yaruzPlatform yarus_platform.IPlatform) {
+func RegisterReferenceTestHandlers(r *routing.RouteGroup, logger log.Logger, yaruzPlatform yarus_platform.IPlatform) {
 	c := referenceTestController{
 		Logger:        logger,
 		yaruzPlatform: yaruzPlatform,

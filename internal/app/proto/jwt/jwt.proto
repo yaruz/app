@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+// cd ..
+//protoc --proto_path=. --go_out=. --go_opt=paths=source_relative jwt/*.proto
+
+package jwt;
+//option go_package = ".;tg_account";
+option go_package = "github.com/yaruz/app/internal/app/proto/jwt";
+
+import "google/protobuf/timestamp.proto";
+import "user/user.proto";
+
+
+message Claims {
+  RegisteredClaims  RegisteredClaims  = 1;
+  TokenData         TokenData         = 2;
+  string            AccessToken       = 3;
+}
+
+message RegisteredClaims {
+  string            ID                = 1;
+  string            Issuer            = 2;
+  string            Subject           = 3;
+  repeated string   Audience          = 4;
+  google.protobuf.Timestamp ExpiresAt = 5;
+  google.protobuf.Timestamp NotBefore = 6;
+  google.protobuf.Timestamp IssuedAt  = 7;
+}
+
+message TokenData {
+  string            SessionID         = 1;
+  user.User         User              = 2;
+}

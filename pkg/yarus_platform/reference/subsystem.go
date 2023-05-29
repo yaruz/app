@@ -69,9 +69,9 @@ func NewReferenceSubsystem(infra *infrastructure.Infrastructure, cfg *config.Con
 	}
 	s.setupServices(infra.Logger)
 
-	if err := s.autoMigrate(infra.ReferenceDB); err != nil {
-		return nil, err
-	}
+	//if err := s.autoMigrate(infra.ReferenceDB); err != nil {
+	//	return nil, err
+	//}
 
 	if err := s.dbDataInit(cfg.Metadata); err != nil {
 		return nil, err
@@ -225,7 +225,7 @@ func (s *ReferenceSubsystem) setupRepositories(infra *infrastructure.Infrastruct
 	return nil
 }
 
-func (s *ReferenceSubsystem) setupServices(logger log.ILogger) {
+func (s *ReferenceSubsystem) setupServices(logger log.Logger) {
 	s.TextLang = text_lang.NewService(logger, s.textLangRepository)
 	s.TextSource = text_source.NewService(logger, s.textSourceRepository)
 	s.TextValue = text_value.NewService(logger, s.textValueRepository)

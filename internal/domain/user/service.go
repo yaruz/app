@@ -16,7 +16,7 @@ import (
 type IService interface {
 	New(ctx context.Context) (*User, error)
 	Get(ctx context.Context, id uint, langID uint) (*User, error)
-	GetByAccountID(ctx context.Context, accountId string, langID uint) (*User, error)
+	//GetByAccountID(ctx context.Context, accountId string, langID uint) (*User, error)
 	Query(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) ([]User, error)
 	First(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (*User, error)
 	Count(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) (uint, error)
@@ -25,18 +25,19 @@ type IService interface {
 	Delete(ctx context.Context, id uint) error
 	AccountSettingsValidate(ctx context.Context, accountSettings *account.AccountSettings) error
 	GetTgAccount(ctx context.Context, obj *User, langID uint) (*tg_account.TgAccount, error)
+	GetByTgAccount(ctx context.Context, obj *tg_account.TgAccount, langID uint) (*User, error)
 }
 
 type service struct {
 	//Domain     Domain
-	logger     log.ILogger
+	logger     log.Logger
 	repository Repository
 }
 
 var _ IService = (*service)(nil)
 
 // NewService creates a new service.
-func NewService(logger log.ILogger, repo Repository) IService {
+func NewService(logger log.Logger, repo Repository) IService {
 	s := &service{
 		logger:     logger,
 		repository: repo,
@@ -63,7 +64,7 @@ func (s *service) Get(ctx context.Context, id uint, langID uint) (*User, error) 
 	return entity, nil
 }
 
-func (s *service) GetByAccountID(ctx context.Context, accountId string, langID uint) (*User, error) {
+/*func (s *service) GetByAccountID(ctx context.Context, accountId string, langID uint) (*User, error) {
 	return s.First(ctx, &selection_condition.SelectionCondition{
 		Where: selection_condition.WhereCondition{
 			Field:     PropertySysnameAccountID,
@@ -71,7 +72,7 @@ func (s *service) GetByAccountID(ctx context.Context, accountId string, langID u
 			Value:     accountId,
 		},
 	}, langID)
-}
+}*/
 
 // Query returns the items with the specified offset and limit.
 func (s *service) Query(ctx context.Context, condition *selection_condition.SelectionCondition, langID uint) ([]User, error) {
@@ -115,4 +116,8 @@ func (s *service) AccountSettingsValidate(ctx context.Context, accountSettings *
 
 func (s *service) GetTgAccount(ctx context.Context, obj *User, langID uint) (*tg_account.TgAccount, error) {
 	return s.repository.GetTgAccount(ctx, obj, langID)
+}
+
+func (s *service) GetByTgAccount(ctx context.Context, obj *tg_account.TgAccount, langID uint) (*User, error) {
+	return s.repository.GetByTgAccount(ctx, obj, langID)
 }

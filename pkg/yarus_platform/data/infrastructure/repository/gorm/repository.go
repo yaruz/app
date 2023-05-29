@@ -22,7 +22,7 @@ type IRepository interface{}
 // repository persists albums in database
 type repository struct {
 	mapReducer IMapReducer
-	logger     log.ILogger
+	logger     log.Logger
 	Conditions *selection_condition.SelectionCondition
 	model      interface{}
 }
@@ -30,7 +30,7 @@ type repository struct {
 const DefaultLimit = 1000
 
 // GetRepository return a repository
-func GetRepository(logger log.ILogger, mapReducer IMapReducer, entityName string, langFinder entity.LangFinder) (repo IRepository, err error) {
+func GetRepository(logger log.Logger, mapReducer IMapReducer, entityName string, langFinder entity.LangFinder) (repo IRepository, err error) {
 	r := &repository{
 		logger:     logger,
 		mapReducer: mapReducer,
@@ -72,7 +72,7 @@ func GetRepository(logger log.ILogger, mapReducer IMapReducer, entityName string
 	return repo, err
 }
 
-func (r *repository) getValueRepositories(logger log.ILogger, mapReducer IMapReducer, langFinder entity.LangFinder) (*entity.ValueRepositories, error) {
+func (r *repository) getValueRepositories(logger log.Logger, mapReducer IMapReducer, langFinder entity.LangFinder) (*entity.ValueRepositories, error) {
 	boolValueRepo, err := GetRepository(logger, mapReducer, bool_value.EntityName, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Can not get db repository for entity %q, error happened: %v", bool_value.EntityName, err)

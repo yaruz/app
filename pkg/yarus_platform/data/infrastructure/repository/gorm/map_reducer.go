@@ -15,7 +15,7 @@ import (
 )
 
 type MapReducer struct {
-	logger           log.ILogger
+	logger           log.Logger
 	sharding         infrastructure.Sharding
 	model            entity.Entity
 	entityTypeFinder entity.EntityTypeFinder
@@ -23,7 +23,7 @@ type MapReducer struct {
 
 var _ IMapReducer = (*MapReducer)(nil)
 
-func NewMapReducer(logger log.ILogger, entityTypeFinder entity.EntityTypeFinder, sharding infrastructure.Sharding) *MapReducer {
+func NewMapReducer(logger log.Logger, entityTypeFinder entity.EntityTypeFinder, sharding infrastructure.Sharding) *MapReducer {
 	return &MapReducer{
 		logger:           logger,
 		entityTypeFinder: entityTypeFinder,

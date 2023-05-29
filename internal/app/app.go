@@ -5,25 +5,21 @@ import (
 	golog "log"
 
 	"github.com/pkg/errors"
-
-	minipkg_gorm "github.com/minipkg/db/gorm"
-	"github.com/minipkg/db/redis"
-	"github.com/minipkg/log"
-
-	"github.com/yaruz/app/pkg/yarus_platform"
+	redisrepo "github.com/yaruz/app/internal/infrastructure/repository/redis"
 
 	"github.com/yaruz/app/internal/pkg/apperror"
 	"github.com/yaruz/app/internal/pkg/auth"
 	"github.com/yaruz/app/internal/pkg/config"
+	"github.com/yaruz/app/internal/pkg/jwt"
+	"github.com/yaruz/app/internal/pkg/session"
 	"github.com/yaruz/app/internal/pkg/socnets/tg"
 
 	"github.com/yaruz/app/internal/domain/advertiser"
 	"github.com/yaruz/app/internal/domain/advertising_campaign"
 	"github.com/yaruz/app/internal/domain/offer"
-	"github.com/yaruz/app/internal/domain/session"
 	"github.com/yaruz/app/internal/domain/tg_account"
 	"github.com/yaruz/app/internal/domain/user"
-	redisrepo "github.com/yaruz/app/internal/infrastructure/repository/redis"
+	"github.com/yaruz/app/internal/infrastructure"
 	"github.com/yaruz/app/internal/infrastructure/repository/yaruzplatform"
 )
 
@@ -32,18 +28,11 @@ type App struct {
 	Cfg    config.Configuration
 	Domain Domain
 	Auth   Auth
-	Infra  *Infrastructure
-}
-
-type Infrastructure struct {
-	Logger          log.ILogger
-	IdentityDB      minipkg_gorm.IDB
-	Redis           redis.IDB
-	YaruzRepository yarus_platform.IPlatform
+	Infra  *infrastructure.Infrastructure
 }
 
 type Auth struct {
-	//SessionRepository auth.SessionRepository
+	//sessionRepository auth.sessionRepository
 	//TokenRepository   auth.TokenRepository
 	//Service           auth.Service
 }
@@ -53,8 +42,9 @@ type Domain struct {
 	User                          user.IService
 	userRepository                user.Repository
 	Auth                          auth.Service
-	SessionRepository             session.Repository
-	Tg                            tg.IService
+	sessionRepository             session.Repository
+	jwtRepository                 auth.TokenRepository
+	Tg                            tg.Service
 	TgAccount                     tg_account.IService
 	tgAccountRepository           tg_account.Repository
 	Advertiser                    advertiser.IService
@@ -67,12 +57,7 @@ type Domain struct {
 
 // New func is a constructor for the App
 func New(ctx context.Context, cfg config.Configuration) *App {
-	logger, err := log.New(cfg.Log)
-	if err != nil {
-		golog.Fatal(err)
-	}
-
-	infra, err := NewInfra(ctx, logger, cfg)
+	infra, err := infrastructure.New(ctx, &cfg.Infrastructure, &cfg.YaruzMetadata)
 	if err != nil {
 		golog.Fatal(err)
 	}
@@ -89,29 +74,6 @@ func New(ctx context.Context, cfg config.Configuration) *App {
 
 	return app
 }
-func NewInfra(ctx context.Context, logger log.ILogger, cfg config.Configuration) (*Infrastructure, error) {
-	IdentityDB, err := minipkg_gorm.New(logger, cfg.DB.Identity)
-	if err != nil {
-		return nil, err
-	}
-
-	rDB, err := redis.New(cfg.DB.Redis)
-	if err != nil {
-		return nil, err
-	}
-
-	yaruzRepository, err := yarus_platform.NewPlatform(ctx, cfg.YaruzConfig())
-	if err != nil {
-		return nil, err
-	}
-
-	return &Infrastructure{
-		Logger:          logger,
-		IdentityDB:      IdentityDB,
-		Redis:           rDB,
-		YaruzRepository: yaruzRepository,
-	}, nil
-}
 
 func (app *App) Init(ctx context.Context) (err error) {
 	if err := app.SetupRepositories(); err != nil {
@@ -123,8 +85,9 @@ func (app *App) Init(ctx context.Context) (err error) {
 
 func (app *App) SetupRepositories() (err error) {
 	var ok bool
+	app.Domain.jwtRepository = jwt.NewRepository(app.Cfg.Auth.JWTSigningKey, app.Cfg.Auth.JWTExpirationInHours)
 
-	app.Domain.SessionRepository, err = redisrepo.NewSessionRepository(app.Infra.Redis, app.Cfg.Auth.SessionlifeTime)
+	app.Domain.sessionRepository, err = redisrepo.NewSessionRepository(app.Infra.Redis, app.Cfg.Auth.SessionlifeTimeInHours)
 	if err != nil {
 		golog.Fatalf("Can not get session repository, error happened: %v", err)
 	}
@@ -179,8 +142,8 @@ func (app *App) SetupRepositories() (err error) {
 		return errors.Errorf("Can not cast yaruz repository for entity %q to %vRepository. Repo: %v", offer.EntityType, offer.EntityType, offerRepo)
 	}
 
-	//if app.Auth.SessionRepository, err = redisrep.NewSessionRepository(app.Infra.Redis, app.Cfg.SessionLifeTime, app.Domain.User.Repository); err != nil {
-	//	return errors.Errorf("Can not get new SessionRepository err: %v", err)
+	//if app.Auth.sessionRepository, err = redisrep.NewSessionRepository(app.Infra.Redis, app.Cfg.SessionLifeTime, app.Domain.User.Repository); err != nil {
+	//	return errors.Errorf("Can not get new sessionRepository err: %v", err)
 	//}
 	//app.Auth.TokenRepository = jwt.NewRepository()
 
@@ -192,15 +155,16 @@ func (app *App) SetupRepositories() (err error) {
 func (app *App) SetupServices(ctx context.Context) error {
 	var err error
 	app.Domain.User = user.NewService(app.Infra.Logger, app.Domain.userRepository)
-	app.Domain.Auth, err = auth.NewService(ctx, app.Infra.Logger, app.Cfg.Auth, app.Domain.User, app.Domain.SessionRepository, app.Infra.YaruzRepository.ReferenceSubsystem().TextLang)
+	app.Domain.Auth, err = auth.NewService(ctx, app.Infra.Logger, app.Cfg.Auth, app.Domain.jwtRepository, app.Domain.sessionRepository, app.Domain.User, app.Infra.YaruzRepository.ReferenceSubsystem().TextLang)
 	if err != nil {
 		return err
 	}
-	app.Domain.Tg = tg.NewService(app.Infra.Logger, &app.Cfg.Socnets.Telegram, app.Infra.Redis, app.Domain.Auth, app.Domain.SessionRepository, app.Domain.tgAccountRepository)
 	app.Domain.TgAccount = tg_account.NewService(app.Infra.Logger, app.Domain.tgAccountRepository)
 	app.Domain.Advertiser = advertiser.NewService(app.Infra.Logger, app.Domain.advertiserRepository)
 	app.Domain.AdvertisingCampaign = advertising_campaign.NewService(app.Infra.Logger, app.Domain.advertisingCampaignRepository)
 	app.Domain.Offer = offer.NewService(app.Infra.Logger, app.Domain.offerRepository)
+
+	app.Domain.Tg = tg.New(app.Cfg.Socnets.Telegram, app.Infra.Logger, redisrepo.NewTgSessionRepository(app.Infra.Redis))
 
 	return nil
 }
@@ -212,14 +176,11 @@ func (app *App) Run() error {
 
 func (app *App) Stop() error {
 	errRedis := app.Infra.Redis.Close()
-	errDB01 := app.Infra.IdentityDB.Close()
-	errDB02 := app.Infra.YaruzRepository.Stop()
+	err := app.Infra.YaruzRepository.Stop()
 
 	switch {
-	case errDB01 != nil:
-		return errors.Wrapf(apperror.ErrInternal, "db close error: %v", errDB01)
-	case errDB02 != nil:
-		return errors.Wrapf(apperror.ErrInternal, "yarus repository close error: %v", errDB02)
+	case err != nil:
+		return errors.Wrapf(apperror.ErrInternal, "yarus repository close error: %v", err)
 	case errRedis != nil:
 		return errors.Wrapf(apperror.ErrInternal, "redis close error: %v", errRedis)
 	}

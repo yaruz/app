@@ -1,89 +1,100 @@
 package jwt
 
 import (
-	"github.com/dgrijalva/jwt-go"
+	"github.com/yaruz/app/internal/domain/user"
+	"strconv"
+	"time"
+
 	"github.com/pkg/errors"
 
-	"strconv"
-
+	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/yaruz/app/internal/pkg/apperror"
-	"github.com/yaruz/app/internal/pkg/auth"
 )
 
-type Repository struct {
-}
-
 type Token struct {
-	Data   auth.TokenData
-	claims claims
+	signingKey string
+	claims     Claims
 }
 
-type claims struct {
-	jwt.StandardClaims
-	auth.TokenData
+func (t Token) GenerateStringToken() (string, error) {
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, t.claims).SignedString([]byte(t.signingKey))
 }
 
-var _ auth.TokenRepository = (*Repository)(nil)
-var _ auth.Token = (*Token)(nil)
-
-func NewRepository() *Repository {
-	return &Repository{}
+func (t Token) GetData() *TokenData {
+	return t.claims.TokenData
 }
 
-func (r Repository) NewTokenByData(data auth.TokenData) auth.Token {
-	return &Token{
-		Data: data,
-		claims: claims{
+func (t Token) GetClaims() *Claims {
+	return &t.claims
+}
+
+type Claims struct {
+	*jwt.RegisteredClaims
+	*TokenData
+	AccessToken string
+}
+
+type TokenData struct {
+	SessionID string
+	User      *user.User
+}
+
+type Repository struct {
+	signingKey        string
+	expirationInHours uint
+}
+
+func NewRepository(signingKey string, expirationInHours uint) *Repository {
+	return &Repository{
+		signingKey:        signingKey,
+		expirationInHours: expirationInHours,
+	}
+}
+
+func (r Repository) NewTokenWithData(data *TokenData) (*Token, error) {
+	var err error
+	token := &Token{
+		signingKey: r.signingKey,
+		claims: Claims{
 			TokenData: data,
-			StandardClaims: jwt.StandardClaims{
-				Subject:   strconv.Itoa(int(data.UserID)),
-				ExpiresAt: data.ExpirationTokenTime.Unix(),
+			RegisteredClaims: &jwt.RegisteredClaims{
+				Subject: strconv.Itoa(int(data.User.ID)),
+				ExpiresAt: &jwt.NumericDate{
+					time.Now().Add(time.Hour * time.Duration(r.expirationInHours)).UTC(),
+				},
 			},
 		},
 	}
+	token.claims.AccessToken, err = token.GenerateStringToken()
+	return token, err
 }
 
-func (r Repository) ParseStringToken(tokenString string, signingKey string) (auth.Token, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &claims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(signingKey), nil
+func (r Repository) ParseStringToken(accessToken string) (*Token, error) {
+	token, err := jwt.ParseWithClaims(accessToken, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(r.signingKey), nil
 	})
 	if err != nil {
-		return nil, errors.Wrapf(apperror.ErrBadRequest, "Text.ParseToken error: %v", err)
+		return nil, errors.Wrapf(apperror.ErrInvalidToken, "Text.ParseToken error: %v", err)
 	}
 
-	claims, ok := token.Claims.(*claims)
+	claims, ok := token.Claims.(*Claims)
 	if !ok {
-		return nil, errors.Wrapf(apperror.ErrBadRequest, "Text.ParseToken error.")
+		return nil, errors.Wrapf(apperror.ErrInvalidToken, "Text.ParseToken error.")
 	}
+	claims.AccessToken = accessToken
 
 	if !token.Valid {
 		return nil, apperror.ErrTokenHasExpired
 	}
 
 	return &Token{
-		claims: *claims,
-		Data: auth.TokenData{
-			UserID:              claims.UserID,
-			UserName:            claims.UserName,
-			ExpirationTokenTime: claims.ExpirationTokenTime,
-		},
+		claims:     *claims,
+		signingKey: r.signingKey,
 	}, nil
 }
 
-func (t Token) GenerateStringToken(signingKey string) (string, error) {
-	return jwt.NewWithClaims(jwt.SigningMethodHS256, t.claims).SignedString([]byte(signingKey))
-}
-
-func (t Token) GetData() auth.TokenData {
-	return t.Data
-}
-
-func (t Token) Valid() error {
-	return t.claims.Valid()
-}
-
 //  generates a JWT that encodes an identity.
-/*func (r SessionRepository) generateJWT(user *user.User) (string, error) {
+/*func (r sessionRepository) generateJWT(user *user.User) (string, error) {
 	return jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":   user.ID,
 		"name": user.Name,

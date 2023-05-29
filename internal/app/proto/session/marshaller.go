@@ -1,13 +1,11 @@
 package session
 
-import "github.com/yaruz/app/internal/domain/session"
+import (
+	"github.com/yaruz/app/internal/pkg/session"
+)
 
 func MarshalBinary(e *session.Session) ([]byte, error) {
-	sessionProto, err := Session2SessionProto(e)
-	if err != nil {
-		return nil, err
-	}
-	return sessionProto.MarshalBinary()
+	return Session2SessionProto(e).MarshalBinary()
 }
 
 func UnmarshalBinary(data []byte) (*session.Session, error) {
@@ -18,5 +16,5 @@ func UnmarshalBinary(data []byte) (*session.Session, error) {
 		return nil, err
 	}
 
-	return SessionProto2Session(sessionProto)
+	return SessionProto2Session(sessionProto), nil
 }
