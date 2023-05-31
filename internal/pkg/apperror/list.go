@@ -1,7 +1,7 @@
 package apperror
 
 import (
-	"github.com/pkg/errors"
+	"errors"
 )
 
 // ErrNotFound is error for case when entity not found

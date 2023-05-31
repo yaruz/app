@@ -41,7 +41,7 @@ func (r *TgSessionRepository) Get(ctx context.Context, ID string) (*tg.Session, 
 
 	if err != nil {
 		if err == goredis.Nil {
-			return nil, apperror.ErrNotFound
+			return nil, tg.ErrNotFound
 		}
 		return nil, fmt.Errorf("[%w] Get() error: %s", apperror.ErrInternal, err.Error())
 	}

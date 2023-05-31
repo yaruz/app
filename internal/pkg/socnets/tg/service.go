@@ -8,7 +8,6 @@ import (
 	"github.com/gotd/td/telegram/auth"
 	"github.com/gotd/td/tg"
 	"github.com/minipkg/log"
-	"github.com/yaruz/app/internal/pkg/apperror"
 )
 
 type Service interface {
@@ -72,7 +71,7 @@ func (s *service) IsAuth(ctx context.Context, sessionID string) (bool, error) {
 		return nil
 	})
 	if err != nil {
-		return false, fmt.Errorf("[%w] get tg Status error: %s", apperror.ErrInternal, err.Error())
+		return false, fmt.Errorf("[%w] get tg Status error: %s", ErrInternal, err.Error())
 	}
 	return status.Authorized, nil
 }
@@ -88,14 +87,14 @@ func (s *service) SendCode(ctx context.Context, sessionID string, phone string) 
 	return client.Run(ctx, func(ctx context.Context) error {
 		sentCode, err := client.Auth().SendCode(ctx, phone, auth.SendCodeOptions{})
 		if err != nil {
-			return fmt.Errorf("[%w] SendCode error: %s", apperror.ErrInternal, err.Error())
+			return fmt.Errorf("[%w] SendCode error: %s", ErrInternal, err.Error())
 		}
 
 		switch sc := sentCode.(type) {
 		case *tg.AuthSentCode:
 			sess.PhoneCodeHash = sc.PhoneCodeHash
 			if err = s.sessionRepository.Set(ctx, sess); err != nil {
-				return fmt.Errorf("[%w] sessionRepository.Set error: %s", apperror.ErrInternal, err.Error())
+				return fmt.Errorf("[%w] SessionRepository.Set error: %s", ErrInternal, err.Error())
 			}
 		case *tg.AuthSentCodeSuccess:
 			switch a := sc.Authorization.(type) {
@@ -104,11 +103,12 @@ func (s *service) SendCode(ctx context.Context, sessionID string, phone string) 
 				return nil
 			case *tg.AuthAuthorizationSignUpRequired:
 				// SignUpRequired error
+				return ErrSignUpRequired
 			default:
-				return fmt.Errorf("unexpected authorization type: %T", a)
+				return fmt.Errorf("[%w] Unexpected authorization type: %T", ErrInternal, a)
 			}
 		default:
-			return fmt.Errorf("unexpected sent code type: %T", sentCode)
+			return fmt.Errorf("[%w] Unexpected sent code type: %T", ErrInternal, sentCode)
 		}
 		return nil
 	})
@@ -123,25 +123,26 @@ func (s *service) SignIn(ctx context.Context, sessionID string, code string, pas
 	}
 
 	if sess.Phone == "" {
-		return nil, fmt.Errorf("[%w] tg session phone is empty", apperror.ErrBadRequest)
+		return nil, fmt.Errorf("[%w] Tg session phone is empty", ErrBadRequest)
 	}
 	if sess.PhoneCodeHash == "" {
-		return nil, fmt.Errorf("[%w] tg session phone code hash is empty", apperror.ErrBadRequest)
+		return nil, fmt.Errorf("[%w] Tg session phone code hash is empty", ErrBadRequest)
 	}
 
 	err = client.Run(ctx, func(ctx context.Context) error {
 		tgAuth, err := client.Auth().SignIn(ctx, sess.Phone, code, sess.PhoneCodeHash)
 		if err != nil {
 			if !errors.Is(err, auth.ErrPasswordAuthNeeded) {
-				return fmt.Errorf("[%w] tg SignIn error: %s", apperror.ErrInternal, err.Error())
+				return fmt.Errorf("[%w] Tg SignIn error: %s", ErrBadParams, err.Error())
 			}
 
 			if password == "" {
 				// ошибка ErrPasswordAuthNeeded
+				return ErrPasswordAuthNeeded
 			}
 
 			if tgAuth, err = client.Auth().Password(ctx, password); err != nil {
-				return fmt.Errorf("[%w] tg SignIn with password error: %s", apperror.ErrInternal, err.Error())
+				return fmt.Errorf("[%w] Tg SignIn with password error: %s", ErrBadParams, err.Error())
 			}
 		}
 
@@ -149,11 +150,12 @@ func (s *service) SignIn(ctx context.Context, sessionID string, code string, pas
 		switch obj := u.(type) {
 		case *tg.UserEmpty:
 			// ошибка UserEmpty
+			return ErrUserEmpty
 		case *tg.User:
 			user = obj
 			return nil
 		default:
-			return fmt.Errorf("[%w] type casting tg user error: %s", apperror.ErrInternal, err.Error())
+			return fmt.Errorf("[%w] type casting tg user error: %s", ErrInternal, err.Error())
 		}
 		return nil
 	})
@@ -163,7 +165,7 @@ func (s *service) SignIn(ctx context.Context, sessionID string, code string, pas
 func (s *service) getSession(ctx context.Context, sessionID string) (*Session, error) {
 	sess, err := s.sessionRepository.Get(ctx, sessionID)
 	if err != nil {
-		if !errors.Is(err, apperror.ErrNotFound) {
+		if !errors.Is(err, ErrNotFound) {
 			return nil, err
 		}
 		sess = NewSession(sessionID)
